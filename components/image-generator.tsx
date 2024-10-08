@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { ImageIcon, Loader2, Settings, Share2, Download, AlertCircle, Check, Trash2, Shuffle } from "lucide-react"
+import { ImageIcon, Loader2, Settings, Share2, Download, AlertCircle, Check, Trash2, Shuffle, Trash, CheckCircle, Flag, ArrowDownToLine, Share } from "lucide-react"
 import { Command, CommandGroup, CommandItem } from "@/components/ui/command"
 import { motion, AnimatePresence } from "framer-motion"
+import { generatePopArtImage } from '@/ai/generate-image';
 
 const suggestions = [
   "A serene landscape with mountains and a lake",
@@ -16,24 +17,26 @@ const suggestions = [
 ]
 
 const randomPrompts = [
-  "A steampunk-inspired flying machine in the clouds",
-  "A magical library with books floating in the air",
-  "An underwater city with bioluminescent creatures",
-  "A cyberpunk street scene with neon signs and hovering vehicles",
-  "A surreal landscape with impossible geometry",
-  "A cozy cabin in a snowy forest at twilight",
-  "A futuristic space station orbiting a distant planet",
-  "An ancient temple hidden in a dense jungle",
-  "A whimsical tea party with anthropomorphic animals",
-  "A post-apocalyptic cityscape reclaimed by nature",
+  "A pop art comic book image in SPELL style of a woman standing alone in a dimly lit room, tears streaming down her face as she clutches a broken mirror. Speech bubble: 'How did it all go wrong?'",
+  "A pop art comic book image in SPELL style of a man and woman in a heated argument, the man turning away in anger while the woman shouts, 'You never listened!' Their broken relationship is the focus.",
+  "A pop art comic book image in SPELL style of a young woman staring out a rainy window, her reflection distorted by tears. Speech bubble: 'It’s always the same, isn’t it?' Sadness and despair fill the scene.",
+  "A dark pop art comic book image in SPELL style of a man kneeling on the floor, holding his head in his hands, overwhelmed by his own thoughts. Speech bubble: 'I can’t take this anymore!'",
+  "A pop art comic book image in SPELL style of two young lovers saying goodbye at a train station, the train’s shadow casting a line between them. Speech bubble: 'Goodbye forever.' Their faces are filled with regret.",
+  "A pop art comic book image in SPELL style of a woman crying while applying lipstick in a broken compact mirror. Speech bubble: 'I have to smile through this, don’t I?' Despair is hidden under vibrant colors.",
+  "A pop art comic book image in SPELL style of a man shouting in frustration, smashing his fist against a wall. Speech bubble: 'It’s all falling apart!' His anger contrasts with the bold, exaggerated lines.",
+  "A pop art comic book image in SPELL style of a woman walking away from a shattered phone, tears running down her face. Speech bubble: 'I should have known you’d never call.' Broken pieces symbolize her emotional breakdown.",
+  "A pop art comic book image in SPELL style of a woman standing in the rain, soaked and looking up at the sky. Speech bubble: 'Not again, not you.' Her face reflects anger and deep sorrow.",
+  "A pop art comic book image in SPELL style of a couple, their backs turned to each other in a dark room filled with broken glass. Speech bubble from the woman: 'We were never meant to last, were we?' Both characters are lost in their own despair.",
 ]
 
-export function ImageGeneratorComponent() {
+const defaultImage = 'https://replicate.delivery/yhqm/4zciqh7pLvodJpk0f3Vz6Wh86qzRX1ChIWr3NcUe3jXb4mkTA/out-0.jpg'
+
+export function ImageGenerator() {
   const [prompt, setPrompt] = useState("")
-  const [imageUrl, setImageUrl] = useState<string | null>(null)
+  const [imageUrl, setImageUrl] = useState<string | null>(defaultImage)
+  const [showSuggestions, setShowSuggestions] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [showSuggestions, setShowSuggestions] = useState(false)
   const commandRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -53,22 +56,12 @@ export function ImageGeneratorComponent() {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
-    setImageUrl(null)
+    // setImageUrl(null)
 
     try {
-      // This is a placeholder for the actual image generation API call
-      const response = await fetch("/api/generate-image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to generate image")
-      }
-
-      const data = await response.json()
-      setImageUrl(data.imageUrl)
+      const output = await generatePopArtImage(prompt)
+      console.log(JSON.stringify(output, null, 2))
+      setImageUrl(output[0])
     } catch (err) {
       setError("An error occurred while generating the image.")
       console.error(err)
@@ -149,9 +142,9 @@ export function ImageGeneratorComponent() {
             </div>
           )}
         </div>
-        <Button 
-          type="submit" 
-          className="w-full" 
+        <Button
+          type="submit"
+          className="w-full"
           disabled={isLoading || !prompt.trim()}
         >
           {isLoading ? (
@@ -167,36 +160,39 @@ export function ImageGeneratorComponent() {
 
 function ImageActions() {
   const actions = [
-    { icon: Settings, label: "Tweak it", color: "text-primary" },
-    { icon: Share2, label: "Share", color: "text-primary" },
-    { icon: Download, label: "Download", color: "text-primary" },
-    { icon: AlertCircle, label: "Report", color: "text-primary" },
-    { icon: Check, label: "Added", color: "text-green-500" },
-    { icon: Trash2, label: "Delete", color: "text-red-500" },
+    { icon: Settings, label: "Tweak it" },
+    { icon: Share, label: "Share" },
+    { icon: ArrowDownToLine, label: "Download" },
+    { icon: Flag, label: "Report" },
+    { icon: CheckCircle, label: "Added" },
+    { icon: Trash, label: "Delete" },
   ]
 
   return (
     <AnimatePresence>
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 20 }}
+        exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.3 }}
-        className="absolute bottom-4 left-4 right-4 flex flex-wrap justify-center gap-2 bg-black/50 p-2 rounded-lg"
+        className="absolute top-4 left-4 right-4 flex flex-wrap justify-center gap-2"
       >
         {actions.map((action, index) => (
-          <motion.button
+          <motion.div
             key={action.label}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: index * 0.1 }}
-            className={`flex items-center space-x-1 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-colors ${action.color}`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
           >
-            <action.icon className="w-4 h-4" />
-            <span className="text-sm font-medium">{action.label}</span>
-          </motion.button>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="flex items-center space-x-1"
+            >
+              <action.icon className="w-4 h-4" />
+              <span className="text-sm font-medium">{action.label}</span>
+            </Button>
+          </motion.div>
         ))}
       </motion.div>
     </AnimatePresence>
