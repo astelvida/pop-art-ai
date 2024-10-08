@@ -5,11 +5,10 @@ import * as schema from "@/db/schema";
 import { db } from "@/db/drizzle";
 import { auth } from "@clerk/nextjs/server";
 import { uploadFromUrl } from "./file.actions";
-import { Story } from "@/types/Story";
 
 const { story, chapter } = schema;
 
-export async function createStory(storyData: Story) {
+export async function createStory(storyData) {
   const { userId } = auth();
   if (!userId) throw new Error("User not authorized");
 

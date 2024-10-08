@@ -1,6 +1,5 @@
 "use server";
 
-import { Story } from "@/lib/utils";
 import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod.mjs";
 import { z } from "zod";
@@ -42,7 +41,7 @@ export async function generateStory(formData: FormData) {
   });
 
   const parsedCompletion = completion.choices[0].message.parsed;
-  return parsedCompletion as Story;
+  return parsedCompletion
 }
 
 export async function generateImage(
@@ -83,8 +82,7 @@ export const generateImageWithData = async (prompt, chapter, index) => {
 export async function generateImagesForChapters({ title, chapters }): Promise<string[]> {
   const imagePromises = chapters.map((chapter, index) =>
     generateImageWithData(
-      `Create an image for the #${index + 1} chapter titled "${
-        chapter.title
+      `Create an image for the #${index + 1} chapter titled "${chapter.title
       }". The chapter is about: ${chapter.content}`,
       chapter,
       index
