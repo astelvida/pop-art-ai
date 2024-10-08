@@ -29,10 +29,28 @@ export async function generatePopArtImage(prompt: string) {
     }
   })
 
-  console.log(JSON.stringify(output, null, 2))
+
+  const result = JSON.stringify(output[0])
+  console.log('CEVA', JSON.stringify(output[0]))
+  console.dir(output[0])
+  console.log(typeof output[0])
   console.log('Done!')
-  return output
+  return result
 }
+
+
+
+const suggestions = []
+
+
+async function generateImages() {
+  for (const suggestion of suggestions) {
+    const output = await generatePopArtImage(suggestion)
+    console.log(JSON.stringify({ suggestion, output }, null, 2))
+  }
+}
+
+// generateImages()
 
 // const prompts = ['pop art comic book image of donaldtrump and melania, tears, drama, and speech bubbles with nothing but the words "what the fuck"']
 // const consumerismRebellion = 'A pop art-style image inspired by Roy Lichtenstein, showcasing a shopping cart overflowing with luxury items like designer handbags, jewelry, and electronics. The central figure, a person with exaggerated features and a pained expression, pushes the cart through a chaotic, neon-colored cityscape. Comic-book speech bubbles scream "BUY!" and "MORE!" in bold text, satirizing the relentless pursuit of consumerism. The bright colors and dotted shading create a vibrant, commercialized nightmare.'

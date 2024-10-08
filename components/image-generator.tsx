@@ -7,18 +7,18 @@ import { ImageIcon, Loader2, Settings, Share2, Download, AlertCircle, Check, Tra
 import { Command, CommandGroup, CommandItem } from "@/components/ui/command"
 import { motion, AnimatePresence } from "framer-motion"
 import { generatePopArtImage } from '@/ai/generate-image';
-
+import { saveAiImage } from '@/actions/queries'
 const suggestions = [
-  "A serene landscape with mountains and a lake",
-  "A futuristic cityscape at night",
-  "A cute cartoon character in a whimsical forest",
-  "An abstract painting with vibrant colors",
-  "A realistic portrait of a historical figure",
+  "SPELL, a woman cries silently in a crowded room, feeling completely invisible. She whispers, 'Can anyone see me?'",
+  "SPELL, a man gazes at his shattered reflection in the mirror, his face twisted in anger. He exclaims, 'This isn't who I am!'",
+  "SPELL, a persson wanders through a never-ending labyrinth, desperately searching for an escape. They murmur, 'Will I ever escape this maze?'",
+  "SPELL, a couple stands beneath a stormy sky, arguing intensely. She screams, 'You never listened!'",
+  "SPELL, a character rips apart a photograph with a bitter smile, their voice dripping with sarcasm as they say, 'Happily ever after—what a joke!'"
 ]
 
 const randomPrompts = [
   "A pop art comic book image in SPELL style of a woman standing alone in a dimly lit room, tears streaming down her face as she clutches a broken mirror. Speech bubble: 'How did it all go wrong?'",
-  "A pop art comic book image in SPELL style of a man and woman in a heated argument, the man turning away in anger while the woman shouts, 'You never listened!' Their broken relationship is the focus.",
+  "A pop art comic book image in SPELL tyle of a man and woman in a heated argument, the man turning away in anger while the woman shouts, 'You never listened!' Their broken relationship is the focus.",
   "A pop art comic book image in SPELL style of a young woman staring out a rainy window, her reflection distorted by tears. Speech bubble: 'It’s always the same, isn’t it?' Sadness and despair fill the scene.",
   "A dark pop art comic book image in SPELL style of a man kneeling on the floor, holding his head in his hands, overwhelmed by his own thoughts. Speech bubble: 'I can’t take this anymore!'",
   "A pop art comic book image in SPELL style of two young lovers saying goodbye at a train station, the train’s shadow casting a line between them. Speech bubble: 'Goodbye forever.' Their faces are filled with regret.",
@@ -33,11 +33,26 @@ const defaultImage = 'https://replicate.delivery/yhqm/4zciqh7pLvodJpk0f3Vz6Wh86q
 
 export function ImageGenerator() {
   const [prompt, setPrompt] = useState("")
-  const [imageUrl, setImageUrl] = useState<string | null>(defaultImage)
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const commandRef = useRef<HTMLDivElement>(null)
+
+
+  useEffect(() => {
+    console.log('imageUrl', imageUrl)
+  })
+
+  function downloadFile(url: string) {
+    const link = document.createElement('a');
+    link.href = '';
+    link.download = url;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -56,12 +71,12 @@ export function ImageGenerator() {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
-    // setImageUrl(null)
+    setImageUrl(null)
 
     try {
       const output = await generatePopArtImage(prompt)
       console.log(JSON.stringify(output, null, 2))
-      setImageUrl(output[0])
+      setImageUrl(output)
     } catch (err) {
       setError("An error occurred while generating the image.")
       console.error(err)
@@ -97,7 +112,7 @@ export function ImageGenerator() {
               alt="Generated image"
               className="w-full h-full object-cover"
             />
-            <ImageActions />
+            <ImageActions imageUrl={imageUrl} prompt={prompt} />
           </>
         ) : (
           <EmptyState error={error} />
@@ -154,22 +169,45 @@ export function ImageGenerator() {
           )}
         </Button>
       </form>
+      <div>
+        <Button onClick={function () { downloadFile(imageUrl); }}>Download File</Button>
+        <Button onClick={() => saveAiImage({ url: imageUrl, prompt })}>Save File</Button>
+      </div>
+
     </div>
   )
 }
 
-function ImageActions() {
+function ImageActions({ imageUrl, prompt }: { imageUrl: string, prompt: string }) {
   const actions = [
     { icon: Settings, label: "Tweak it" },
     { icon: Share, label: "Share" },
-    { icon: ArrowDownToLine, label: "Download" },
+    { icon: ArrowDownToLine, label: "Download", download: true },
     { icon: Flag, label: "Report" },
     { icon: CheckCircle, label: "Added" },
     { icon: Trash, label: "Delete" },
-  ]
+  ];
+
+  function downloadFile(url) {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = '';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+
+  return (
+    <div>
+      <Button onClick={() => downloadFile(imageUrl)}>Download File</Button>
+      <Button onClick={() => saveAiImage({ url: imageUrl, prompt })}>Save File</Button>
+    </div>
+  )
 
   return (
     <AnimatePresence>
+
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -188,6 +226,9 @@ function ImageActions() {
               variant="secondary"
               size="sm"
               className="flex items-center space-x-1"
+              as={action.download ? 'a' : 'button'}
+              href={action.download ? imageUrl : undefined}
+              download={action.download ? 'generated-image.jpg' : undefined}
             >
               <action.icon className="w-4 h-4" />
               <span className="text-sm font-medium">{action.label}</span>
@@ -196,7 +237,7 @@ function ImageActions() {
         ))}
       </motion.div>
     </AnimatePresence>
-  )
+  );
 }
 
 function SkeletonLoader() {
@@ -220,3 +261,5 @@ function EmptyState({ error }: { error: string | null }) {
     </div>
   )
 }
+
+

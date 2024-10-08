@@ -12,9 +12,9 @@ import { InferInsertModel, InferSelectModel, relations } from "drizzle-orm";
 export const aiImage = pgTable("aiImage", {
   id: serial("id").primaryKey(),
   userId: varchar("userId", { length: 255 }).notNull(),
-  model: varchar("model").notNull(),
   url: varchar("url", { length: 2083 }).notNull(), // Max URL length
   prompt: text("prompt").notNull(),
+  model: varchar("model"),
   title: text("title"),
   description: text("description"),
   isFavorite: boolean("isFavorite").default(false),
