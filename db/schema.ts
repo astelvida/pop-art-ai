@@ -9,11 +9,14 @@ import { InferInsertModel, InferSelectModel, relations } from "drizzle-orm";
 //  */
 // export const createTable = pgTableCreator((name) => `nuvela_${name}`);
 
-export const story = pgTable("story", {
+export const aiImage = pgTable("aiImage", {
   id: serial("id").primaryKey(),
-  title: text("title").notNull(),
   userId: varchar("userId", { length: 255 }).notNull(),
-  narrationUrl: varchar("narrationUrl", { length: 2083 }), // Max URL length
+  model: varchar("model").notNull(),
+  url: varchar("url", { length: 2083 }).notNull(), // Max URL length
+  prompt: text("prompt").notNull(),
+  title: text("title"),
+  description: text("description"),
   isFavorite: boolean("isFavorite").default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
@@ -21,27 +24,7 @@ export const story = pgTable("story", {
     .$onUpdate(() => new Date()),
 });
 
-export const storyRelations = relations(story, ({ many }) => ({
-  chapter: many(chapter),
-}));
 
-export const chapter = pgTable("chapter", {
-  id: serial("id").primaryKey(),
-  storyId: integer("storyId")
-    .notNull()
-    .references(() => story.id, { onDelete: "cascade" }),
-  num: integer("num").notNull(),
-  title: varchar("title", { length: 255 }).notNull(),
-  content: text("content").notNull(),
-  imageUrl: varchar("imageUrl", { length: 2083 }).notNull(), // Max URL length
-});
+export type AiImageInsertModel = InferInsertModel<typeof aiImage>;
+export type AiImageSelectModel = InferSelectModel<typeof aiImage>;
 
-export const chapterRelations = relations(chapter, ({ one }) => ({
-  story: one(story, { fields: [chapter.storyId], references: [story.id] }),
-}));
-
-export type StoryModel = InferInsertModel<typeof story>;
-export type ChapterModel = InferInsertModel<typeof chapter>;
-
-export type StorySelect = InferSelectModel<typeof story>;
-export type ChapterSelect = InferSelectModel<typeof chapter>;
