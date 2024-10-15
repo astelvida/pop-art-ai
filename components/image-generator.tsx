@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ImageIcon, Loader2, Shuffle } from "lucide-react"
 import { Command, CommandGroup, CommandItem } from "@/components/ui/command"
-import { generatePopArtImage } from '@/ai/ai-services';
+import { generatePopArtImage } from '@/actions/ai-services';
 import { ImageActions } from './ImageActions'
 import { SkeletonLoader } from './SkeletonLoader'
 import { EmptyState } from './EmptyState'
