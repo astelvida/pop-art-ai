@@ -1,14 +1,16 @@
+// "server-only";
+
 "use server";
-import { eq, not } from "drizzle-orm";
+import { eq, not, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import * as schema from "@/db/schema";
 import { db } from "@/db/drizzle";
-// import { auth } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { uploadFromUrl } from "./file.actions";
 
-function auth() {
-  return { userId: "sevda677377" }
-}
+// function auth() {
+//   return { userId: "sevda677377" }
+// }
 
 const { aiImage } = schema;
 
@@ -44,16 +46,22 @@ export async function saveAiImage(aiImageData: AiImageData) {
     .returning();
 
   console.log('SUCCESS')
+  revalidatePath('/')
   return insertedAiImage;
 }
 
-export const getStories = async () => {
-  const stories = await db.query.story.findMany({
-    with: {
-      chapter: true,
-    },
-  });
-  return stories;
+export const getAiImages = async () => {
+  const { userId } = auth();
+  if (!userId) throw new Error("User not authorized");
+
+  // const aiImages = await db.query.aiImage.findMany({
+  //   where: (model, { eq }) => eq(model.userId, userId),
+  // });
+
+  const aiImages = await db.select().from(aiImage).where(eq(aiImage.userId, userId)).orderBy(desc(aiImage.createdAt));
+  console.log({ aiImages })
+  // revalidatePath('/')
+  return aiImages;
 };
 
 // export const getUserStories = async () => {
@@ -64,20 +72,23 @@ export const getStories = async () => {
 //   return stories;
 // };
 
-// export const deleteStory = async (storyId: number) => {
-//   await db.delete(story).where(eq(story.id, storyId));
-//   console.log(`DELETE STORY - "${storyId}"}`);
-//   revalidatePath("/stories");
-// };
+export const deleteAiImage = async (aiImageId: number) => {
+  const { userId } = auth();
+  if (!userId) throw new Error("User not authorized");
 
-// export async function toggleFavoriteStory(storyId: number, isFavorite: boolean | null) {
-//   const { userId } = auth();
-//   if (!userId) throw new Error("User not authorized");
+  await db.delete(aiImage).where(eq(aiImage.id, aiImageId));
+  console.log(`DELETE AI IMAGE - "${aiImageId}"}`);
+  revalidatePath("/");
+};
 
-//   await db.update(story).set({ isFavorite: !isFavorite }).where(eq(story.id, storyId));
+export async function toggleFavoriteAiImage(aiImageId: number, isFavorite: boolean | null) {
+  const { userId } = auth();
+  if (!userId) throw new Error("User not authorized");
 
-//   revalidatePath("/");
-// }
+  await db.update(aiImage).set({ isFavorite: !isFavorite }).where(eq(aiImage.id, aiImageId));
+
+  revalidatePath("/");
+}
 
 // export async function getFavoriteStories() {
 //   const user = auth();
@@ -85,6 +96,70 @@ export const getStories = async () => {
 
 //   return db.query.story.findMany({
 //     where: (model, { eq, and }) => and(eq(model.userId, user.userId), eq(model.isFavorite, true)),
+//     orderBy: (model, { desc }) => desc(model.createdAt),
+//   });
+// }
+// "server-only";
+
+// import { auth } from "@clerk/nextjs/server";
+// import { db } from "../db/index";
+// import { images } from "./schema";
+// import { eq } from "drizzle-orm";
+// import { redirect } from "next/navigation";
+// import { revalidatePath } from "next/cache";
+
+// export const getImages = (filter = "") => {
+//   const user = auth();
+//   if (!user.userId) throw new Error("User not authorized");
+
+//   return db.query.images.findMany({
+//     where: (model, { eq }) => eq(model.userId, user.userId),
+//     orderBy: (model, { desc }) => desc(model.createdAt),
+//   });
+// };
+
+// export const getImage = async (id: number) => {
+//   const user = auth();
+//   if (!user.userId) throw new Error("User not authorized");
+
+//   const image = await db.query.images.findFirst({
+//     where: (model, { eq }) => eq(model.id, id),
+//   });
+
+//   if (!image) {
+//     throw new Error("Image not found");
+//   }
+//   if (image.userId !== user.userId) throw new Error("User not authorized");
+//   return image;
+// };
+
+// export async function deleteImage(id: number) {
+//   const user = auth();
+//   if (!user.userId) throw new Error("User not authorized");
+
+//   await db.delete(images).where(eq(images.id, id));
+//   redirect("/");
+// }
+
+// export async function toggleFavorite(id: number, isFavorite: boolean | null) {
+//   const user = auth();
+//   if (!user.userId) throw new Error("User not authorized");
+
+//   await db
+//     .update(images)
+//     .set({ isFavorite: !isFavorite })
+//     .where(eq(images.id, id));
+
+//   revalidatePath("/");
+// }
+
+// export async function getFavorites() {
+//   const user = auth();
+//   if (!user.userId) throw new Error("User not authorized");
+
+//   return db.query.images.findMany({
+//     where: (model, { eq, and }) =>
+//       and(eq(model.userId, user.userId), eq(model.isFavorite, true)),
 //     orderBy: (model, { desc }) => desc(model.createdAt),
 //   });
 // }

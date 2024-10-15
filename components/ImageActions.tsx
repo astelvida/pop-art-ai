@@ -1,12 +1,12 @@
-import { useState } from 'react'
+// import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Settings, Share, ArrowDownToLine, CheckCircle, Trash, Loader2 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { saveAiImage } from '@/actions/queries'
 
 export function ImageActions({ imageUrl, prompt }: { imageUrl: string, prompt: string }) {
-  const [isSaving, setIsSaving] = useState(false)
-  const [isSaved, setIsSaved] = useState(false)
+  // const [isSaving, setIsSaving] = useState(false)
+  // const [isSaved, setIsSaved] = useState(false)
 
   function downloadFile(url: string) {
     const link = document.createElement('a');
@@ -18,14 +18,14 @@ export function ImageActions({ imageUrl, prompt }: { imageUrl: string, prompt: s
   }
 
   async function handleSave() {
-    setIsSaving(true)
+    // setIsSaving(true)
     try {
       await saveAiImage({ url: imageUrl, prompt })
-      setIsSaved(true)
+      // setIsSaved(true)
     } catch (error) {
       console.error('Failed to save image:', error)
     } finally {
-      setIsSaving(false)
+      // setIsSaving(false)
     }
   }
 
@@ -91,9 +91,10 @@ export function ImageActions({ imageUrl, prompt }: { imageUrl: string, prompt: s
             size="sm"
             className="flex items-center space-x-1"
             onClick={handleSave}
-            disabled={isSaving || isSaved}
+          // disabled={isSaving || isSaved}
           >
-            {isSaving ? (
+            <span className="text-sm font-medium">Save</span>
+            {/* {isSaving ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : isSaved ? (
               <CheckCircle className="w-4 h-4 text-green-500" />
@@ -102,7 +103,7 @@ export function ImageActions({ imageUrl, prompt }: { imageUrl: string, prompt: s
             )}
             <span className="text-sm font-medium">
               {isSaving ? 'Saving...' : isSaved ? 'Saved' : 'Save'}
-            </span>
+            </span> */}
           </Button>
         </motion.div>
         <motion.div

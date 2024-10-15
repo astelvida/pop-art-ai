@@ -9,7 +9,9 @@ import { generatePopArtImage } from '@/actions/ai-services';
 import { ImageActions } from './ImageActions'
 import { SkeletonLoader } from './SkeletonLoader'
 import { EmptyState } from './EmptyState'
-
+import ImageGrid from './ImageGrid'
+// import { saveAiImage } from "@/actions/queries"
+import Image from "next/image"
 const suggestions = [
   "SMA, a woman cries silently in a crowded room, feeling completely invisible. She whispers, 'Can anyone see me?'",
   "SMA, a man gazes at his shattered reflection in the mirror, his face twisted in anger. He exclaims, 'This isn't who I am!'",
@@ -40,7 +42,8 @@ export function ImageGenerator() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const commandRef = useRef<HTMLDivElement>(null)
-
+  // const [generatedImages, setGeneratedImages] = useState<string[]>([])
+  //     setGeneratedImages(prevImages => [...prevImages, output])
 
   useEffect(() => {
     console.log('imageUrl', imageUrl)
@@ -79,6 +82,9 @@ export function ImageGenerator() {
       const output = await generatePopArtImage(prompt)
       console.log(JSON.stringify(output, null, 2))
       setImageUrl(output)
+      // saveAiImage({ url: output, prompt })
+      // Add the new image to the generatedImages array
+      // setGeneratedImages(prevImages => [...prevImages, output])
     } catch (err) {
       setError("An error occurred while generating the image.")
       console.error(err)
@@ -102,24 +108,22 @@ export function ImageGenerator() {
     setPrompt(randomPrompt)
   }
 
+  const handleDelete = (index: number) => {
+    // setGeneratedImages(prevImages => prevImages.filter((_, i) => i !== index))
+  }
+
+  const handleSave = (index: number) => {
+    // Implement save functionality
+    console.log(`Saving image at index ${index}`)
+  }
+
+  const handleLike = (index: number) => {
+    // Implement like functionality
+    console.log(`Liking image at index ${index}`)
+  }
+
   return (
     <div className="max-w-2xl mx-auto p-4 space-y-4">
-      <div className="aspect-video w-full border rounded-lg overflow-hidden bg-muted relative">
-        {isLoading ? (
-          <SkeletonLoader />
-        ) : imageUrl ? (
-          <>
-            <img
-              src={imageUrl}
-              alt="Generated image"
-              className="w-full h-full object-cover"
-            />
-            {/* <ImageActions imageUrl={imageUrl} prompt={prompt} /> */}
-          </>
-        ) : (
-          <EmptyState error={error} />
-        )}
-      </div>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="relative">
           <Textarea
@@ -171,9 +175,22 @@ export function ImageGenerator() {
           )}
         </Button>
       </form>
-
+      <div className="aspect-square w-[300px] h-[300px] border rounded-lg overflow-hidden bg-muted relative">
+        {isLoading ? (
+          <SkeletonLoader />
+        ) : imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt="Generated image"
+            width={300}
+            height={300}
+          // className="w-full h-full object-cover"
+          />
+        ) : (
+          <EmptyState error={error} />
+        )}
+      </div>
       {imageUrl && <ImageActions imageUrl={imageUrl} prompt={prompt} />}
-
     </div>
   )
 }
