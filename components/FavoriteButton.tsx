@@ -11,13 +11,13 @@ export function FavoriteButton({ image }) {
     >
       <button
         type="submit"
-        className="absolute right-2 top-2 rounded-full bg-white bg-opacity-75 p-2 shadow-sm transition-colors duration-300 focus:opacity-100 focus:outline-none group-hover:opacity-100"
+        className="rounded-full bg-white bg-opacity-75 p-2 shadow-sm transition-colors duration-300 hover:bg-opacity-100 focus:outline-none"
         aria-label={
           image.isFavorite ? "Remove from favorites" : "Add to favorites"
         }
       >
         <Heart
-          className={`h-6 w-6 ${image.isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"
+          className={`h-5 w-5 ${image.isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"
             }`}
         />
       </button>
