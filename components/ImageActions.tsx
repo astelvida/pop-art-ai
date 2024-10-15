@@ -17,6 +17,24 @@ export function ImageActions({ imageUrl, prompt }: { imageUrl: string, prompt: s
     document.body.removeChild(link);
   }
 
+  const handleDownload = async (url: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = 'pop-art-image.png';
+      document.body.appendChild(link);
+      link.click;
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Error downloading image:', error);
+    }
+  }
+
+
   async function handleSave() {
     // setIsSaving(true)
     try {
@@ -75,7 +93,7 @@ export function ImageActions({ imageUrl, prompt }: { imageUrl: string, prompt: s
             variant="secondary"
             size="sm"
             className="flex items-center space-x-1"
-            onClick={() => downloadFile(imageUrl)}
+            onClick={() => handleDownload(imageUrl)}
           >
             <ArrowDownToLine className="w-4 h-4" />
             <span className="text-sm font-medium">Download</span>

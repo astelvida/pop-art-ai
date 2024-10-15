@@ -6,6 +6,7 @@ const nextConfig = {
       { hostname: "utfs.io" },
       { hostname: "fmzpxyoqrdbpjmrxhpjr.supabase.co" },
       { hostname: "oaidalleapiprodscus.blob.core.windows.net" },
+      { hostname: "replicate.delivery" },
     ],
   },
   typescript: {

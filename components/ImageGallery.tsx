@@ -1,6 +1,7 @@
 import Image from "next/image";
 // import { getFavorites, getImages } from "~/server/db/queries";
 import { FavoriteButton } from "./FavoriteButton";
+import { DownloadButton } from "./DownloadButton";
 import Link from "next/link";
 import { getAiImages } from "@/actions/queries";
 
@@ -31,7 +32,10 @@ export async function ImageGallery() {
                 className="h-auto w-full rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105"
               />
               {/* </Link> */}
-              <FavoriteButton image={image} />
+              <div className="absolute bottom-2 right-2 flex space-x-2">
+                <DownloadButton imageUrl={image.url} />
+                <FavoriteButton image={image} />
+              </div>
               {/* <div>{image.name}</div> */}
             </div>
           ))}

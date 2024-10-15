@@ -16,21 +16,20 @@ const { aiImage } = schema;
 
 type AiImageData = {
   url: string;
-  title: string;
   prompt: string;
-  description: string;
-  model: string;
+  title: string | null;
+  description: string | null;
+  model: string | null;
 };
 
 export async function saveAiImage(aiImageData: AiImageData) {
   const { userId } = auth();
   if (!userId) throw new Error("User not authorized");
 
-  // console.log("AI IMAGE DATA", aiImageData)
-  // console.log('type of url', typeof aiImageData.url)
-  // console.log('old image url', aiImageData.url)
+
+  console.log('old image url', aiImageData.url)
   let imageUrl = await uploadFromUrl(aiImageData.url)
-  // console.log('new image url', imageUrl)
+  console.log('new image url', imageUrl)
   imageUrl = imageUrl || aiImageData.url
 
   console.log("FINAL IMAGE URL", imageUrl)
@@ -53,24 +52,14 @@ export async function saveAiImage(aiImageData: AiImageData) {
 export const getAiImages = async () => {
   const { userId } = auth();
   if (!userId) throw new Error("User not authorized");
-
-  // const aiImages = await db.query.aiImage.findMany({
-  //   where: (model, { eq }) => eq(model.userId, userId),
-  // });
-
-  const aiImages = await db.select().from(aiImage).where(eq(aiImage.userId, userId)).orderBy(desc(aiImage.createdAt));
-  console.log({ aiImages })
+  const aiImages = await db.select().from(aiImage)
+    .where(eq(aiImage.userId, userId))
+    .orderBy(desc(aiImage.createdAt));
+  console.log({ aiImages: aiImages.map(ai => ai.url) })
   // revalidatePath('/')
   return aiImages;
 };
 
-// export const getUserStories = async () => {
-//   const { userId } = auth();
-//   if (!userId) throw new Error("User not authorized");
-
-//   const stories = await db.select().from(story).where(eq(story.userId, userId));
-//   return stories;
-// };
 
 export const deleteAiImage = async (aiImageId: number) => {
   const { userId } = auth();
