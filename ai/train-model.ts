@@ -41,4 +41,4 @@ export default async function trainModel() {
 }
 
 
-trainModel()
+// trainModel()

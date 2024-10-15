@@ -1,31 +1,25 @@
 "use client"
 
+import Link from "next/link"
 import {
   Atom,
-  Bird,
   BookOpen,
   Bot,
   Code2,
-  Eclipse,
-  Frame,
   History,
   LifeBuoy,
-  Map,
-  PieChart,
   Rabbit,
   Send,
   Settings2,
   SquareTerminal,
   Star,
+  Bird,
   Turtle,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
-import { StorageCard } from "@/components/storage-card"
-import { TeamSwitcher } from "@/components/team-switcher"
 import {
   Sidebar,
   SidebarContent,
@@ -35,24 +29,8 @@ import {
   SidebarLabel,
 } from "@/components/ui/sidebar"
 import { ModeToggle } from "./mode-toggle"
+
 const data = {
-  teams: [
-    {
-      name: "Acme Inc",
-      logo: Atom,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: Eclipse,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Rabbit,
-      plan: "Free",
-    },
-  ],
   user: {
     name: "shadcn",
     email: "m@example.com",
@@ -197,23 +175,6 @@ const data = {
       icon: Send,
     },
   ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
-  ],
   searchResults: [
     {
       title: "Routing Fundamentals",
@@ -252,7 +213,10 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <Link href="/" className="flex items-center gap-2 px-2 py-1.5 text-sm font-medium">
+          <Atom className="h-5 w-5" />
+          AI-pop-art
+        </Link>
       </SidebarHeader>
       <SidebarContent>
         <SidebarItem>
@@ -262,16 +226,9 @@ export function AppSidebar() {
           <SidebarLabel>Platform</SidebarLabel>
           <NavMain items={data.navMain} searchResults={data.searchResults} />
         </SidebarItem>
-        <SidebarItem>
-          <SidebarLabel>Projects</SidebarLabel>
-          <NavProjects projects={data.projects} />
-        </SidebarItem>
         <SidebarItem className="mt-auto">
           <SidebarLabel>Help</SidebarLabel>
           <NavSecondary items={data.navSecondary} />
-        </SidebarItem>
-        <SidebarItem>
-          <StorageCard />
         </SidebarItem>
       </SidebarContent>
       <SidebarFooter>

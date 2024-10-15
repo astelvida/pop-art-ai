@@ -3,30 +3,33 @@
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { ImageIcon, Loader2, Settings, Share2, Download, AlertCircle, Check, Trash2, Shuffle, Trash, CheckCircle, Flag, ArrowDownToLine, Share } from "lucide-react"
+import { ImageIcon, Loader2, Shuffle } from "lucide-react"
 import { Command, CommandGroup, CommandItem } from "@/components/ui/command"
-import { motion, AnimatePresence } from "framer-motion"
 import { generatePopArtImage } from '@/ai/generate-image';
 import { saveAiImage } from '@/actions/queries'
+import { ImageActions } from './ImageActions'
+import { SkeletonLoader } from './SkeletonLoader'
+import { EmptyState } from './EmptyState'
+
 const suggestions = [
-  "SPELL, a woman cries silently in a crowded room, feeling completely invisible. She whispers, 'Can anyone see me?'",
-  "SPELL, a man gazes at his shattered reflection in the mirror, his face twisted in anger. He exclaims, 'This isn't who I am!'",
-  "SPELL, a persson wanders through a never-ending labyrinth, desperately searching for an escape. They murmur, 'Will I ever escape this maze?'",
-  "SPELL, a couple stands beneath a stormy sky, arguing intensely. She screams, 'You never listened!'",
-  "SPELL, a character rips apart a photograph with a bitter smile, their voice dripping with sarcasm as they say, 'Happily ever after—what a joke!'"
+  "SMA, a woman cries silently in a crowded room, feeling completely invisible. She whispers, 'Can anyone see me?'",
+  "SMA, a man gazes at his shattered reflection in the mirror, his face twisted in anger. He exclaims, 'This isn't who I am!'",
+  "SMA, a persson wanders through a never-ending labyrinth, desperately searching for an escape. They murmur, 'Will I ever escape this maze?'",
+  "SMA, a couple stands beneath a stormy sky, arguing intensely. She screams, 'You never listened!'",
+  "SMA, a character rips apart a photograph with a bitter smile, their voice dripping with sarcasm as they say, 'Happily ever after—what a joke!'"
 ]
 
 const randomPrompts = [
-  "A pop art comic book image in SPELL style of a woman standing alone in a dimly lit room, tears streaming down her face as she clutches a broken mirror. Speech bubble: 'How did it all go wrong?'",
-  "A pop art comic book image in SPELL tyle of a man and woman in a heated argument, the man turning away in anger while the woman shouts, 'You never listened!' Their broken relationship is the focus.",
-  "A pop art comic book image in SPELL style of a young woman staring out a rainy window, her reflection distorted by tears. Speech bubble: 'It’s always the same, isn’t it?' Sadness and despair fill the scene.",
-  "A dark pop art comic book image in SPELL style of a man kneeling on the floor, holding his head in his hands, overwhelmed by his own thoughts. Speech bubble: 'I can’t take this anymore!'",
-  "A pop art comic book image in SPELL style of two young lovers saying goodbye at a train station, the train’s shadow casting a line between them. Speech bubble: 'Goodbye forever.' Their faces are filled with regret.",
-  "A pop art comic book image in SPELL style of a woman crying while applying lipstick in a broken compact mirror. Speech bubble: 'I have to smile through this, don’t I?' Despair is hidden under vibrant colors.",
-  "A pop art comic book image in SPELL style of a man shouting in frustration, smashing his fist against a wall. Speech bubble: 'It’s all falling apart!' His anger contrasts with the bold, exaggerated lines.",
-  "A pop art comic book image in SPELL style of a woman walking away from a shattered phone, tears running down her face. Speech bubble: 'I should have known you’d never call.' Broken pieces symbolize her emotional breakdown.",
-  "A pop art comic book image in SPELL style of a woman standing in the rain, soaked and looking up at the sky. Speech bubble: 'Not again, not you.' Her face reflects anger and deep sorrow.",
-  "A pop art comic book image in SPELL style of a couple, their backs turned to each other in a dark room filled with broken glass. Speech bubble from the woman: 'We were never meant to last, were we?' Both characters are lost in their own despair.",
+  "A pop art comic book image of a woman standing alone in a dimly lit room, tears streaming down her face as she clutches a broken mirror. Speech bubble: 'How did it all go wrong?'",
+  "A pop art comic book image of a man and woman in a heated argument, the man turning away in anger while the woman shouts, 'You never listened!' Their broken relationship is the focus.",
+  "A pop art comic book image of a young woman staring out a rainy window, her reflection distorted by tears. Speech bubble: 'It’s always the same, isn’t it?' Sadness and despair fill the scene.",
+  "A dark pop art comic book image of a man kneeling on the floor, holding his head in his hands, overwhelmed by his own thoughts. Speech bubble: 'I can’t take this anymore!'",
+  "A pop art comic book image of two young lovers saying goodbye at a train station, the train’s shadow casting a line between them. Speech bubble: 'Goodbye forever.' Their faces are filled with regret.",
+  "A pop art comic book image of a woman crying while applying lipstick in a broken compact mirror. Speech bubble: 'I have to smile through this, don’t I?' Despair is hidden under vibrant colors.",
+  "A pop art comic book image of a man shouting in frustration, smashing his fist against a wall. Speech bubble: 'It’s all falling apart!' His anger contrasts with the bold, exaggerated lines.",
+  "A pop art comic book image of a woman walking away from a shattered phone, tears running down her face. Speech bubble: 'I should have known you’d never call.' Broken pieces symbolize her emotional breakdown.",
+  "A pop art comic book image of a woman standing in the rain, soaked and looking up at the sky. Speech bubble: 'Not again, not you.' Her face reflects anger and deep sorrow.",
+  "A pop art comic book image of a couple, their backs turned to each other in a dark room filled with broken glass. Speech bubble from the woman: 'We were never meant to last, were we?' Both characters are lost in their own despair.",
 ]
 
 const defaultImage = 'https://replicate.delivery/yhqm/4zciqh7pLvodJpk0f3Vz6Wh86qzRX1ChIWr3NcUe3jXb4mkTA/out-0.jpg'
@@ -112,7 +115,7 @@ export function ImageGenerator() {
               alt="Generated image"
               className="w-full h-full object-cover"
             />
-            <ImageActions imageUrl={imageUrl} prompt={prompt} />
+            {/* <ImageActions imageUrl={imageUrl} prompt={prompt} /> */}
           </>
         ) : (
           <EmptyState error={error} />
@@ -169,97 +172,9 @@ export function ImageGenerator() {
           )}
         </Button>
       </form>
-      <div>
-        <Button onClick={function () { downloadFile(imageUrl); }}>Download File</Button>
-        <Button onClick={() => saveAiImage({ url: imageUrl, prompt })}>Save File</Button>
-      </div>
+
+      {imageUrl && <ImageActions imageUrl={imageUrl} prompt={prompt} />}
 
     </div>
   )
 }
-
-function ImageActions({ imageUrl, prompt }: { imageUrl: string, prompt: string }) {
-  const actions = [
-    { icon: Settings, label: "Tweak it" },
-    { icon: Share, label: "Share" },
-    { icon: ArrowDownToLine, label: "Download", download: true },
-    { icon: Flag, label: "Report" },
-    { icon: CheckCircle, label: "Added" },
-    { icon: Trash, label: "Delete" },
-  ];
-
-  function downloadFile(url) {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = '';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-
-  return (
-    <div>
-      <Button onClick={() => downloadFile(imageUrl)}>Download File</Button>
-      <Button onClick={() => saveAiImage({ url: imageUrl, prompt })}>Save File</Button>
-    </div>
-  )
-
-  return (
-    <AnimatePresence>
-
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.3 }}
-        className="absolute top-4 left-4 right-4 flex flex-wrap justify-center gap-2"
-      >
-        {actions.map((action, index) => (
-          <motion.div
-            key={action.label}
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <Button
-              variant="secondary"
-              size="sm"
-              className="flex items-center space-x-1"
-              as={action.download ? 'a' : 'button'}
-              href={action.download ? imageUrl : undefined}
-              download={action.download ? 'generated-image.jpg' : undefined}
-            >
-              <action.icon className="w-4 h-4" />
-              <span className="text-sm font-medium">{action.label}</span>
-            </Button>
-          </motion.div>
-        ))}
-      </motion.div>
-    </AnimatePresence>
-  );
-}
-
-function SkeletonLoader() {
-  return (
-    <div className="w-full h-full flex items-center justify-center bg-muted animate-pulse">
-      <div className="w-16 h-16 rounded-full bg-muted-foreground/20"></div>
-    </div>
-  )
-}
-
-function EmptyState({ error }: { error: string | null }) {
-  return (
-    <div className="flex flex-col items-center justify-center h-full p-4 text-center">
-      <ImageIcon className="h-12 w-12 text-muted-foreground mb-4" />
-      <h3 className="text-lg font-medium mb-2">
-        {error ? "Error" : "No image generated yet"}
-      </h3>
-      <p className="text-sm text-muted-foreground">
-        {error || "Enter a prompt and click 'Generate Image' to create an image."}
-      </p>
-    </div>
-  )
-}
-
-

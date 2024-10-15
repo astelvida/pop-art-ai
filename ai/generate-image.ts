@@ -2,7 +2,7 @@
 import replicateAI from './replicate'
 
 const MODEL = 'astelvida/pop-art:393c9b328cd1ac2f0127db9c7871eef86fded0c369ce2bfb888f9f217c21ca62'
-const TRIGGER_WORD = 'SPELL'
+const TRIGGER_WORD = 'pop art comic book'
 
 export async function generatePopArtImage(prompt: string) {
   console.log('Running...')
@@ -30,11 +30,8 @@ export async function generatePopArtImage(prompt: string) {
   })
 
 
-  const result = JSON.stringify(output[0])
-  console.log('CEVA', JSON.stringify(output[0]))
-  console.dir(output[0])
-  console.log(typeof output[0])
-  console.log('Done!')
+  const result = output[0]
+  console.log('Done!', result)
   return result
 }
 
