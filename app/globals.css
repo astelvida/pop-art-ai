@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Rubik+Mono+One&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -82,6 +84,7 @@ body {
 
 
 
+/* 
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -137,4 +140,52 @@ body {
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+} */
+
+/* CUSTOM STYLES */
+/* 
+.slider-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
 }
+
+.slider-label {
+  flex: 1;
+}
+
+.slider-value {
+  width: 40px;
+  text-align: right;
+  margin-left: 1rem;
+}
+
+.slider {
+  flex: 2;
+}
+
+.slider [data-orientation="horizontal"] {
+  height: 2px;
+}
+
+.slider [data-orientation="horizontal"] .slider-track {
+  height: 2px;
+}
+
+.slider .slider-thumb {
+  width: 12px;
+  height: 12px;
+  background-color: white;
+  border: 2px solid black;
+}
+
+.suggestion-button {
+  border-radius: 9999px;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.suggestion-button:hover {
+  transform: translateY(-1px);
+} */

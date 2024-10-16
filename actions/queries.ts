@@ -8,13 +8,9 @@ import { db } from "@/db/drizzle";
 import { auth } from "@clerk/nextjs/server";
 import { uploadFromUrl } from "./file.actions";
 
-// function auth() {
-//   return { userId: "sevda677377" }
-// }
-
 const { aiImage } = schema;
 
-type AiImageData = {
+export type newImage = {
   url: string;
   prompt: string;
   title: string | null;
@@ -22,29 +18,21 @@ type AiImageData = {
   model: string | null;
 };
 
-export async function saveAiImage(aiImageData: AiImageData) {
+export async function saveAiImage(newImage: newImage) {
   const { userId } = auth();
   if (!userId) throw new Error("User not authorized");
 
+  let imageUrl = await uploadFromUrl(newImage.url)
 
-  console.log('old image url', aiImageData.url)
-  let imageUrl = await uploadFromUrl(aiImageData.url)
-  console.log('new image url', imageUrl)
-  imageUrl = imageUrl || aiImageData.url
-
-  console.log("FINAL IMAGE URL", imageUrl)
-  // Insert the story
-  const insertedAiImage = await db
-    .insert(aiImage)
+  const insertedAiImage = await db.insert(aiImage)
     .values({
       url: imageUrl,
       userId: userId,
       model: "pop-art",
-      prompt: aiImageData.prompt,
+      prompt: newImage.prompt,
     })
     .returning();
 
-  console.log('SUCCESS')
   revalidatePath('/')
   return insertedAiImage;
 }
@@ -52,29 +40,33 @@ export async function saveAiImage(aiImageData: AiImageData) {
 export const getAiImages = async () => {
   const { userId } = auth();
   if (!userId) throw new Error("User not authorized");
+
   const aiImages = await db.select().from(aiImage)
     .where(eq(aiImage.userId, userId))
     .orderBy(desc(aiImage.createdAt));
-  console.log({ aiImages: aiImages.map(ai => ai.url) })
-  // revalidatePath('/')
+
   return aiImages;
 };
 
 
-export const deleteAiImage = async (aiImageId: number) => {
+export const deleteAiImage = async (id: number) => {
   const { userId } = auth();
   if (!userId) throw new Error("User not authorized");
 
-  await db.delete(aiImage).where(eq(aiImage.id, aiImageId));
-  console.log(`DELETE AI IMAGE - "${aiImageId}"}`);
+  await db
+    .delete(aiImage)
+    .where(eq(aiImage.id, id));
+  console.log(id)
   revalidatePath("/");
 };
 
-export async function toggleFavoriteAiImage(aiImageId: number, isFavorite: boolean | null) {
+export async function toggleFavoriteAiImage(id: number) {
   const { userId } = auth();
   if (!userId) throw new Error("User not authorized");
 
-  await db.update(aiImage).set({ isFavorite: !isFavorite }).where(eq(aiImage.id, aiImageId));
+  await db.update(aiImage)
+    .set({ isFavorite: not(aiImage.isFavorite) })
+    .where(eq(aiImage.id, id));
 
   revalidatePath("/");
 }

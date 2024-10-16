@@ -1,196 +1,147 @@
-"use client"
+'use client'
 
-import { useState, useEffect, useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { ImageIcon, Loader2, Shuffle } from "lucide-react"
-import { Command, CommandGroup, CommandItem } from "@/components/ui/command"
-import { generatePopArtImage } from '@/actions/ai-services';
-import { ImageActions } from './ImageActions'
-import { SkeletonLoader } from './SkeletonLoader'
-import { EmptyState } from './EmptyState'
-import ImageGrid from './ImageGrid'
-// import { saveAiImage } from "@/actions/queries"
-import Image from "next/image"
-const suggestions = [
-  "SMA, a woman cries silently in a crowded room, feeling completely invisible. She whispers, 'Can anyone see me?'",
-  "SMA, a man gazes at his shattered reflection in the mirror, his face twisted in anger. He exclaims, 'This isn't who I am!'",
-  "SMA, a persson wanders through a never-ending labyrinth, desperately searching for an escape. They murmur, 'Will I ever escape this maze?'",
-  "SMA, a couple stands beneath a stormy sky, arguing intensely. She screams, 'You never listened!'",
-  "SMA, a character rips apart a photograph with a bitter smile, their voice dripping with sarcasm as they say, 'Happily ever after—what a joke!'"
-]
+import { useState } from 'react'
+import dynamic from 'next/dynamic'
+import { Header } from '@/components/header'
+import { ImagePromptInput } from '@/components/image-prompt-input'
+import { PromptSuggestions } from '@/components/prompt-suggestions'
+import { ImageGenerationDialog } from '@/components/image-generation-dialog'
+import { ImageGallery } from '@/components/image-gallery'
+import { AiImageType } from '@/db/schema'
+import { placeholderImages } from '@/lib/form-data'
+import { ImageGenerationSettings } from '@/components/image-generation-settings'
+import { deleteAiImage, newImage, saveAiImage, toggleFavoriteAiImage } from '@/actions/queries'
+import { generatePopArtImage } from '@/actions/ai-services'
 
-const randomPrompts = [
-  "A pop art comic book image of a woman standing alone in a dimly lit room, tears streaming down her face as she clutches a broken mirror. Speech bubble: 'How did it all go wrong?'",
-  "A pop art comic book image of a man and woman in a heated argument, the man turning away in anger while the woman shouts, 'You never listened!' Their broken relationship is the focus.",
-  "A pop art comic book image of a young woman staring out a rainy window, her reflection distorted by tears. Speech bubble: 'It’s always the same, isn’t it?' Sadness and despair fill the scene.",
-  "A dark pop art comic book image of a man kneeling on the floor, holding his head in his hands, overwhelmed by his own thoughts. Speech bubble: 'I can’t take this anymore!'",
-  "A pop art comic book image of two young lovers saying goodbye at a train station, the train’s shadow casting a line between them. Speech bubble: 'Goodbye forever.' Their faces are filled with regret.",
-  "A pop art comic book image of a woman crying while applying lipstick in a broken compact mirror. Speech bubble: 'I have to smile through this, don’t I?' Despair is hidden under vibrant colors.",
-  "A pop art comic book image of a man shouting in frustration, smashing his fist against a wall. Speech bubble: 'It’s all falling apart!' His anger contrasts with the bold, exaggerated lines.",
-  "A pop art comic book image of a woman walking away from a shattered phone, tears running down her face. Speech bubble: 'I should have known you’d never call.' Broken pieces symbolize her emotional breakdown.",
-  "A pop art comic book image of a woman standing in the rain, soaked and looking up at the sky. Speech bubble: 'Not again, not you.' Her face reflects anger and deep sorrow.",
-  "A pop art comic book image of a couple, their backs turned to each other in a dark room filled with broken glass. Speech bubble from the woman: 'We were never meant to last, were we?' Both characters are lost in their own despair.",
-]
+const Confetti = dynamic(() => import('react-confetti'), { ssr: false })
 
-const defaultImage = 'https://replicate.delivery/yhqm/4zciqh7pLvodJpk0f3Vz6Wh86qzRX1ChIWr3NcUe3jXb4mkTA/out-0.jpg'
+export function ImageGenerator({ images }: {images: AiImageType[]}) {
+  const [showConfetti, setShowConfetti] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [currentImage, setCurrentImage] = useState<string | null>(null)
+  const [showModal, setShowModal] = useState(false)
+  // const [images, setImages] = useState(placeholderImages)
+  const [prompt, setPrompt] = useState('')
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
-export function ImageGenerator() {
-  const [prompt, setPrompt] = useState("")
-  const [imageUrl, setImageUrl] = useState<string | null>(null)
-  const [showSuggestions, setShowSuggestions] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const commandRef = useRef<HTMLDivElement>(null)
-  // const [generatedImages, setGeneratedImages] = useState<string[]>([])
-  //     setGeneratedImages(prevImages => [...prevImages, output])
+  // Image generation settings
+  const [aspectRatio, setAspectRatio] = useState('1:1')
+  const [numInferenceSteps, setNumInferenceSteps] = useState(28)
+  const [guidanceScale, setGuidanceScale] = useState(3.5)
+  const [promptStrength, setPromptStrength] = useState(0.8)
+  const [seed, setSeed] = useState('')
+  const [outputFormat, setOutputFormat] = useState('webp')
+  const [outputQuality, setOutputQuality] = useState(90)
+  const [numOutputs, setNumOutputs] = useState(1)
 
-  useEffect(() => {
-    console.log('imageUrl', imageUrl)
-  })
+  const handleGenerateImage = async () => {
+    setPrompt(prompt)
+    setIsGenerating(true)
+    setProgress(0)
+    setShowModal(true)
+    setCurrentImage(null)
 
-  function downloadFile(url: string) {
-    const link = document.createElement('a');
-    link.href = '';
-    link.download = url;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (commandRef.current && !commandRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false)
-      }
+    // Simulating image generation with a delay
+    for (let i = 0; i <= 100; i += 10) {
+      new Promise(resolve => setTimeout(resolve, 500)).then(() => setProgress(i))
     }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
-    setImageUrl(null)
 
     try {
-      const output = await generatePopArtImage(prompt)
-      console.log(JSON.stringify(output, null, 2))
-      setImageUrl(output)
-      // saveAiImage({ url: output, prompt })
-      // Add the new image to the generatedImages array
-      // setGeneratedImages(prevImages => [...prevImages, output])
+      const imageUrl = await generatePopArtImage(prompt)
+      setCurrentImage(imageUrl)
+      await saveAiImage({ url: imageUrl, prompt: prompt })
+      setShowConfetti(true)
+      setTimeout(() => setShowConfetti(false), 5000)
     } catch (err) {
-      setError("An error occurred while generating the image.")
       console.error(err)
     } finally {
-      setIsLoading(false)
+      setIsGenerating(false)
     }
   }
 
-  const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setPrompt(e.target.value)
-    setShowSuggestions(true)
+  const handleSave = () => {
+    if (currentImage) {
+      // setImages(prev => [currentImage, ...prev])
+      setCurrentImage(null)
+      setShowModal(false)
+      setPrompt('')
+    }
   }
 
-  const handleSuggestionClick = (suggestion: string) => {
-    setPrompt(suggestion)
-    setShowSuggestions(false)
+  const handleDiscard = () => {
+    setCurrentImage(null)
+    setShowModal(false)
+    setPrompt('')
   }
 
-  const handleRandomize = () => {
-    const randomPrompt = randomPrompts[Math.floor(Math.random() * randomPrompts.length)]
-    setPrompt(randomPrompt)
+  const handleFavorite = (imageId: number) => {
+    toggleFavoriteAiImage(imageId)
   }
 
-  const handleDelete = (index: number) => {
-    // setGeneratedImages(prevImages => prevImages.filter((_, i) => i !== index))
+  const handleDelete = (id: number) => {
+    deleteAiImage(id)
   }
 
-  const handleSave = (index: number) => {
-    // Implement save functionality
-    console.log(`Saving image at index ${index}`)
-  }
-
-  const handleLike = (index: number) => {
-    // Implement like functionality
-    console.log(`Liking image at index ${index}`)
+  const handleDownload = (index: number) => {
+    console.log(`Downloading image at index ${index}`)
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-4 space-y-4">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="relative">
-          <Textarea
-            placeholder="Enter your image prompt here..."
-            value={prompt}
-            onChange={handlePromptChange}
-            className="min-h-[100px] pr-10"
-            disabled={isLoading}
-          />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="absolute right-2 top-2"
-            onClick={handleRandomize}
-            disabled={isLoading}
-          >
-            <Shuffle className="h-4 w-4" />
-            <span className="sr-only">Randomize prompt</span>
-          </Button>
-          {showSuggestions && (
-            <div ref={commandRef} className="absolute z-10 w-full mt-1">
-              <Command className="border rounded-md shadow-md">
-                <CommandGroup heading="Suggestions">
-                  {suggestions
-                    .filter((s) => s.toLowerCase().includes(prompt.toLowerCase()))
-                    .map((suggestion) => (
-                      <CommandItem
-                        key={suggestion}
-                        onSelect={() => handleSuggestionClick(suggestion)}
-                      >
-                        {suggestion}
-                      </CommandItem>
-                    ))}
-                </CommandGroup>
-              </Command>
-            </div>
-          )}
+
+
+      <main className="flex-grow container mx-auto p-4 space-y-8">
+        <div className="text-center mb-8">
+          <h1 className="text-6xl font-bold mb-2" style={{ fontFamily: "'Rubik Mono One', sans-serif" }}>POP ART</h1>
+          <h2 className="text-2xl font-semibold text-muted-foreground" style={{ fontFamily: "'Rubik Mono One', sans-serif" }}>A tribute to Roy Lichtenstein</h2>
         </div>
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={isLoading || !prompt.trim()}
-        >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            "Generate Image"
-          )}
-        </Button>
-      </form>
-      <div className="aspect-square w-[300px] h-[300px] border rounded-lg overflow-hidden bg-muted relative">
-        {isLoading ? (
-          <SkeletonLoader />
-        ) : imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt="Generated image"
-            width={300}
-            height={300}
-          // className="w-full h-full object-cover"
-          />
-        ) : (
-          <EmptyState error={error} />
-        )}
-      </div>
-      {imageUrl && <ImageActions imageUrl={imageUrl} prompt={prompt} />}
-    </div>
+
+        {showConfetti && <Confetti />}
+
+        <ImagePromptInput 
+          handleGenerateImage={handleGenerateImage} 
+          isGenerating={isGenerating} 
+          isSettingsOpen={isSettingsOpen}
+          setIsSettingsOpen={setIsSettingsOpen}
+          prompt={prompt}
+          setPrompt={setPrompt}
+        />
+        <ImageGenerationSettings
+          isOpen={isSettingsOpen}
+          onOpenChange={setIsSettingsOpen}
+          aspectRatio={aspectRatio}
+          setAspectRatio={setAspectRatio}
+          numInferenceSteps={numInferenceSteps}
+          setNumInferenceSteps={setNumInferenceSteps}
+          guidanceScale={guidanceScale}
+          setGuidanceScale={setGuidanceScale}
+          promptStrength={promptStrength}
+          setPromptStrength={setPromptStrength}
+          seed={seed}
+          setSeed={setSeed}
+          outputFormat={outputFormat}
+          setOutputFormat={setOutputFormat}
+          outputQuality={outputQuality}
+          setOutputQuality={setOutputQuality}
+          numOutputs={numOutputs}
+          setNumOutputs={setNumOutputs}
+        />
+        <PromptSuggestions onSuggestionClick={setPrompt} />
+        <ImageGenerationDialog
+          isOpen={showModal}
+          onOpenChange={setShowModal}
+          isGenerating={isGenerating}
+          progress={progress}
+          currentImage={currentImage}
+          onSave={handleSave}
+          onDiscard={handleDiscard}
+        />
+        <ImageGallery
+          images={images}
+          onFavorite={handleFavorite}
+          onDelete={handleDelete}
+          onDownload={handleDownload}
+        />
+      </main>
   )
 }

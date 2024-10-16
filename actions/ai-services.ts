@@ -10,11 +10,12 @@ const TRIGGER_WORD = 'pop art comic book'
 
 export async function generatePopArtImage(prompt: string) {
   console.log('Running...')
-
+  console.log("PROMPT", prompt)
+  let finalPrompt = prompt
   if (!prompt.includes(TRIGGER_WORD)) {
-    prompt = `${prompt}, in the style of ${TRIGGER_WORD}`
+    finalPrompt = `${prompt}, in ${TRIGGER_WORD} style`
   }
-
+  console.log("FINAL PROMPT", finalPrompt)
   const output = await replicateAI.run(MODEL, {
     input: {
       model: 'dev',
@@ -23,10 +24,10 @@ export async function generatePopArtImage(prompt: string) {
       aspect_ratio: '1:1',
       output_format: 'jpg',
       guidance_scale: 3.5,
-      output_quality: 80,
+      output_quality: 40,
       prompt_strength: 0.8,
       extra_lora_scale: 1,
-      num_inference_steps: 28,
+      num_inference_steps: 10,
       prompt: prompt,
     }
   })

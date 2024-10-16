@@ -1,8 +1,11 @@
+"use client"
+
 import Image from "next/image";
 // import { getFavorites, getImages } from "~/server/db/queries";
 import { FavoriteButton } from "./FavoriteButton";
 import { DownloadButton } from "./DownloadButton";
 import { getAiImages } from "@/actions/queries";
+import { useState } from "react";
 
 export const dynamic = "force-dynamic";
 
@@ -13,8 +16,8 @@ interface ImageItem {
   alt: string;
 }
 
-export async function ImageGallery() {
-  const images = await getAiImages();
+export function ImageGallery({ images }) {
+  // const [aiImages, setAiImages] = useState<ImageItem[]>(images);
 
   return (
     <main className="flex-grow">

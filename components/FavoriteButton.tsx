@@ -1,12 +1,11 @@
 import { toggleFavoriteAiImage } from "@/actions/queries";
 import { Heart } from "lucide-react";
-
+const placeHolderImage = "https://g-lp8rfkdey7z.vusercontent.net/placeholder.svg?height=300&width=300&text=zzwz"
 export function FavoriteButton({ image }) {
   return (
     <form
-      action={async () => {
-        "use server";
-        await toggleFavoriteAiImage(image.id, image.isFavorite);
+      action={() => {
+        toggleFavoriteAiImage(image.id, image.isFavorite);
       }}
     >
       <button
@@ -17,8 +16,7 @@ export function FavoriteButton({ image }) {
         }
       >
         <Heart
-          className={`h-5 w-5 ${image.isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"
-            }`}
+          className={`h-5 w-5 ${image.isFavorite ? "fill-red-500 text-gray-800" : "text-transparent"}`}
         />
       </button>
     </form>
