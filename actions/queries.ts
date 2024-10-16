@@ -1,38 +1,51 @@
 // "server-only";
 
 "use server";
-import { eq, not, desc } from "drizzle-orm";
+import { eq, not, desc, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import * as schema from "@/db/schema";
 import { db } from "@/db/drizzle";
 import { auth } from "@clerk/nextjs/server";
 import { uploadFromUrl } from "./file.actions";
+import { redirect } from "next/navigation";
+import { generateImageDetails } from "./openai";
 
 const { aiImage } = schema;
 
 export type newImage = {
   url: string;
   prompt: string;
-  title: string | null;
-  description: string | null;
-  model: string | null;
+  // title: string | null;   
+  // description: string | null;
+  // model: string | null;
 };
 
 export async function saveAiImage(newImage: newImage) {
   const { userId } = auth();
   if (!userId) throw new Error("User not authorized");
 
-  let imageUrl = await uploadFromUrl(newImage.url)
+  const imageDetails = await generateImageDetails(newImage.url, newImage.prompt)   
+  console.log("imageDetails", imageDetails)
+
+  let result = await uploadFromUrl(newImage.url, imageDetails?.title) 
+
+  if (!result || !result?.data || result.error) 
+    throw new Error(result?.error?.message || "Failed to upload image");  
+
 
   const insertedAiImage = await db.insert(aiImage)
-    .values({
-      url: imageUrl,
+    .values({   
+      url: result.data.url,
+      name: result.data.name,
+      prompt: newImage.prompt,
+      title: imageDetails.title,
+      description: imageDetails.description,
       userId: userId,
       model: "pop-art",
-      prompt: newImage.prompt,
     })
     .returning();
 
+    console.log(insertedAiImage)
   revalidatePath('/')
   return insertedAiImage;
 }
@@ -49,16 +62,40 @@ export const getAiImages = async () => {
 };
 
 
-export const deleteAiImage = async (id: number) => {
-  const { userId } = auth();
-  if (!userId) throw new Error("User not authorized");
+export async function getAiImage(id: number) {
+  const user = auth();
+  if (!user.userId) throw new Error("Unauthorized");
+
+  const [image] = await db.select().from(aiImage).where(eq(aiImage.id, id));
+
+  console.log(image)
+  if (!image) throw new Error("Image not found");
+
+  console.log('img',image.userId, user.userId)
+  if (image.userId !== user.userId) throw new Error("Unauthorized");
+
+  return image;
+}
+
+export async function deleteAiImage(id: number) {
+  const user = auth();
+  if (!user.userId) throw new Error("Unauthorized");
 
   await db
     .delete(aiImage)
-    .where(eq(aiImage.id, id));
-  console.log(id)
-  revalidatePath("/");
-};
+    .where(and(eq(aiImage.id, id), eq(aiImage.userId, user.userId)));
+
+  // analyticsServerClient.capture({
+  //   distinctId: user.userId,
+  //   event: "delete image",
+  //   properties: {
+  //     imageId: id,
+  //   },
+  // });
+
+  redirect("/");
+}
+
 
 export async function toggleFavoriteAiImage(id: number) {
   const { userId } = auth();
@@ -69,6 +106,22 @@ export async function toggleFavoriteAiImage(id: number) {
     .where(eq(aiImage.id, id));
 
   revalidatePath("/");
+}
+
+export async function getAiImageById(id: number) {
+  const { userId } = auth();
+  if (!userId) throw new Error("User not authorized");
+
+  const image = await db.query.aiImage.findFirst({
+    where: (aiImage, { eq }) => eq(aiImage.id, id),
+  });
+
+  if (!image) throw new Error("Image not found");
+
+  // Ensure the user has permission to access this image
+  if (image.userId !== userId) throw new Error("User not authorized to access this image");
+
+  return image;
 }
 
 // export async function getFavoriteStories() {

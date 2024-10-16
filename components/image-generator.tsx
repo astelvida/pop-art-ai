@@ -2,13 +2,12 @@
 
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
-import { Header } from '@/components/header'
 import { ImagePromptInput } from '@/components/image-prompt-input'
 import { PromptSuggestions } from '@/components/prompt-suggestions'
 import { ImageGenerationDialog } from '@/components/image-generation-dialog'
 import { ImageGallery } from '@/components/image-gallery'
 import { AiImageType } from '@/db/schema'
-import { placeholderImages } from '@/lib/form-data'
+import { additionalPrompts, placeholderImages } from '@/lib/form-data'
 import { ImageGenerationSettings } from '@/components/image-generation-settings'
 import { deleteAiImage, newImage, saveAiImage, toggleFavoriteAiImage } from '@/actions/queries'
 import { generatePopArtImage } from '@/actions/ai-services'
@@ -35,8 +34,11 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
   const [outputQuality, setOutputQuality] = useState(90)
   const [numOutputs, setNumOutputs] = useState(1)
 
+  const toggleSettings = () => {
+    setIsSettingsOpen(!isSettingsOpen)
+  }
+
   const handleGenerateImage = async () => {
-    setPrompt(prompt)
     setIsGenerating(true)
     setProgress(0)
     setShowModal(true)
@@ -51,14 +53,20 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
       const imageUrl = await generatePopArtImage(prompt)
       setCurrentImage(imageUrl)
       await saveAiImage({ url: imageUrl, prompt: prompt })
+
       setShowConfetti(true)
       setTimeout(() => setShowConfetti(false), 5000)
-    } catch (err) {
+    } catch (err) { 
       console.error(err)
     } finally {
       setIsGenerating(false)
     }
   }
+  const handleRandomize = () => {
+    const randomPrompt =
+      additionalPrompts[Math.floor(Math.random() * additionalPrompts.length)];
+    setPrompt(randomPrompt);
+  };
 
   const handleSave = () => {
     if (currentImage) {
@@ -101,10 +109,10 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
         <ImagePromptInput 
           handleGenerateImage={handleGenerateImage} 
           isGenerating={isGenerating} 
-          isSettingsOpen={isSettingsOpen}
-          setIsSettingsOpen={setIsSettingsOpen}
+          toggleSettings={toggleSettings}
           prompt={prompt}
           setPrompt={setPrompt}
+          handleRandomize={handleRandomize}
         />
         <ImageGenerationSettings
           isOpen={isSettingsOpen}

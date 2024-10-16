@@ -15,27 +15,28 @@ import { InferInsertModel, InferSelectModel, relations } from "drizzle-orm";
 // stripe_customer_id
 // stripe_subscription_id
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  userId: varchar("userId", { length: 255 }).notNull(),
-  tier: varchar("tier", { length: 255 }),
-  credits: integer("credits"),
-  stripeCustomerId: varchar("stripeCustomerId", { length: 255 }),
-  stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 255 }),
-  createdAt: timestamp("createdAt").notNull().defaultNow(),
-  updatedAt: timestamp("updatedAt")
-    .notNull()
-    .$onUpdate(() => new Date()),
-});
+// export const users = pgTable("users", {
+//   id: serial("id").primaryKey(),
+//   userId: varchar("userId", { length: 255 }).notNull(),
+//   tier: varchar("tier", { length: 255 }),
+//   credits: integer("credits"),
+//   stripeCustomerId: varchar("stripeCustomerId", { length: 255 }),
+//   stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 255 }),
+//   createdAt: timestamp("createdAt").notNull().defaultNow(),
+//   updatedAt: timestamp("updatedAt")
+//     .notNull()
+//     .$onUpdate(() => new Date()),
+// });
 
 
 export const aiImage = pgTable("aiImage", {
   id: serial("id").primaryKey(),
   userId: varchar("userId", { length: 255 }).notNull(),
   url: varchar("url", { length: 2083 }).notNull(), // Max URL length
+  name: varchar("name", { length: 255 }),
   prompt: text("prompt").notNull(),
-  model: varchar("model"),
   title: text("title"),
+  model: varchar("model"),
   description: text("description"),
   isFavorite: boolean("isFavorite").default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
