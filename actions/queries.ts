@@ -15,9 +15,6 @@ const { aiImage } = schema;
 export type newImage = {
   url: string;
   prompt: string;
-  // title: string | null;   
-  // description: string | null;
-  // model: string | null;
 };
 
 export async function saveAiImage(newImage: newImage) {

@@ -7,7 +7,7 @@ interface ImageGenerationDialogProps {
   onOpenChange: (open: boolean) => void
   isGenerating: boolean
   progress: number
-  currentImage: string | null
+  currentImages: string[]
   onSave: () => void
   onDiscard: () => void
 }
@@ -17,7 +17,7 @@ export function ImageGenerationDialog({
   onOpenChange,
   isGenerating,
   progress,
-  currentImage,
+  currentImages,
   onSave,
   onDiscard
 }: ImageGenerationDialogProps) {
@@ -25,25 +25,32 @@ export function ImageGenerationDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{isGenerating ? 'Generating Image' : 'Generated Image'}</DialogTitle>
+          <DialogTitle>{isGenerating ? 'Generating Images' : 'Generated Images'}</DialogTitle>
         </DialogHeader>
-        <div className="flex items-center justify-center h-[300px]">
+        <div className="flex flex-wrap items-center justify-center gap-4 max-h-[400px] overflow-y-auto">
           {isGenerating ? (
-            <div className="text-center">
-              <p className="mb-4">Generating your pop art masterpiece...</p>
-              <Progress value={progress} className="w-[250px]" />
+            <div className="text-center w-full">
+              <p className="mb-4">Generating your pop art masterpieces...</p>
+              <Progress value={progress} className="w-[250px] mx-auto" />
             </div>
-          ) : currentImage ? (
-            <img src={currentImage} alt="Generated image" className="max-w-full max-h-full object-contain rounded-lg" />
+          ) : currentImages.length > 0 ? (
+            currentImages.map((image, index) => (
+              <img 
+                key={index} 
+                src={image} 
+                alt={`Generated image ${index + 1}`} 
+                className="max-w-[200px] max-h-[200px] object-contain rounded-lg"
+              />
+            ))
           ) : (
-            <p>No image generated yet.</p>
+            <p>No images generated yet.</p>
           )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onDiscard} disabled={isGenerating}>
             Discard
           </Button>
-          <Button onClick={onSave} disabled={isGenerating || !currentImage}>
+          <Button onClick={onSave} disabled={isGenerating || currentImages.length === 0}>
             Save to Gallery
           </Button>
         </DialogFooter>

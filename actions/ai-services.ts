@@ -5,36 +5,52 @@ const replicateAI = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 })
 
+export type ImageGenerationOptions = {
+  aspectRatio: string | undefined
+  numInferenceSteps: number | undefined
+  guidanceScale: number | undefined
+  promptStrength: number | undefined
+  seed: string | undefined
+  outputFormat: string | undefined
+  outputQuality: number | undefined
+  numOutputs: number | undefined
+}
+
 const MODEL = 'astelvida/pop-art:393c9b328cd1ac2f0127db9c7871eef86fded0c369ce2bfb888f9f217c21ca62'
 const TRIGGER_WORD = 'pop art comic book'
 
-export async function generatePopArtImage(prompt: string) {
+export async function generatePopArtImage(prompt: string, options: ImageGenerationOptions) {
   console.log('Running...')
   console.log("PROMPT", prompt)
   let finalPrompt = prompt
   if (!prompt.includes(TRIGGER_WORD)) {
     finalPrompt = `${prompt}, in ${TRIGGER_WORD} style`
   }
-  console.log("FINAL PROMPT", finalPrompt)
+
+  const input = { 
+    prompt: prompt,
+    model: 'dev',
+    lora_scale: 1,
+    num_outputs: options.numOutputs || 1,
+    aspect_ratio: options.aspectRatio || '1:1',
+    output_format: options.outputFormat || 'jpg',
+    guidance_scale: options.guidanceScale || 3.5,
+    output_quality: options.outputQuality || 90,
+    prompt_strength: options.promptStrength || 0.8,
+    extra_lora_scale: 1,
+    num_inference_steps: options.numInferenceSteps || 28,
+  }
+
+  options.seed? input.seed = options.seed : null
+
+  console.log("input", input)
   const output = await replicateAI.run(MODEL, {
-    input: {
-      model: 'dev',
-      lora_scale: 1,
-      num_outputs: 1,
-      aspect_ratio: '1:1',
-      output_format: 'jpg',
-      guidance_scale: 3.5,
-      output_quality: 40,
-      prompt_strength: 0.8,
-      extra_lora_scale: 1,
-      num_inference_steps: 10,
-      prompt: prompt,
-    }
+    input
   })
 
   const result = output[0]
   console.log('Done!', result)
-  return result
+  return output
 }
 
 export async function trainModel() {

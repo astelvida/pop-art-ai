@@ -18,7 +18,7 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
   const [showConfetti, setShowConfetti] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [currentImage, setCurrentImage] = useState<string | null>(null)
+  const [currentImages, setCurrentImages] = useState<string[]>([])
   const [showModal, setShowModal] = useState(false)
   // const [images, setImages] = useState(placeholderImages)
   const [prompt, setPrompt] = useState('')
@@ -30,11 +30,12 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
   const [guidanceScale, setGuidanceScale] = useState(3.5)
   const [promptStrength, setPromptStrength] = useState(0.8)
   const [seed, setSeed] = useState('')
-  const [outputFormat, setOutputFormat] = useState('webp')
+  const [outputFormat, setOutputFormat] = useState('jpg')
   const [outputQuality, setOutputQuality] = useState(90)
-  const [numOutputs, setNumOutputs] = useState(1)
+  const [numOutputs, setNumOutputs] = useState(2)
 
-  const toggleSettings = () => {
+  const toggleSettings = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
     setIsSettingsOpen(!isSettingsOpen)
   }
 
@@ -42,7 +43,7 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
     setIsGenerating(true)
     setProgress(0)
     setShowModal(true)
-    setCurrentImage(null)
+    setCurrentImages([])
 
     // Simulating image generation with a delay
     for (let i = 0; i <= 100; i += 10) {
@@ -50,9 +51,24 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
     }
 
     try {
-      const imageUrl = await generatePopArtImage(prompt)
-      setCurrentImage(imageUrl)
-      await saveAiImage({ url: imageUrl, prompt: prompt })
+      const options = {
+        aspectRatio,
+        numInferenceSteps,
+        guidanceScale,
+        promptStrength,
+        seed,
+        outputFormat,
+        outputQuality,
+        numOutputs
+      }
+      console.log({options})
+      const imageUrls = await generatePopArtImage(prompt, options)
+      setCurrentImages(imageUrls)
+      
+      // Save all generated images
+      for (const imageUrl of imageUrls) {
+        await saveAiImage({ url: imageUrl, prompt: prompt })
+      }
 
       setShowConfetti(true)
       setTimeout(() => setShowConfetti(false), 5000)
@@ -69,16 +85,15 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
   };
 
   const handleSave = () => {
-    if (currentImage) {
-      // setImages(prev => [currentImage, ...prev])
-      setCurrentImage(null)
+    if (currentImages.length > 0) {
+      setCurrentImages([])
       setShowModal(false)
       setPrompt('')
     }
   }
 
   const handleDiscard = () => {
-    setCurrentImage(null)
+    setCurrentImages([])
     setShowModal(false)
     setPrompt('')
   }
@@ -91,16 +106,30 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
     deleteAiImage(id)
   }
 
-  const handleDownload = (index: number) => {
-    console.log(`Downloading image at index ${index}`)
-  }
+  const handleDownload = async (imageUrl: string, name: string | null) => {
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading image:", error);
+    }
+  };
+
 
   return (
 
 
       <main className="flex-grow container mx-auto p-4 space-y-8">
         <div className="text-center mb-8">
-          <h1 className="text-6xl font-bold mb-2" style={{ fontFamily: "'Rubik Mono One', sans-serif" }}>POP ART</h1>
+          <h1 className="text-6xl font-bold mb-2" style={{ fontFamily: "'Rubik Mono One', sans-serif" }}>POP ART AI</h1>
           <h2 className="text-2xl font-semibold text-muted-foreground" style={{ fontFamily: "'Rubik Mono One', sans-serif" }}>A tribute to Roy Lichtenstein</h2>
         </div>
 
@@ -140,7 +169,7 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
           onOpenChange={setShowModal}
           isGenerating={isGenerating}
           progress={progress}
-          currentImage={currentImage}
+          currentImages={currentImages}
           onSave={handleSave}
           onDiscard={handleDiscard}
         />
