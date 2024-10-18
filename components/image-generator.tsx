@@ -21,20 +21,12 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
   const [isGenerating, setIsGenerating] = useState(false)
   const [progress, setProgress] = useState(0)
   const [currentImages, setCurrentImages] = useState<string[]>([])
-  const [showModal, setShowModal] = useState(false)
+  const [showModal, setShowModal] = useState(true)
   const [prompt, setPrompt] = useState('')
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
+  
   // Image generation settings
-  const [aspectRatio, setAspectRatio] = useState('1:1')
-  const [numInferenceSteps, setNumInferenceSteps] = useState(28)
-  const [guidanceScale, setGuidanceScale] = useState(3.5)
-  const [promptStrength, setPromptStrength] = useState(0.8)
-  const [seed, setSeed] = useState('')
-  const [outputFormat, setOutputFormat] = useState<"jpg" | "png" | "webp">('jpg')
-  const [outputQuality, setOutputQuality] = useState(90)
-  const [numOutputs, setNumOutputs] = useState(2)
-
   const [settings, setSettings] = useState({
     aspectRatio: "1:1",
     inferenceSteps: 28,
@@ -63,13 +55,9 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
     }
 
     try {
-      console.log({settings})
       const imageUrls = await generatePopArtImage(prompt, settings)
-
-      console.dir(imageUrls)
-
+      console.log(imageUrls)
       setCurrentImages(imageUrls)
-      
       // Save all generated images
       for (const imageUrl of imageUrls) {
         await saveAiImage({ url: imageUrl, prompt: prompt })
