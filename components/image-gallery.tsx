@@ -1,3 +1,4 @@
+import { toggleFavoriteAiImage, deleteAiImage } from "@/actions/queries"
 import { Button } from "@/components/ui/button"
 import { AiImageType } from "@/db/schema"
 import { Heart, Trash2, Download } from "lucide-react"
@@ -5,15 +6,33 @@ import Link from "next/link"
 
 interface ImageGalleryProps {
   images: AiImageType[]
-  onFavorite: (id: number) => void
-  onDelete: (id: number) => void
-  onDownload: (url: string, name: string) => void 
 }
 
-export function ImageGallery({ images, onFavorite, onDelete, onDownload }: ImageGalleryProps) {
+export function ImageGallery({ images }: ImageGalleryProps) {
+  
+  
+  const downloadAiImage = async (imageUrl: string, name: string) => {
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      // Use a default name if name is null or undefined
+      a.download = name || 'image';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading image:", error);
+    }
+  };
+
+  
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {images.map(({url, name = 'pop art image', title = "No title available", id, isFavorite, description = "No description available"}, index) => (
+      {images.map(({url, name, id, isFavorite, description = "No description available", title = "No title available"}, index) => (
         <div key={index} className="relative group">
           <Link href={`/img/${id}`}>
             <img src={url} alt={`Generated image ${index + 1} - ${name || "a pop art image"} `} className="w-full h-auto rounded-lg" />
@@ -23,13 +42,13 @@ export function ImageGallery({ images, onFavorite, onDelete, onDownload }: Image
             </div>
           </Link>
           <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <Button variant="secondary" size="icon" onClick={() => onFavorite(id)}>
+            <Button variant="secondary" size="icon" onClick={() => toggleFavoriteAiImage(id)}>
               <Heart className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
             </Button>
-            <Button variant="secondary" size="icon" onClick={() => onDelete(id)}>
+            <Button variant="secondary" size="icon" onClick={() => deleteAiImage(id)}>
               <Trash2 className="h-4 w-4" />
             </Button>
-            <Button variant="secondary" size="icon" onClick={() => onDownload(url, name)}>
+            <Button variant="secondary" size="icon" onClick={() =>  downloadAiImage(url, name)}>
               <Download className="h-4 w-4" />
             </Button>
           </div>
@@ -38,3 +57,4 @@ export function ImageGallery({ images, onFavorite, onDelete, onDownload }: Image
     </div>
   )
 }
+ 

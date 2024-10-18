@@ -12,6 +12,7 @@ import { addBulkAiImages, deleteAiImage, newImage, saveAiImage, toggleFavoriteAi
 import { generatePopArtImage } from '@/actions/ai-services'
 import { Button } from './ui/button'
 import prompts from '@/public/prompts.json'
+import { ImageGenerationSettingsPopover } from './image-generation-settings-popover'
 
 const Confetti = dynamic(() => import('react-confetti'), { ssr: false })
 
@@ -34,6 +35,17 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
   const [outputQuality, setOutputQuality] = useState(90)
   const [numOutputs, setNumOutputs] = useState(2)
 
+  const [settings, setSettings] = useState({
+    aspectRatio: "1:1",
+    inferenceSteps: 28,
+    guidanceScale: 3.5,
+    promptStrength: 0.80,
+    seed: "",
+    outputFormat: "jpg",
+    outputQuality: 90,
+    numberOfOutputs: 1
+  })
+
   const toggleSettings = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     setIsSettingsOpen(!isSettingsOpen)
@@ -51,20 +63,8 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
     }
 
     try {
-
-      const options: ImageGenerationSettingsValues = {
-        aspectRatio,
-        numInferenceSteps,
-        guidanceScale,
-        promptStrength,
-        seed,
-        outputFormat,
-        outputQuality,
-        numOutputs
-      }
-      
-      console.log({options})
-      const imageUrls = await generatePopArtImage(prompt, options)
+      console.log({settings})
+      const imageUrls = await generatePopArtImage(prompt, settings)
 
       console.dir(imageUrls)
 
@@ -103,42 +103,18 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
     setPrompt('')
   }
 
-  const handleFavorite = (imageId: number) => {
-    toggleFavoriteAiImage(imageId)
+  const handleSettingChange = (key: keyof ImageGenerationSettingsValues, value: any) => {
+    setSettings(prevSettings => ({ ...prevSettings, [key]: value }))
   }
 
-  const handleDelete = (imageId: number) => {
-    deleteAiImage(imageId)
-  }
-
-  const handleDownload = async (imageUrl: string, name: string) => {
-    try {
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.style.display = "none";
-      a.href = url;
-      // Use a default name if name is null or undefined
-      a.download = name || 'image';
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error downloading image:", error);
-    }
-  };
 
   return (
       <main className="flex-grow container mx-auto p-4 space-y-8">
-        <div className="text-center mb-8">
+        <div className="text-center mb-2">
           <h1 className="text-6xl font-bold mb-2" style={{ fontFamily: "'Rubik Mono One', sans-serif" }}>POP ART AI</h1>
           <h2 className="text-2xl font-semibold text-muted-foreground" style={{ fontFamily: "'Rubik Mono One', sans-serif" }}>A tribute to Roy Lichtenstein</h2>
         </div>
-        <Button onClick={() => addBulkAiImages()}>Generate Bulk</Button>
-
         {showConfetti && <Confetti />}
-
         <ImagePromptInput 
           handleGenerateImage={handleGenerateImage} 
           isGenerating={isGenerating} 
@@ -146,27 +122,15 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
           prompt={prompt}
           setPrompt={setPrompt}
           handleRandomize={handleRandomize}
-        />
-        <ImageGenerationSettings
-          isOpen={isSettingsOpen}
-          onOpenChange={setIsSettingsOpen}
-          aspectRatio={aspectRatio}
-          setAspectRatio={setAspectRatio}
-          numInferenceSteps={numInferenceSteps}
-          setNumInferenceSteps={setNumInferenceSteps}
-          guidanceScale={guidanceScale}
-          setGuidanceScale={setGuidanceScale}
-          promptStrength={promptStrength}
-          setPromptStrength={setPromptStrength}
-          seed={seed}
-          setSeed={setSeed}
-          outputFormat={outputFormat}
-          setOutputFormat={setOutputFormat}
-          outputQuality={outputQuality}
-          setOutputQuality={setOutputQuality}
-          numOutputs={numOutputs}
-          setNumOutputs={setNumOutputs}
-        />
+        >
+          <ImageGenerationSettingsPopover  
+            isOpen={isSettingsOpen}
+            onOpenChange={setIsSettingsOpen}
+            handleSettingChange={handleSettingChange}
+            settings={settings}
+            toggleSettings={toggleSettings}
+            />
+        </ImagePromptInput>
         <PromptSuggestions onSuggestionClick={setPrompt} />
         <ImageGenerationDialog
           isOpen={showModal}
@@ -179,9 +143,6 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
         />
         <ImageGallery
           images={images}
-          onFavorite={handleFavorite}
-          onDelete={handleDelete}
-          onDownload={handleDownload}
         />
       </main>
   )

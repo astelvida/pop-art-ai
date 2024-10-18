@@ -1,6 +1,7 @@
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { SlidersHorizontal, ArrowUp, Shuffle } from "lucide-react";
+import { SlidersHorizontal, ArrowUp, Shuffle, Settings } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 interface ImagePromptInputProps {
   handleGenerateImage: () => void;
@@ -11,14 +12,32 @@ interface ImagePromptInputProps {
   toggleSettings: () => void;
 }
 
-export function ImagePromptInput({  
+export function ImagePromptInput({
   handleRandomize,
   handleGenerateImage,
   isGenerating,
   toggleSettings,
   prompt,
-  setPrompt
+  setPrompt,
+  children,
 }: ImagePromptInputProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setPrompt(e.target.value);
+    adjustTextareaHeight();
+  };
+
+  const adjustTextareaHeight = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "autåo";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  };
+
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [prompt]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,46 +47,40 @@ export function ImagePromptInput({
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4 space-y-4">
+    <div className="max-w-2xl mx-auto pr-4 space-y-1">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="relative">
           <Textarea
-            placeholder="Enter your image prompt"
+            ref={textareaRef}
+            placeholder="Ask v0 a question..."
             value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            disabled={isGenerating}
-            className="min-h-[100px] pr-10 pb-10"
+            onChange={handlePromptChange}
+            className="min-h-[100px] pb-16 pt-4 px-4 pr-16 rounded-2xl resize-none overflow-hidden"
           />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="absolute right-2 top-2"
-            onClick={handleRandomize}
-            disabled={isGenerating}
-          >
-            <Shuffle className="h-4 w-4" />
-            <span className="sr-only">Randomize prompt</span>
-          </Button>
-          <div className="absolute bottom-2 left-2">
+
+          <div className="absolute bottom-3 left-3 flex items-center space-x-2">
+            {children}
+          </div>
             <Button
+              type="button"
               variant="ghost"
               size="icon"
-              className="h-8 w-8"
-              onClick={toggleSettings}
+              className="absolute right-2 top-2"
+              onClick={handleRandomize}
+              disabled={isGenerating}
             >
-              <SlidersHorizontal className="h-6 w-6" />
-              <span className="sr-only">Open settings</span>
+              <Shuffle className="h-4 w-4" />
+              <span className="sr-only">Randomize prompt</span>
             </Button>
-          </div>
-          <Button
-            type="submit"
-            disabled={isGenerating || !prompt.trim()}
-            className="absolute bottom-2 right-2 h-8 w-8 p-0"
-          >
-            <ArrowUp className="h-4 w-4" />
-            <span className="sr-only">Generate Image</span>
-          </Button>
+            <Button
+              type="submit"
+              disabled={isGenerating || !prompt.trim()}
+              size="icon"
+              className="absolute bottom-3 right-3 rounded-full"
+            >
+              <ArrowUp className="h-4 w-4" />
+              <span className="sr-only">Generate Image</span>
+            </Button>
         </div>
       </form>
     </div>

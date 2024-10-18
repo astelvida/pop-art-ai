@@ -1,7 +1,7 @@
 // "server-only";
 
 "use server";
-import { eq, not, desc, and } from "drizzle-orm";
+import { eq, not, desc, and, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import * as schema from "@/db/schema";
 import { db } from "@/db/drizzle";
@@ -11,7 +11,7 @@ import { redirect } from "next/navigation";
 import { generateImageDetails } from "./openai";
 import { data } from "./data";
 import { pp } from "@/app/app.config";
-const { aiImage } = schema;
+const { AiImages } = schema;
 
 export type newImage = {
   url: string;
@@ -32,7 +32,7 @@ export async function saveAiImage(newImage: newImage) {
     throw new Error(result?.error?.message || "Failed to upload image");  
 
 
-  const insertedAiImage = await db.insert(aiImage)
+  const insertedAiImage = await db.insert(AiImages)
     .values({   
       url: result.data.url,
       name: result.data.name,
@@ -53,11 +53,12 @@ export const getAiImages = async () => {
   const { userId } = auth();
   if (!userId) throw new Error("User not authorized");
 
-  const aiImages = await db.select().from(aiImage)
-    .where(eq(aiImage.userId, userId))
-    .orderBy(desc(aiImage.createdAt));
+  const aiImages = await db.select().from(AiImages)
+    .where(eq(AiImages.userId, userId))
+    .orderBy(desc(AiImages.createdAt));
 
-  pp(aiImages.slice(0, 2))
+    pp("aiImages", aiImages.slice(0,2))
+    pp(aiImages.length)
   return aiImages;
 };
 
@@ -66,9 +67,8 @@ export async function getAiImage(id: number) {
   const user = auth();
   if (!user.userId) throw new Error("Unauthorized");
 
-  const [image] = await db.select().from(aiImage).where(eq(aiImage.id, id));
+  const [image] = await db.select().from(AiImages).where(eq(AiImages.id, id));
 
-  console.log(image)
   if (!image) throw new Error("Image not found");
 
   console.log('img',image.userId, user.userId)
@@ -82,8 +82,8 @@ export async function deleteAiImage(id: number) {
   if (!user.userId) throw new Error("Unauthorized");
 
   await db
-    .delete(aiImage)
-    .where(and(eq(aiImage.id, id), eq(aiImage.userId, user.userId)));
+    .delete(AiImages)
+    .where(and(eq(AiImages.id, id), eq(AiImages.userId, user.userId)));
 
   // analyticsServerClient.capture({
   //   distinctId: user.userId,
@@ -101,9 +101,9 @@ export async function toggleFavoriteAiImage(id: number) {
   const { userId } = auth();
   if (!userId) throw new Error("User not authorized");
 
-  await db.update(aiImage)
-    .set({ isFavorite: not(aiImage.isFavorite) })
-    .where(eq(aiImage.id, id));
+  await db.update(AiImages)
+    .set({ isFavorite: not(AiImages.isFavorite) })
+    .where(eq(AiImages.id, id));
 
   revalidatePath("/");
 }
@@ -112,8 +112,8 @@ export async function getAiImageById(id: number) {
   const { userId } = auth();
   if (!userId) throw new Error("User not authorized");
 
-  const image = await db.query.aiImage.findFirst({
-    where: (aiImage, { eq }) => eq(aiImage.id, id),
+  const image = await db.query.AiImages.findFirst({
+    where: (AiImages, { eq }) => eq(AiImages.id, id),
   });
 
   if (!image) throw new Error("Image not found");
@@ -122,6 +122,21 @@ export async function getAiImageById(id: number) {
   if (image.userId !== userId) throw new Error("User not authorized to access this image");
 
   return image;
+}
+
+
+export async function updateNullAiImageNames() {
+  const { userId } = auth();
+  if (!userId) throw new Error("User not authorized");
+
+  const result = await db.update(AiImages)
+    .set({ name: "pop_art_image.jpg" })
+    .where(eq(AiImages.name, null as unknown as string))
+    .returning({ updatedId: AiImages.id });
+
+  console.log(`Updated ${result.length} images with null names`);
+  revalidatePath('/');
+  return result;
 }
 
 // export async function getFavoriteStories() {
@@ -214,7 +229,7 @@ export async function addBulkAiImages() {
           continue;
         }
 
-        const insertedAiImage = await db.insert(aiImage)
+        const insertedAiImage = await db.insert(AiImages)
           .values({   
             url: result.data.url,
             name: result.data.name,

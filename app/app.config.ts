@@ -2,8 +2,9 @@
 import { inspect } from "util";
 
 export const pp = (o, options = {}) => {
+  console.log('\n-----------------------------------------------------------\n')
   console.log(
-    inspect(o, {
+      inspect(o, {
       showHidden: false,
       depth: 20,
       colors: true,

@@ -1,5 +1,6 @@
 "use server";
 
+import { pp } from "@/app/app.config";
 import { UTApi } from "uploadthing/server";
 
 const utapi = new UTApi();
@@ -7,10 +8,9 @@ const utapi = new UTApi();
 type MaybeURL = string | URL;
 type URLWithOverrides = { url: MaybeURL; name?: string; customId?: string };
 
-function extractFileNameFromUrl(url: string): string {
+function extractFileNameFromUrl(url: URL): string {
   try {
-    const parsedUrl = new URL(url);
-    const pathSegments = parsedUrl.pathname.split("/");
+    const pathSegments = url.pathname.split("/");
     return pathSegments[pathSegments.length - 1];
   } catch (error) {
     console.error("Failed to parse URL", error);
@@ -32,14 +32,18 @@ function slugify(text) {
 
 // Example usage
 
-export async function uploadFromUrl(url: string, name: string) {
+export async function uploadFromUrl(url: MaybeURL, name: string) {
   try {
-    const fileName = extractFileNameFromUrl(url);
+    const replicateUrl = new URL(url);
+    const fileName = extractFileNameFromUrl(replicateUrl);
+    const newName = `${slugify(name)}.${fileName.split(".")[1]}`
+    pp({replicateUrl, fileName, newName})
     const uploadedFile = await utapi.uploadFilesFromUrl(<URLWithOverrides>{
-      url: url,
-      name: `${slugify(name)}.${fileName.split(".")[1]}`,
+      url: replicateUrl,
+      name: newName,
+      // customId: "123"
     });
-    console.dir(uploadedFile, { depth: 5 });
+    pp(uploadedFile);
     return uploadedFile;
   } catch (error) {
     console.error("Failed to upload file from URL", error);

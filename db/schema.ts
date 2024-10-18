@@ -1,6 +1,13 @@
 import { integer, text, boolean, pgTable, serial, varchar, timestamp } from "drizzle-orm/pg-core";
 import { InferInsertModel, InferSelectModel, relations } from "drizzle-orm";
 
+// export const usersTable = pgTable("users", {
+//   id: integer().primaryKey().generatedAlwaysAsIdentity(),
+//   name: varchar({ length: 255 }).notNull(),
+//   email: varchar({ length: 255 }).notNull().unique(),
+// });
+
+
 // /**
 //  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
 //  * database instance for multiple projects.
@@ -29,16 +36,16 @@ import { InferInsertModel, InferSelectModel, relations } from "drizzle-orm";
 // });
 
 
-export const aiImage = pgTable("aiImage", {
+export const AiImages = pgTable("aiImage", {
   id: serial("id").primaryKey(),
-  userId: varchar("userId", { length: 255 }).notNull(),
   url: varchar("url", { length: 2083 }).notNull(), // Max URL length
   name: varchar("name", { length: 255 }),
-  prompt: text("prompt").notNull(),
   title: text("title"),
-  model: varchar("model"),
   description: text("description"),
+  prompt: text("prompt").notNull(),
+  model: varchar("model"),
   isFavorite: boolean("isFavorite").default(false),
+  userId: varchar("userId", { length: 255 }).notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
