@@ -7,35 +7,38 @@ import { PromptSuggestions } from '@/components/prompt-suggestions'
 import { ImageGenerationDialog } from '@/components/image-generation-dialog'
 import { ImageGallery } from '@/components/image-gallery'
 import { AiImageType } from '@/db/schema'
-import { ImageGenerationSettings, ImageGenerationSettingsValues } from '@/components/image-generation-settings'
 import { addBulkAiImages, deleteAiImage, newImage, saveAiImage, toggleFavoriteAiImage } from '@/actions/queries'
 import { generatePopArtImage } from '@/actions/ai-services'
 import { Button } from './ui/button'
 import prompts from '@/public/prompts.json'
 import { ImageGenerationSettingsPopover } from './image-generation-settings-popover'
+import { ImageGenerationOptions, ImageOrImages } from '@/lib/types'
 
+// const sampleImages= ['/burning-farewell.jpg','/sarcastic-remarks.jpg', 'sarcastic-smirk.jpg', /* 'the-final-farewell.jpg' */]
+// const sampleImages = ['https://utfs.io/f/DJ9iVbfnTNKnydv6GkHwMQAKVom5Hf1nUvRlrNPEha9pOijx', 'https://utfs.io/f/DJ9iVbfnTNKnd9yWhpGJM6OmhvEpnZ1qTaY5rkuGKP9wxfjW']
+                  // src={`/${image}`} 
 const Confetti = dynamic(() => import('react-confetti'), { ssr: false })
 
 export function ImageGenerator({ images }: {images: AiImageType[]}) {
   const [showConfetti, setShowConfetti] = useState(false)
+  const [prompt, setPrompt] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [progress, setProgress] = useState(0)
   const [currentImages, setCurrentImages] = useState<string[]>([])
-  const [showModal, setShowModal] = useState(true)
-  const [prompt, setPrompt] = useState('')
+  const [showModal, setShowModal] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   
   // Image generation settings
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<ImageGenerationOptions> ({
     aspectRatio: "1:1",
-    inferenceSteps: 28,
+    numInferenceSteps: 28,
     guidanceScale: 3.5,
     promptStrength: 0.80,
     seed: "",
     outputFormat: "jpg",
     outputQuality: 90,
-    numberOfOutputs: 1
+    numOutputs: 1
   })
 
   const toggleSettings = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -47,7 +50,7 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
     setIsGenerating(true)
     setProgress(0)
     setShowModal(true)
-    setCurrentImages([])
+    // setCurrentImages([])
 
     // Simulating image generation with a delay
     for (let i = 0; i <= 100; i += 10) {
@@ -56,15 +59,16 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
 
     try {
       const imageUrls = await generatePopArtImage(prompt, settings)
-      console.log(imageUrls)
       setCurrentImages(imageUrls)
+      console.dir(imageUrls)
+      console.log(typeof imageUrls, Array.isArray(imageUrls))
       // Save all generated images
-      for (const imageUrl of imageUrls) {
-        await saveAiImage({ url: imageUrl, prompt: prompt })
-      }
+      // for (const imageUrl of imageUrls) {
+      //   await saveAiImage({ url: imageUrl, prompt: prompt })
+      // }
       
       setShowConfetti(true)
-      setTimeout(() => setShowConfetti(false), 2000)
+      setTimeout(() => setShowConfetti(false), 5000)
     } catch (err) { 
       console.error(err)
     } finally {
@@ -77,24 +81,43 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
     setPrompt(randomPrompt);
   };
 
-  const handleSave = () => {
-    if (currentImages.length > 0) {
-      setCurrentImages([])
-      setShowModal(false)
-      setPrompt('')
+    const handleSave = async (data: ImageOrImages): Promise<void> => {
+    if (typeof data === 'string') {
+        console.log("String length:", data.length);
+        await saveAiImage({ url: data, prompt: prompt }) 
+    } else if (Array.isArray(data)) {
+        console.log("Array length:", data.length);
+        const saveImagePromises = data.map((item, index) => {
+          return saveAiImage({ url: item, prompt: prompt }) 
+        });
+        await Promise.all(saveImagePromises)
+        setShowModal(false)
+        setPrompt('')
+    } else {
+        throw new Error("Invalid input type");
     }
-  }
+}
 
-  const handleDiscard = () => {
-    setCurrentImages([])
-    setShowModal(false)
-    setPrompt('')
-  }
-
-  const handleSettingChange = (key: keyof ImageGenerationSettingsValues, value: any) => {
+  const handleDiscard = (data: ImageOrImages): void => {
+    console.log("discarding data", typeof data, data)
+    if (typeof data === 'string') {
+      setCurrentImages(prevImages => {
+        const updatedImages = prevImages.filter(img => img !== data)
+        console.log({ prevImages, updatedImages})
+        return updatedImages
+      })
+    } else if (Array.isArray(data)) {
+      setCurrentImages([])
+      setPrompt('')
+      setShowModal(false)
+    } else {
+      throw new Error("Invalid input type");
+    }
+  } 
+  
+  const handleSettingChange = (key: keyof ImageGenerationOptions, value: any) => {
     setSettings(prevSettings => ({ ...prevSettings, [key]: value }))
   }
-
 
   return (
       <main className="flex-grow container mx-auto p-4 space-y-8">
@@ -106,7 +129,6 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
         <ImagePromptInput 
           handleGenerateImage={handleGenerateImage} 
           isGenerating={isGenerating} 
-          toggleSettings={toggleSettings}
           prompt={prompt}
           setPrompt={setPrompt}
           handleRandomize={handleRandomize}

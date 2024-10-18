@@ -9,14 +9,13 @@ interface ImagePromptInputProps {
   prompt: string;
   setPrompt: (prompt: string) => void;
   handleRandomize: () => void;
-  toggleSettings: () => void;
+  children: React.ReactNode;
 }
 
 export function ImagePromptInput({
   handleRandomize,
   handleGenerateImage,
   isGenerating,
-  toggleSettings,
   prompt,
   setPrompt,
   children,

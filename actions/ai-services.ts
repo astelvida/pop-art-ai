@@ -1,14 +1,11 @@
 "use server";
-import { pp } from "@/app/app.config";
-import { pp2 } from "@/app/app.config";
-import { samplePrompts } from "@/lib/form-data";
+import { ImageGenerationOptions } from "@/lib/types";
 import Replicate from "replicate";
+import { pp, pp2 } from "@/lib/pprint";
 
 const replicateAI = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
-
-
 
 export type PredictionInput = {
   model: string;
@@ -42,9 +39,9 @@ export async function generatePopArtImage(
 ) {
   console.log("Running...");
   console.log("PROMPT", prompt);
-
+  const finalPrompt = `${TRIGGER_WORD} image of ${prompt} `
   const input = {
-    prompt:  `${TRIGGER_WORD} image of ${prompt} `,
+    prompt: finalPrompt,
     model: "dev",
     lora_scale: 1,
     num_outputs: options.numOutputs || 1,
@@ -65,41 +62,7 @@ export async function generatePopArtImage(
   const output = await replicateAI.run(MODEL_POP_ART, {
     input,
   });
-  console.log("--------------------- OUTPUT ---------------------");
   pp(output);
-  pp2(output);
-  console.log("--------------------- OUTPUT.output ---------------------");
-  pp(output?.output);
-  pp2(output?.output);
-
-  console.log("isArray", Array.isArray(output), output?.length);
-  console.log("output keys", Object.keys(output));
-
 
   return output;
 }
-
-
-const generatedImages = [];
-async function generateImages() {
-  for (const prompt of randomPrompts) {
-    const output = await generatePopArtImage(prompt, {
-      numOutputs: 2,
-      aspectRatio: "16:9",
-      outputFormat: "jpg",
-      numInferenceSteps: 45,
-    })
-
-    generatedImages.push({prompt,output});
-
-    // console.log("PROMPT", prompt);
-    // console.log("OUTPUT", output);
-    console.log(JSON.stringify({ prompt, output }, null, 2));
-  }
-
-  console.log("GENERATED IMAGES", generatedImages);
-  return generatedImages;
-}
-
-// generateImages();
-// trainModel();

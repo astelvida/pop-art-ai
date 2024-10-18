@@ -1,3 +1,4 @@
+import { pp } from "@/lib/pprint";
 import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import { z } from "zod";
@@ -12,6 +13,8 @@ const AiImageDetails = z.object({
   description: z.string(),
 });
 
+
+
 export async function generateImageDetails(imageUrl: string, prompt: string) {
   const completion = await openai.beta.chat.completions.parse({
     model: "gpt-4o-2024-08-06",
@@ -21,7 +24,7 @@ export async function generateImageDetails(imageUrl: string, prompt: string) {
         content: [
           {
             type: "text",
-            text: `Given this image, and this prompt: "${prompt}", extract the title, caption, and description.`,
+            text: `Given this image, and this prompt: "pop art comic book image of ${prompt}", extract the title, caption, and a description. The description should be like a short story.`,
           },
           {
             type: "image_url",
@@ -36,7 +39,7 @@ export async function generateImageDetails(imageUrl: string, prompt: string) {
   });
 
   const result = completion.choices[0].message.parsed;
-  console.log(result);
+  pp(result, "RESULT")  
   return result;
 }
 

@@ -1,6 +1,6 @@
 "use server";
 
-import { pp } from "@/app/app.config";
+import { pp } from "@/lib/pprint";
 import { UTApi } from "uploadthing/server";
 
 const utapi = new UTApi();

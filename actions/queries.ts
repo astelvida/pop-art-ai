@@ -10,7 +10,7 @@ import { uploadFromUrl } from "./file.actions";
 import { redirect } from "next/navigation";
 import { generateImageDetails } from "./openai";
 import { data } from "./data";
-import { pp } from "@/app/app.config";
+import { pp, pp2 } from "@/lib/pprint";
 const { AiImages } = schema;
 
 export type newImage = {
@@ -19,18 +19,16 @@ export type newImage = {
 };
 
 export async function saveAiImage(newImage: newImage) {
-  pp(newImage)
+  pp(auth(), "auth()") 
   const { userId } = auth();
+
   if (!userId) throw new Error("User not authorized");
 
   const imageDetails = await generateImageDetails(newImage.url, newImage.prompt)   
-  console.log("imageDetails", imageDetails)
-
-  let result = await uploadFromUrl(newImage.url, imageDetails?.title) 
+  let result = await uploadFromUrl(newImage.url, imageDetails?.title || "pop-art" ) 
 
   if (!result || !result?.data || result.error) 
     throw new Error(result?.error?.message || "Failed to upload image");  
-
 
   const insertedAiImage = await db.insert(AiImages)
     .values({   
@@ -44,7 +42,7 @@ export async function saveAiImage(newImage: newImage) {
     })
     .returning();
 
-    console.log(insertedAiImage)
+  pp(insertedAiImage, "INSERTED IMAGE")
   revalidatePath('/')
   return insertedAiImage;
 }
@@ -57,8 +55,6 @@ export const getAiImages = async () => {
     .where(eq(AiImages.userId, userId))
     .orderBy(desc(AiImages.createdAt));
 
-    pp("aiImages", aiImages.slice(0,2))
-    pp(aiImages.length)
   return aiImages;
 };
 

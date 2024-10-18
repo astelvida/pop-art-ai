@@ -3,19 +3,19 @@ import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Save, Trash2, X, Download } from "lucide-react"
+import { ImageOrImages } from "@/lib/types"
+import { downloadAiImage } from "@/lib/helpers"
 
 
-const sampleImages= ['/burning-farewell.jpg','/sarcastic-remarks.jpg', 'sarcastic-smirk.jpg', /* 'the-final-farewell.jpg' */]
-                  // src={`/${image}`} 
+
 interface ImageGenerationDialogProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   isGenerating: boolean
   progress: number
   currentImages: string[]
-  onSave: (image?: string) => void
-  onDiscard: (image?: string) => void
-  onDownload: (image?: string) => void
+  onSave: (image: ImageOrImages  ) => void  
+  onDiscard: (image: ImageOrImages) => void
 }
 
 export function ImageGenerationDialog({
@@ -26,7 +26,6 @@ export function ImageGenerationDialog({
   currentImages,
   onSave,
   onDiscard,
-  onDownload
 }: ImageGenerationDialogProps) {
   const [zoomedImage, setZoomedImage] = useState<string | null>(null)
   const [imageSize, setImageSize] = useState({ width: 300, height: 300 })
@@ -52,13 +51,13 @@ export function ImageGenerationDialog({
               <p className="mb-4">Generating your pop art masterpieces...</p>
               <Progress value={progress} className="w-[250px] mx-auto" />
             </div>
-          ) : sampleImages.length > 0 ? (
-            sampleImages.map((image, index) => (
+          ) : currentImages.length > 0 ? (
+            currentImages.map((image, index) => (
               <div key={index} className="flex flex-col items-center">
                 <h3 className="font-comic-sans text-xl mb-2 text-center">Image {index + 1}</h3>
                 <img 
                   src={image} 
-                  alt={`Generated image ${index + 1}`} 
+                  alt={`Generated image ${image}`} 
                   style={{
                     maxWidth: `${imageSize.width}px`,
                     maxHeight: `${imageSize.height}px`,
@@ -77,7 +76,7 @@ export function ImageGenerationDialog({
                     <Trash2 className="h-4 w-4 mr-2" />
                     Discard
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => onDownload(image)}>
+                  <Button variant="outline" size="sm" onClick={() => downloadAiImage(image, `pop-art-image-${index}.jpg`)}>
                     <Download className="h-4 w-4 mr-2" />
                     Download
                   </Button>
@@ -89,10 +88,10 @@ export function ImageGenerationDialog({
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onDiscard} disabled={isGenerating}>
+          <Button variant="outline" onClick={() => onDiscard(currentImages)} disabled={isGenerating}>
             Discard All
           </Button>
-          <Button onClick={onSave} disabled={isGenerating || currentImages.length === 0}>
+          <Button onClick={() => onSave(currentImages)} disabled={isGenerating || currentImages.length === 0}>
             Save All to Gallery
           </Button>
         </DialogFooter>
