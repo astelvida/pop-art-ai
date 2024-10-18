@@ -13,7 +13,7 @@ interface ImageGalleryProps {
 export function ImageGallery({ images, onFavorite, onDelete, onDownload }: ImageGalleryProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {images.map(({url, name = "a pop art image", title = "No title available", id, isFavorite, description = "No description available"}, index) => (
+      {images.map(({url, name = 'pop art image', title = "No title available", id, isFavorite, description = "No description available"}, index) => (
         <div key={index} className="relative group">
           <Link href={`/img/${id}`}>
             <img src={url} alt={`Generated image ${index + 1} - ${name || "a pop art image"} `} className="w-full h-auto rounded-lg" />

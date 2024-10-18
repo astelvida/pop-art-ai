@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ChevronDown } from "lucide-react"
 import { aspectRatios, outputFormats } from '@/lib/form-data'
 
-interface ImageGenerationSettingsProps {
+export interface ImageGenerationSettingsProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   aspectRatio: string
@@ -18,15 +18,39 @@ interface ImageGenerationSettingsProps {
   setGuidanceScale: (scale: number) => void
   promptStrength: number
   setPromptStrength: (strength: number) => void
-  seed: string
-  setSeed: (seed: string) => void
-  outputFormat: string
+  outputFormat: "jpg" | "png" | "webp";
   setOutputFormat: (format: string) => void
   outputQuality: number
   setOutputQuality: (quality: number) => void
   numOutputs: number
   setNumOutputs: (num: number) => void
+  seed: string
+  setSeed: (seed: string) => void
 }
+
+
+export interface ImageGenerationOptions {
+  aspectRatio?: string;   
+  numInferenceSteps?: number;
+  guidanceScale?: number;
+  promptStrength?: number;
+  outputFormat?: "jpg" | "png" | "webp";
+  outputQuality?: number;
+  numOutputs?: number;
+  seed?: string;
+};
+
+export type ImageGenerationSettingsValues = Partial<Pick<ImageGenerationSettingsProps, 
+  'aspectRatio' |
+  'numInferenceSteps' | 
+  'guidanceScale' | 
+  'promptStrength' | 
+  'outputQuality' | 
+  'numOutputs' |
+  'outputFormat' |
+  'seed' 
+>>
+
 
 export function ImageGenerationSettings({
   isOpen,

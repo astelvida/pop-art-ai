@@ -47,7 +47,6 @@ export default function RootLayout({
               {modal}
             </div>
             <div id="modal-root" />
-
           </body>
         </html>
       {/* </ThemeProvider> */}

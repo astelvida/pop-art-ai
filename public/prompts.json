@@ -1,0 +1,50 @@
+{
+  "emotional": [
+    "A young woman holding a burning letter, tears streaming down her face. Speech bubble: 'This was the last goodbye.' The flames illuminate her sorrow.",
+    "A man sitting alone at a bar, staring at an untouched drink. Speech bubble: 'I thought you'd be here.' His loneliness highlighted by the bright neon lights around him.",
+    "A woman on the phone, visibly angry, gripping the cord tightly. Speech bubble: 'You always have an excuse!' Her frustration is contrasted with her brightly colored dress.",
+    "A couple in the middle of an argument in a crowded street, the world around them blurred. Speech bubble from the man: 'Why can't you understand?' Their emotions are intensified with bold colors.",
+    "A man sitting on the edge of a bed, head in his hands. Speech bubble: 'I never thought it would end like this.' The shadows in the room deepen the sense of regret.",
+    "A woman standing in front of a mirror, tearing up a photo. Speech bubble: 'I’m finally done with you.' Her defiance is reflected in the bright, contrasting colors.",
+    "A man in a rain-soaked suit, looking down at a wilted flower. Speech bubble: 'I’m too late.' His sadness emphasized by the vibrant colors of the rain.",
+    "A woman holding a love letter, her face torn between hope and despair. Speech bubble: 'Maybe this time it will be different.' The bright colors mask her uncertainty.",
+    "A young man standing at an airport gate, watching a plane take off. Speech bubble: 'I should have told you.' The dynamic colors contrast with his stillness.",
+    "A woman staring at an empty chair across the table, her eyes glistening with unshed tears. Speech bubble: 'You promised you’d be here.' The bright patterns on the tablecloth contrast her sadness."
+  ],
+  "sarcastic": [
+    "A woman surrounded by a pile of work, smiling sarcastically. Speech bubble: 'Sure, I love working overtime for free!' The exaggerated smile contrasts with her exhausted eyes.",
+    "A man standing in traffic, rolling his eyes. Speech bubble: 'Oh great, just what I needed today!' His annoyance is highlighted by the vibrant city colors.",
+    "A woman with a broken heel, wincing in pain. Speech bubble: 'Perfect! Exactly how I wanted this day to go.' Her frustration pops against the bold background.",
+    "A man holding an empty wallet, laughing sarcastically. Speech bubble: 'Money well spent, I’m sure!' His exaggerated grin contrasts with the bright, gaudy colors.",
+    "A woman talking to her cat, who’s knocked over a vase. Speech bubble: 'Of course, I wasn’t using that anyway.' Her eyes are filled with faux amusement.",
+    "A man holding a burnt toast, staring at it blankly. Speech bubble: 'Breakfast of champions, obviously.' His frustration contrasts with the colorful kitchen.",
+    "A woman looking at a flat tire, smirking. Speech bubble: 'Just my luck! Couldn’t be better timing.' Her sarcasm stands out in the bold, saturated colors.",
+    "A man getting rained on while holding a closed umbrella. Speech bubble: 'I mean, who needs an umbrella anyway?' His dry humor is mirrored by the bright, ironic colors.",
+    "A woman on the phone with customer service, eyes rolling. Speech bubble: 'Yes, your service has been very helpful. Totally.' Her sarcastic smile contrasts with the vibrant background.",
+    "A man holding a tiny, empty gift box, raising an eyebrow. Speech bubble: 'Oh, you shouldn’t have. Really, you shouldn’t have.' His sarcastic delight is highlighted with the bold, colorful patterns."
+  ],
+  "witty": [
+    "A woman staring at a bouquet of dead flowers. Speech bubble: 'Well, at least they lasted longer than you did.' Her dry humor contrasts with the once-bright petals.",
+    "A man holding a love letter and smirking. Speech bubble: 'Oh, another apology letter? How original.' His face reflects weary sarcasm amidst the vibrant background.",
+    "A woman sitting by herself at a fancy dinner table. Speech bubble: 'Ah, nothing like a romantic dinner for one.' Her forced smile contrasts with the empty chair opposite her.",
+    "A man looking at a framed photo of his ex. Speech bubble: 'We were such a great team at making bad decisions.' His ironic smile highlighted by the bright pop colors.",
+    "A woman wiping away tears with a tissue. Speech bubble: 'I swear, my mascara loves drama more than I do.' Her watery eyes sparkle against the exaggerated makeup colors.",
+    "A man watching a romantic movie alone, popcorn in hand. Speech bubble: 'Yeah, sure, love conquers all—except my life, apparently.' His sarcastic expression stands out in the vivid color scheme.",
+    "A woman tearing up an old love letter. Speech bubble: 'You said forever, but I guess you meant two months.' Her eyes roll dramatically, contrasting the bold colors around her.",
+    "A couple arguing in the kitchen, the man holding a burnt meal. Speech bubble from the woman: 'Just like our relationship, overcooked and bitter.' Her expression is a mix of annoyance and amusement.",
+    "A woman sitting by the phone, smirking. Speech bubble: 'Of course you’ll call—right after pigs fly and hell freezes over.' Her sarcastic smile is paired with the exaggerated brightness of the phone.",
+    "A man sitting alone on a bench, with a suitcase beside him. Speech bubble: 'Guess I packed too much trust, not enough common sense.' His eyes show sadness under his sarcastic smile, set against the vibrant surroundings."
+  ],
+  "sarcastic_no_speech bubbles": [
+    "A woman sitting alone at a fancy restaurant, dramatically raising a glass of champagne while rolling her eyes.",
+    "A man holding a box of chocolates, realizing they’re all empty, with a look of forced amusement.",
+    "A woman putting a 'Welcome Back' banner in the trash, her expression mixing exhaustion and sarcasm.",
+    "A couple standing on opposite sides of a broken heart-shaped mirror, each one looking away with an exaggerated sigh.",
+    "A man throwing a love letter into a fireplace, his face filled with an exaggerated, sarcastic smile.",
+    "A woman in bed, surrounded by a pile of tissues, staring at a romantic movie poster on the wall with an eye-roll.",
+    "A man trying to fix a broken heart-shaped necklace, with a smirk that says he knows it’s pointless.",
+    "A woman staring at a shattered snow globe with a once-romantic scene inside, her face filled with ironic disappointment.",
+    "A man sitting in front of a birthday cake with only one slice missing, his forced smile revealing a sarcastic acceptance of his loneliness.",
+    "A woman in front of a mailbox, holding a stack of unopened letters, with an unimpressed, sarcastic expression."
+  ]
+}

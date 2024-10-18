@@ -60,3 +60,18 @@ export async function uploadFromUrl(url: string, name: string) {
 //   },
 //   error: null
 // }
+
+// const urls: string[] = [];
+
+// data.forEach(async (item) => {
+//   const uploadedFile1 = await uploadFromUrl(item.output[0], item.prompt);
+//   const uploadedFile2 = await uploadFromUrl(item.output[1], item.prompt);
+//   console.log(item.prompt);
+//   console.log(uploadedFile1?.data?.url, uploadedFile2?.data?.url);
+//   console.log("-----------------------------------");
+//   if (uploadedFile1?.data?.url && uploadedFile2?.data?.url) {
+//     urls.push(uploadedFile1?.data?.url, uploadedFile2?.data?.url);
+//   }
+// });
+
+// console.log(JSON.stringify(urls, null, 2));

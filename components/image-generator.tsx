@@ -7,10 +7,11 @@ import { PromptSuggestions } from '@/components/prompt-suggestions'
 import { ImageGenerationDialog } from '@/components/image-generation-dialog'
 import { ImageGallery } from '@/components/image-gallery'
 import { AiImageType } from '@/db/schema'
-import { additionalPrompts, placeholderImages } from '@/lib/form-data'
-import { ImageGenerationSettings } from '@/components/image-generation-settings'
-import { deleteAiImage, newImage, saveAiImage, toggleFavoriteAiImage } from '@/actions/queries'
+import { ImageGenerationSettings, ImageGenerationSettingsValues } from '@/components/image-generation-settings'
+import { addBulkAiImages, deleteAiImage, newImage, saveAiImage, toggleFavoriteAiImage } from '@/actions/queries'
 import { generatePopArtImage } from '@/actions/ai-services'
+import { Button } from './ui/button'
+import prompts from '@/public/prompts.json'
 
 const Confetti = dynamic(() => import('react-confetti'), { ssr: false })
 
@@ -20,7 +21,6 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
   const [progress, setProgress] = useState(0)
   const [currentImages, setCurrentImages] = useState<string[]>([])
   const [showModal, setShowModal] = useState(false)
-  // const [images, setImages] = useState(placeholderImages)
   const [prompt, setPrompt] = useState('')
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
@@ -30,7 +30,7 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
   const [guidanceScale, setGuidanceScale] = useState(3.5)
   const [promptStrength, setPromptStrength] = useState(0.8)
   const [seed, setSeed] = useState('')
-  const [outputFormat, setOutputFormat] = useState('jpg')
+  const [outputFormat, setOutputFormat] = useState<"jpg" | "png" | "webp">('jpg')
   const [outputQuality, setOutputQuality] = useState(90)
   const [numOutputs, setNumOutputs] = useState(2)
 
@@ -51,7 +51,8 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
     }
 
     try {
-      const options = {
+
+      const options: ImageGenerationSettingsValues = {
         aspectRatio,
         numInferenceSteps,
         guidanceScale,
@@ -61,26 +62,30 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
         outputQuality,
         numOutputs
       }
+      
       console.log({options})
       const imageUrls = await generatePopArtImage(prompt, options)
+
+      console.dir(imageUrls)
+
       setCurrentImages(imageUrls)
       
       // Save all generated images
       for (const imageUrl of imageUrls) {
         await saveAiImage({ url: imageUrl, prompt: prompt })
       }
-
+      
       setShowConfetti(true)
-      setTimeout(() => setShowConfetti(false), 5000)
+      setTimeout(() => setShowConfetti(false), 2000)
     } catch (err) { 
       console.error(err)
     } finally {
       setIsGenerating(false)
     }
   }
+  
   const handleRandomize = () => {
-    const randomPrompt =
-      additionalPrompts[Math.floor(Math.random() * additionalPrompts.length)];
+    const randomPrompt = prompts.witty[Math.floor(Math.random() * prompts.witty.length)];
     setPrompt(randomPrompt);
   };
 
@@ -102,11 +107,11 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
     toggleFavoriteAiImage(imageId)
   }
 
-  const handleDelete = (id: number) => {
-    deleteAiImage(id)
+  const handleDelete = (imageId: number) => {
+    deleteAiImage(imageId)
   }
 
-  const handleDownload = async (imageUrl: string, name: string | null) => {
+  const handleDownload = async (imageUrl: string, name: string) => {
     try {
       const response = await fetch(imageUrl);
       const blob = await response.blob();
@@ -114,7 +119,8 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
       const a = document.createElement("a");
       a.style.display = "none";
       a.href = url;
-      a.download = name;
+      // Use a default name if name is null or undefined
+      a.download = name || 'image';
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -123,15 +129,13 @@ export function ImageGenerator({ images }: {images: AiImageType[]}) {
     }
   };
 
-
   return (
-
-
       <main className="flex-grow container mx-auto p-4 space-y-8">
         <div className="text-center mb-8">
           <h1 className="text-6xl font-bold mb-2" style={{ fontFamily: "'Rubik Mono One', sans-serif" }}>POP ART AI</h1>
           <h2 className="text-2xl font-semibold text-muted-foreground" style={{ fontFamily: "'Rubik Mono One', sans-serif" }}>A tribute to Roy Lichtenstein</h2>
         </div>
+        <Button onClick={() => addBulkAiImages()}>Generate Bulk</Button>
 
         {showConfetti && <Confetti />}
 

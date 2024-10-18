@@ -9,7 +9,8 @@ import { auth } from "@clerk/nextjs/server";
 import { uploadFromUrl } from "./file.actions";
 import { redirect } from "next/navigation";
 import { generateImageDetails } from "./openai";
-
+import { data } from "./data";
+import { pp } from "@/app/app.config";
 const { aiImage } = schema;
 
 export type newImage = {
@@ -18,6 +19,7 @@ export type newImage = {
 };
 
 export async function saveAiImage(newImage: newImage) {
+  pp(newImage)
   const { userId } = auth();
   if (!userId) throw new Error("User not authorized");
 
@@ -55,6 +57,7 @@ export const getAiImages = async () => {
     .where(eq(aiImage.userId, userId))
     .orderBy(desc(aiImage.createdAt));
 
+  pp(aiImages.slice(0, 2))
   return aiImages;
 };
 
@@ -194,3 +197,42 @@ export async function getAiImageById(id: number) {
 //     orderBy: (model, { desc }) => desc(model.createdAt),
 //   });
 // }
+
+export async function addBulkAiImages() {
+  const userId = "user_2nTrPtux9tZhQdg2O1SG5R2fnVX";
+
+  for (const item of data) {
+    for (const url of item.output) {
+      try {
+        const imageDetails = await generateImageDetails(url, item.prompt);
+        console.log("imageDetails", imageDetails);
+
+        const result = await uploadFromUrl(url, imageDetails?.title);
+
+        if (!result || !result?.data || result.error) {
+          console.error("Failed to upload image:", result?.error?.message || "Unknown error");
+          continue;
+        }
+
+        const insertedAiImage = await db.insert(aiImage)
+          .values({   
+            url: result.data.url,
+            name: result.data.name,
+            prompt: item.prompt,
+            title: imageDetails.title,
+            description: imageDetails.description,
+            userId: userId,
+            model: "pop-art",
+          })
+          .returning();
+
+        console.log("Inserted AI Image:", insertedAiImage);
+      } catch (error) {
+        console.error("Error processing image:", error);
+      }
+    }
+  }
+
+  revalidatePath('/');
+  console.log("Bulk image insertion completed");
+}
