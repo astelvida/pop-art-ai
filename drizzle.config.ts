@@ -7,7 +7,7 @@ console.log('url', process.env.DATABASE_URL)
 
 export default defineConfig({
   schema: "./db/schema.ts",
-  out: "./migrations",
+  out: "./db/migrations",
   dialect: "postgresql",
   dbCredentials: {
     url: process.env.DATABASE_URL!,
