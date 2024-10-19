@@ -36,7 +36,7 @@ export function ImageGallery({ images }: ImageGalleryProps) {
               <p className="text-white text-sm">{description}</p>
             </div>
           </Link>
-          <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:o pacity-100 transition-opacity duration-300">
             <Button variant="secondary" size="icon" onClick={() => toggleFavoriteAiImage(id)}>
               <Heart className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
             </Button>
