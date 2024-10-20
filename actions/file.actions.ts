@@ -1,6 +1,5 @@
 'use server'
-// process.env.UPLOADTHING_TOKEN =
-// 'eyJhcGlLZXkiOiJza19saXZlX2UyNzQ5MDM2ZjYwMmM4MzU5NTA1ZTIxMTkzNWYxYmRiMWNhZTNhOWVmZjYzNmNkNjZhMDQ4MDQ4Zjg1YWYyYmEiLCJhcHBJZCI6InZyY2xnMDJ6dGQiLCJyZWdpb25zIjpbInNlYTEiXX0='
+
 import { UTApi } from 'uploadthing/server'
 import { handleError } from '@/lib/error-handler'
 
