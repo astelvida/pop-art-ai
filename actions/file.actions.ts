@@ -1,81 +1,58 @@
-"use server";
+'use server'
+// process.env.UPLOADTHING_TOKEN =
+// 'eyJhcGlLZXkiOiJza19saXZlX2UyNzQ5MDM2ZjYwMmM4MzU5NTA1ZTIxMTkzNWYxYmRiMWNhZTNhOWVmZjYzNmNkNjZhMDQ4MDQ4Zjg1YWYyYmEiLCJhcHBJZCI6InZyY2xnMDJ6dGQiLCJyZWdpb25zIjpbInNlYTEiXX0='
+import { UTApi } from 'uploadthing/server'
+import { handleError } from '@/lib/error-handler'
 
-import { pp } from "@/lib/pprint";
-import { UTApi } from "uploadthing/server";
+const utapi = new UTApi()
 
-const utapi = new UTApi();
+export type MaybeURL = string | URL
+export type URLWithOverrides = { url: MaybeURL; name?: string; customId?: string }
 
-type MaybeURL = string | URL;
-type URLWithOverrides = { url: MaybeURL; name?: string; customId?: string };
-
-function extractFileNameFromUrl(url: URL): string {
+export function getFileType(url: URL): string {
   try {
-    const pathSegments = url.pathname.split("/");
-    return pathSegments[pathSegments.length - 1];
+    const pathSegments = url.pathname.split('/')
+    return pathSegments[pathSegments.length - 1].split('.')[1]
   } catch (error) {
-    console.error("Failed to parse URL", error);
-    return "";
+    console.error('Failed to parse URL', error)
+    return ''
   }
 }
 
-function slugify(text) {
+export function slugify(text: string): string {
   return text
-    .toString() // Convert to string
-    .normalize("NFD") // Normalize Unicode characters
-    .replace(/[\u0300-\u036f]/g, "") // Remove diacritics
-    .toLowerCase() // Convert to lowercase
-    .trim() // Trim leading and trailing spaces
-    .replace(/\s+/g, "-") // Replace spaces with -
-    .replace(/[^\w\-]+/g, "") // Remove all non-word chars
-    .replace(/\-\-+/g, "-"); // Replace multiple - with single -
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]+/g, '')
+    .replace(/\-\-+/g, '-')
+}
+
+export function getFileName(title: string, url: MaybeURL) {
+  return `${slugify(title)}.${getFileType(new URL(url))}`
+}
+
+export async function uploadFromUrl(url: MaybeURL, title: string) {
+  const replicateUrl = new URL(url)
+  const fileName = `${slugify(title)}.${getFileType(replicateUrl)}`
+
+  const uploadedFile = await utapi.uploadFilesFromUrl({
+    url: url,
+    name: fileName,
+  } as URLWithOverrides)
+
+  if (!uploadedFile.data && uploadedFile.error) {
+    return handleError(uploadedFile.error)
+  }
+
+  const { appUrl, name } = uploadedFile.data
+  const imageUrl = `${appUrl}/${name}`
+  console.log('imageUrl', imageUrl)
+
+  return imageUrl
 }
 
 // Example usage
-
-export async function uploadFromUrl(url: MaybeURL, name: string) {
-  try {
-    const replicateUrl = new URL(url);
-    const fileName = extractFileNameFromUrl(replicateUrl);
-    const newName = `${slugify(name)}.${fileName.split(".")[1]}`
-    pp({replicateUrl, fileName, newName})
-    const uploadedFile = await utapi.uploadFilesFromUrl(<URLWithOverrides>{
-      url: replicateUrl,
-      name: newName,
-      // customId: "123"
-    });
-    pp(uploadedFile);
-    return uploadedFile;
-  } catch (error) {
-    console.error("Failed to upload file from URL", error);
-    return null;
-  }
-}
-
-// {
-//   data: {
-//     key: 'DJ9iVbfnTNKnvApSoVrfO2BTcn3GY0kJ8CzgFIljpbPyuXEA',
-//     url: 'https://utfs.io/f/DJ9iVbfnTNKnvApSoVrfO2BTcn3GY0kJ8CzgFIljpbPyuXEA',
-//     appUrl: 'https://utfs.io/a/vrclg02ztd/DJ9iVbfnTNKnvApSoVrfO2BTcn3GY0kJ8CzgFIljpbPyuXEA',
-//     lastModified: 1729118324284,
-//     name: 'pop_art_image_out-0.jpg',
-//     size: 62222,
-//     type: 'image/jpeg',
-//     customId: null
-//   },
-//   error: null
-// }
-
-// const urls: string[] = [];
-
-// data.forEach(async (item) => {
-//   const uploadedFile1 = await uploadFromUrl(item.output[0], item.prompt);
-//   const uploadedFile2 = await uploadFromUrl(item.output[1], item.prompt);
-//   console.log(item.prompt);
-//   console.log(uploadedFile1?.data?.url, uploadedFile2?.data?.url);
-//   console.log("-----------------------------------");
-//   if (uploadedFile1?.data?.url && uploadedFile2?.data?.url) {
-//     urls.push(uploadedFile1?.data?.url, uploadedFile2?.data?.url);
-//   }
-// });
-
-// console.log(JSON.stringify(urls, null, 2));
+// const exampleUrl = 'https://replicate.delivery/yhqm/Dfe2oomyuCg7eJ20rzEPwPi4ZI3yW0ofN3pOQyJWx9DZPpiOB/out-0.jpg'
+// const exampleTitle = 'Glass Ceilings I Prefer Skylights! 0'
+// uploadFromUrl(exampleUrl, exampleTitle)

@@ -6,7 +6,8 @@ const nextConfig = {
       { hostname: "utfs.io" },
       { hostname: "fmzpxyoqrdbpjmrxhpjr.supabase.co" },
       { hostname: "oaidalleapiprodscus.blob.core.windows.net" },
-      { hostname: "replicate.delivery" },
+      { hostname: "replicate.delivery", protocol: "https",  }, //pathname: '/pbxt/**',
+      { hostname: "replicate.com", protocol: "https"  },
     ],
   },
   typescript: {

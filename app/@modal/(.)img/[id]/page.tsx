@@ -1,14 +1,10 @@
-import { Modal } from "./modal";
-import { FullPageImageView } from "@/components/full-page-image-view";
+import { FullPageImageView } from '@/components/full-page-image-view'
+import { ModalImage } from '@/components/modal-image'
 
-export default async function PhotoModal({
-  params: { id: photoId },
-}: {
-  params: { id: string };
-}) {
+export default async function PhotoModal({ params: { id: imageId } }: { params: { id: string } }) {
   return (
-    <Modal>
-      <FullPageImageView photoId={photoId} />
-    </Modal>
-  );
+    <ModalImage>
+      <FullPageImageView imageId={imageId} />
+    </ModalImage>
+  )
 }
