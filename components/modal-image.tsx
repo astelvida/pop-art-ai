@@ -12,7 +12,6 @@ export function ModalImage({ children }: { children: React.ReactNode }) {
 
   function onClose() {
     router.back()
-    // router.push('/', undefined, { shallow: true })
   }
 
   return (
