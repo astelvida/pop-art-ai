@@ -1,22 +1,22 @@
-import { integer, text, boolean, pgTable, serial, varchar, timestamp, index } from 'drizzle-orm/pg-core'
-import { InferInsertModel, InferSelectModel, relations } from 'drizzle-orm'
+import { integer, text, boolean, pgTable, serial, varchar, timestamp, index, uuid } from 'drizzle-orm/pg-core'
+import { InferInsertModel, InferSelectModel, relations, sql } from 'drizzle-orm'
 
 export const AiImages = pgTable(
-  'aiImage',
+  'aiImages',
   {
-    id: serial('id').primaryKey(),
+    id: serial('id').primaryKey().notNull(),
+    predictionId: varchar('predictionId', { length: 255 }).notNull(),
     userId: varchar('userId', { length: 255 }).notNull(),
-    url: varchar('url', { length: 2083 }).notNull(), // Max URL length
+    imageUrl: varchar('imageUrl', { length: 2083 }).notNull(), // Max URL length
     prompt: text('prompt').notNull(),
-    name: varchar('name', { length: 255 }),
     title: text('title'),
-    description: text('description'),
     caption: text('caption'),
+    description: text('description'),
+    comicBookScene: text('comicBookScene'),
     nextPrompt: text('nextPrompt'),
     isTextAccurate: boolean('isTextAccurate'),
-    model: varchar('model'),
-    isFavorite: boolean('isFavorite').default(false),
-    favoriteCount: integer('favoriteCount').default(0),
+    liked: boolean('liked').default(false),
+    numLikes: integer('numLikes').default(0),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at')
       .notNull()
@@ -27,20 +27,20 @@ export const AiImages = pgTable(
   }),
 )
 
-export const Likes = pgTable(
-  'likes',
-  {
-    id: serial('id').primaryKey(),
-    userId: varchar('userId', { length: 255 }).notNull(),
-    aiImageId: integer('aiImageId')
-      .notNull()
-      .references(() => AiImages.id),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-  },
-  (table) => ({
-    userIdAiImageIdIdx: index('likes_userId_aiImageId_idx').on(table.userId, table.aiImageId),
-  }),
-)
+// export const Likes = pgTable(
+//   'likes',
+//   {
+//     id: serial('id').primaryKey(),
+//     userId: varchar('userId', { length: 255 }).notNull(),
+//     aiImageId: integer('aiImageId')
+//       .notNull()
+//       .references(() => AiImages.id),
+//     createdAt: timestamp('created_at').notNull().defaultNow(),
+//   },
+//   (table) => ({
+//     userIdAiImageIdIdx: index('likes_userId_aiImageId_idx').on(table.userId, table.aiImageId),
+//   }),
+// )
 
 // ## aiImages table
 //   id

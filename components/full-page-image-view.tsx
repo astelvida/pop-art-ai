@@ -11,18 +11,17 @@ import { notFound } from 'next/navigation'
 import { useState } from 'react'
 
 export async function FullPageImageView({ imageId, children }: { imageId: string; children?: React.ReactNode }) {
-  const idAsNumber = Number(imageId)
-  if (Number.isNaN(idAsNumber)) throw new Error('Invalid photo id')
+  console.log('IMAGE', imageId)
+  const image = await getAiImage(imageId)
 
-  const image = await getAiImage(idAsNumber)
   if (!image) notFound()
 
   // const userInfo = await clerkClient.users.getUser(image.userId)
-  const toggleFavorite = toggleFavoriteAiImage.bind(null, idAsNumber)
+  const toggleFavorite = toggleFavoriteAiImage.bind(null, image.id)
   // const deleteImage = deleteAiImage.bind(null, idAsNumber)
 
   // const [isCardOpen, setIsCardOpen] = useState(true)
-  const [isCardOpen, s] = [true, (prev) => !prev]
+  const [isCardOpen, setIsCardOpen] = [true, (prev) => !prev]
 
   // const toggleCard = () => {
   //   setIsCardOpen((prev) => !prev)
@@ -34,8 +33,8 @@ export async function FullPageImageView({ imageId, children }: { imageId: string
         {/* Image container with transition */}
         <div className={`transition-transform duration-300 ${isCardOpen ? '-translate-x-24 transform' : ''}`}>
           <Image
-            src={image.url}
-            alt={image.name || 'AI generated image'}
+            src={image.imageUrl}
+            alt={image.title || 'AI generated image'}
             layout='fill'
             objectFit='contain'
             className='backdrop-blur-3xl'
@@ -45,17 +44,16 @@ export async function FullPageImageView({ imageId, children }: { imageId: string
         <div className='absolute inset-0 backdrop-blur-3xl' />
         <div className='absolute inset-20 flex items-center justify-center'>
           {/* <div className='relative h-full w-full'> */}
-
           <Image
             className='relative'
-            src={image.url}
+            src={image.imageUrl}
             alt={image.title || 'AI generated image'}
             layout='fill'
             objectFit='contain'
             priority
           />
           <div className='absolute right-0 top-0 flex flex-row space-x-3 p-4'>
-            <ExternalLinkIcon url={image.url} />
+            <ExternalLinkIcon url={image.imageUrl} />
             <DownloadButton image={image} />
           </div>
 

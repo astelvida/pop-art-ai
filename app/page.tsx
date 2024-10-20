@@ -1,5 +1,4 @@
 import { ImageGenerator } from '@/components/image-generator'
-
 import { Gallery } from '@/components/gallery'
 
 export default async function Page() {
@@ -20,9 +19,6 @@ export default async function Page() {
       </div>
       <ImageGenerator />
       <Gallery />
-      {/* <Suspense fallback={<GallerySkeleton />}>
-        <Gallery images={images} />
-      </Suspense> */}
     </main>
   )
 }

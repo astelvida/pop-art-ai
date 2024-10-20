@@ -1,3 +1,4 @@
+'use client'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { ArrowUp, Shuffle } from 'lucide-react'
@@ -51,7 +52,10 @@ export function PromptInput({
         <div className='relative'>
           <Textarea
             ref={textareaRef}
-            placeholder='Ask v0 a question...'
+            defaultValue={prompt}
+            placeholder={
+              prompt.length > 0 ? '' : 'Write a pop art comic book scene or start with some of the suggestions below'
+            }
             value={prompt}
             onChange={handlePromptChange}
             className='min-h-[100px] resize-none overflow-hidden rounded-2xl px-4 pb-16 pr-16 pt-4'

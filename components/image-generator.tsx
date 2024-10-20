@@ -1,104 +1,137 @@
 'use client'
 
-import { Suspense, useState } from 'react'
-import dynamic from 'next/dynamic'
+import { useState, useCallback } from 'react'
 import { PromptInput } from '@/components/prompt-input'
 import { PromptSuggestions } from '@/components/prompt-suggestions'
-import { Gallery } from '@/components/gallery'
-import { AiImageType } from '@/db/schema'
 import { saveAiImage } from '@/actions/queries'
-import { generatePopArtImage } from '@/actions/ai-services'
 import { SettingsPopover } from './settings-popover'
-import { ImageGenerationOptions, ImageOrImages } from '@/lib/types'
 import { GenerationModal } from './generation-modal'
-import { GallerySkeleton } from './gallery-skeleton'
 import { randomPrompt } from '@/lib/utils'
+import { type Prediction } from 'replicate'
+import { ImageGenerationSettings } from '@/lib/schemas/image-generation-schema'
+import inputData from '@/lib/data/input.json'
+import prompts from '@/lib/data/prompts.json'
+import { init } from 'next/dist/compiled/webpack/webpack'
 
-const Confetti = dynamic(() => import('react-confetti'), { ssr: false })
+const mySettings = {
+  aspect_ratio: '1:1',
+  num_outputs: 1,
+  output_format: 'webp',
+  output_quality: 50,
+  inference_steps: 28,
+  seed: randomInt(1000000000),
+}
 
 export function ImageGenerator({ children }: { children?: React.ReactNode }) {
-  const [showConfetti, setShowConfetti] = useState(false)
-  const [prompt, setPrompt] = useState('')
+  const [prediction, setPrediction] = useState<Prediction | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [prompt, setPrompt] = useState(prompts['complex'][0])
   const [isGenerating, setIsGenerating] = useState(false)
-  const [progress, setProgress] = useState(0)
   const [currentImages, setCurrentImages] = useState<string[]>([])
   const [showModal, setShowModal] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
-  // Image generation settings
-  const [settings, setSettings] = useState<ImageGenerationOptions>({
-    aspectRatio: '1:1',
-    numInferenceSteps: 28,
-    guidanceScale: 3.5,
-    promptStrength: 0.8,
-    seed: '',
-    outputFormat: 'jpg',
-    outputQuality: 90,
-    numOutputs: 1,
-  })
-
-  const toggleSettings = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault()
-    setIsSettingsOpen(!isSettingsOpen)
+  const getInitialSettings = () => {
+    const initialSettings: Partial<ImageGenerationSettings> = {}
+    Object.entries(inputData).forEach(([key, value]) => {
+      if (value.default !== undefined) {
+        initialSettings[key as keyof ImageGenerationSettings] = value.default
+      }
+    })
+    console.log(initialSettings)
+    return initialSettings as ImageGenerationSettings
   }
+  const [settings, setSettings] = useState<ImageGenerationSettings>(mySettings)
 
-  const handleGenerateImage = async () => {
+  const toggleSettings = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    setIsSettingsOpen((prev) => !prev)
+  }, [])
+
+  const handleGenerateImage = useCallback(async () => {
     setIsGenerating(true)
-    setProgress(0)
     setShowModal(true)
+    setError(null)
 
-    // Simulating image generation with a delay
-    // for (let i = 0; i <= 100; i += 10) {
-    //   await new Promise((resolve) => setTimeout(resolve, 500))
-    //   setProgress(i)
-    // }
-
+    console.log({ prompt, ...settings })
     try {
-      const imageUrls = await generatePopArtImage(prompt, settings)
-      console.log({ imageUrls, settings })
+      const response = await fetch('/api/predictions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt, ...settings }),
+      })
 
-      saveAll(imageUrls, settings)
-      setCurrentImages(imageUrls)
-      // setShowConfetti(true)
-      // setTimeout(() => setShowConfetti(false), 5000)
+      let prediction = await response.json()
+      if (response.status !== 201) {
+        throw new Error(prediction.detail || 'An error occurred during image generation')
+      }
+
+      setPrediction(prediction)
+
+      while (prediction.status !== 'succeeded' && prediction.status !== 'failed') {
+        await sleep(1000)
+        const response = await fetch('/api/predictions/' + prediction.id, { cache: 'no-store' })
+        prediction = await response.json()
+        if (response.status !== 200) {
+          throw new Error(prediction.detail || 'An error occurred while checking prediction status')
+        }
+        setPrediction(prediction)
+        console.log('---', prediction)
+      }
+
+      if (prediction.status === 'succeeded') {
+        console.log('PREDICTION', prediction)
+        console.log('PREDICTION OUTPUT', prediction.output)
+        setCurrentImages(prediction.output)
+        for (let i = 0; i < prediction.output.length; i++) {
+          const currentImage = prediction.output[i]
+          await saveAiImage({
+            predictionId: prediction.id,
+            url: currentImage,
+            prompt,
+          })
+        }
+      } else {
+        throw new Error('Image generation failed')
+      }
     } catch (err) {
       console.error(err)
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred')
     } finally {
       setIsGenerating(false)
     }
-  }
+  }, [prompt, settings])
 
-  const saveOne = async (image: string) => {
-    await saveAiImage({ url: image, prompt }, settings)
-    if (currentImages.length === 1) {
-      setPrompt('')
-      setShowModal(false)
-    }
-  }
+  const handleSettingChange = useCallback((newSettings: Partial<ImageGenerationSettings>) => {
+    setSettings((prevSettings) => ({ ...prevSettings, ...newSettings }))
+  }, [])
 
-  const saveAll = async (urls: string[], settings: ImageGenerationOptions) => {
-    await Promise.all(urls.map((item) => saveAiImage({ url: item, prompt: prompt }, settings)))
+  const saveOne = (url: string) => saveAiImage.bind(null, { predictionId: prediction?.id, url, prompt })
+
+  const saveAll = useCallback(async () => {
+    await Promise.all(currentImages.map((url) => saveOne(url)))
     setShowModal(false)
     setPrompt('')
-  }
+  }, [currentImages, prompt, settings])
 
-  const discardOne = (image: string): void => {
-    setCurrentImages((prevImages) => prevImages.filter((img) => img !== image))
-    if (currentImages.length === 1) {
-      setPrompt('')
-      setShowModal(false)
-    }
-  }
+  const discardOne = useCallback(
+    (image: string) => {
+      setCurrentImages((prevImages) => prevImages.filter((img) => img !== image))
+      if (currentImages.length === 1) {
+        setPrompt('')
+        setShowModal(false)
+      }
+    },
+    [currentImages.length],
+  )
 
-  const discardAll = () => {
+  const discardAll = useCallback(() => {
     setCurrentImages([])
     setPrompt('')
     setShowModal(false)
-  }
-
-  const handleSettingChange = (key: keyof ImageGenerationOptions, value: any) => {
-    setSettings((prevSettings) => ({ ...prevSettings, [key]: value }))
-  }
+  }, [])
 
   return (
     <>
@@ -107,7 +140,7 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
         isGenerating={isGenerating}
         prompt={prompt}
         setPrompt={setPrompt}
-        handleRandomize={randomPrompt.bind(null, 'complex')}
+        handleRandomize={() => setPrompt(randomPrompt('complex'))}
       >
         <SettingsPopover
           isOpen={isSettingsOpen}
@@ -117,19 +150,20 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
           toggleSettings={toggleSettings}
         />
       </PromptInput>
-      <PromptSuggestions onSuggestionClick={setPrompt} />
+      <PromptSuggestions setPrompt={setPrompt} />
       <GenerationModal
         isOpen={showModal}
         onOpenChange={setShowModal}
         isGenerating={isGenerating}
-        progress={progress}
+        progress={prediction?.status === 'processing' ? 50 : prediction?.status === 'succeeded' ? 100 : 0}
         currentImages={currentImages}
         discardOne={discardOne}
         discardAll={discardAll}
         saveOne={saveOne}
         saveAll={saveAll}
       />
-      {children || null}
+      <div className='mt-4 text-red-500'>{error || ''}</div>
+      {children}
     </>
   )
 }

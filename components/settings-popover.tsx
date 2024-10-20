@@ -1,11 +1,24 @@
+import { useRef, useEffect } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { ChevronDown, Settings } from 'lucide-react'
-import { aspectRatios, outputFormats } from '@/lib/form-data'
+import { Settings } from 'lucide-react'
 import { Label } from '@/components/ui/label'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { imageGenerationSchema, ImageGenerationSettings } from '@/lib/schemas/image-generation-schema'
+import inputData from '@/lib/data/input.json'
+
+interface SettingsPopoverProps {
+  isOpen: boolean
+  onOpenChange: (open: boolean) => void
+  handleSettingChange: (settings: Partial<ImageGenerationSettings>) => void
+  settings: ImageGenerationSettings
+  toggleSettings: (e: React.MouseEvent<HTMLButtonElement>) => void
+}
 
 export function SettingsPopover({
   isOpen,
@@ -14,6 +27,21 @@ export function SettingsPopover({
   settings,
   toggleSettings,
 }: SettingsPopoverProps) {
+  const { control, watch } = useForm<ImageGenerationSettings>({
+    resolver: zodResolver(imageGenerationSchema),
+    defaultValues: settings,
+  })
+
+  const formValues = useRef(settings)
+
+  useEffect(() => {
+    const subscription = watch((value) => {
+      formValues.current = value as ImageGenerationSettings
+      handleSettingChange(value)
+    })
+    return () => subscription.unsubscribe()
+  }, [watch, handleSettingChange])
+
   return (
     <Popover open={isOpen} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
@@ -25,95 +53,68 @@ export function SettingsPopover({
       <PopoverContent className='w-80'>
         <div className='space-y-4'>
           <h3 className='font-semibold'>Image Generation Settings</h3>
-          <div className='space-y-2'>
-            <Label>Aspect Ratio</Label>
-            <Select value={settings.aspectRatio} onValueChange={(value) => handleSettingChange('aspectRatio', value)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {aspectRatios.map((ratio) => (
-                  <SelectItem key={ratio.value} value={ratio.value}>
-                    {ratio.label}
-                    <span className='mr-2'>{ratio.icon}</span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className='space-y-2'>
-            <Label>Inference Steps: {settings.numInferenceSteps}</Label>
-            <Slider
-              min={1}
-              max={50}
-              step={1}
-              value={[settings.numInferenceSteps]}
-              onValueChange={([value]) => handleSettingChange('numInferenceSteps', value)}
-            />
-          </div>
-          <div className='space-y-2'>
-            <Label>Guidance Scale: {settings.guidanceScale}</Label>
-            <Slider
-              min={1}
-              max={10}
-              step={0.1}
-              value={[settings.guidanceScale]}
-              onValueChange={([value]) => handleSettingChange('guidanceScale', value)}
-            />
-          </div>
-          <div className='space-y-2'>
-            <Label>Prompt Strength: {settings.promptStrength}</Label>
-            <Slider
-              min={0}
-              max={1}
-              step={0.01}
-              value={[settings.promptStrength]}
-              onValueChange={([value]) => handleSettingChange('promptStrength', value)}
-            />
-          </div>
-          <div className='space-y-2'>
-            <Label>Seed</Label>
-            <Input
-              placeholder='Enter seed (optional)'
-              value={settings.seed}
-              onChange={(e) => handleSettingChange('seed', e.target.value)}
-            />
-          </div>
-          <div className='space-y-2'>
-            <Label>Output Format</Label>
-            <Select value={settings.outputFormat} onValueChange={(value) => handleSettingChange('outputFormat', value)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {outputFormats.map((format) => (
-                  <SelectItem key={format.value} value={format.value}>
-                    {format.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className='space-y-2'>
-            <Label>Output Quality: {settings.outputQuality}</Label>
-            <Slider
-              min={1}
-              max={100}
-              step={1}
-              value={[settings.outputQuality]}
-              onValueChange={([value]) => handleSettingChange('outputQuality', value)}
-            />
-          </div>
-          <div className='space-y-2'>
-            <Label>Number of Outputs</Label>
-            <Input
-              type='number'
-              min={1}
-              max={3}
-              value={settings.numOutputs}
-              onChange={(e) => handleSettingChange('numOutputs', parseInt(e.target.value))}
-            />
-          </div>
+          {Object.entries(inputData)
+            .filter(([key]) => key in settings)
+            .map(([key, value]) => (
+              <div key={key} className='space-y-2'>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Label>{value.title}</Label>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{value.description}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <Controller
+                  name={key as keyof ImageGenerationSettings}
+                  control={control}
+                  render={({ field }) => {
+                    if ((value.type === 'string' && value.enum) || (value.allOf && value.allOf[0].enum)) {
+                      const enumValues = value.enum || value.allOf[0].enum
+                      return (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {enumValues.map((option: string) => (
+                              <SelectItem key={option} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )
+                    } else if (value.type === 'integer' || value.type === 'number') {
+                      return (
+                        <div className='flex items-center space-x-2'>
+                          <Slider
+                            min={value.minimum}
+                            max={value.maximum}
+                            step={value.type === 'integer' ? 1 : 0.1}
+                            value={[field.value]}
+                            onValueChange={([val]) => field.onChange(val)}
+                          />
+                          <span className='w-12 text-right'>{field.value}</span>
+                        </div>
+                      )
+                    } else if (value.type === 'boolean') {
+                      return (
+                        <Input
+                          type='checkbox'
+                          checked={field.value}
+                          onChange={(e) => field.onChange(e.target.checked)}
+                        />
+                      )
+                    } else {
+                      return <Input {...field} />
+                    }
+                  }}
+                />
+              </div>
+            ))}
         </div>
       </PopoverContent>
     </Popover>

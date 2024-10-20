@@ -7,13 +7,13 @@ import clsx from 'clsx'
 
 export const DownloadButton = ({ image }) => {
   const [downloaded, setDownloaded] = useState(false)
-  // Create a functional component    
+  // Create a functional component
   return (
     // Return the button JSX
     <Button
       onClick={async (e) => {
         e.preventDefault()
-        await downloadPhoto(image.url, image.name) // Call the function directly
+        await downloadPhoto(image.imageUrl, image.title) // Call the function directly
         setDownloaded(true)
       }}
       variant='secondary'

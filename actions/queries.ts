@@ -17,13 +17,9 @@ export const handleClose = async () => {
   redirect('/')
 }
 
-export type NewImage = {
-  url: string
-  prompt: string
-}
-
-export async function saveAiImage({ url, prompt }: NewImage) {
+export async function saveAiImage({ predictionId, url, prompt, aspectRatio }) {
   try {
+    console.log('PREDICTION ID', predictionId)
     const { userId } = auth()
     if (!userId) throw new AppError('User not authorized', 401)
 
@@ -31,26 +27,26 @@ export async function saveAiImage({ url, prompt }: NewImage) {
     const imageDetails = await generateImageDetails(url, prompt)
     pp(imageDetails, 'IMAGE DETAILS')
 
-    const { title, caption, description, story, nextPrompt, isTextAccurate } = imageDetails || {}
+    const { title, caption, description, comicBookScene, nextPrompt, isTextAccurate } = imageDetails || {}
     const { imageUrl, fileName } = await uploadFromUrl(url, title)
+    // imageUrl = imageUrl || url
 
     const insertedAiImage = await db
       .insert(AiImages)
       .values({
+        predictionId,
         userId,
-        url: imageUrl,
-        name: fileName,
+        imageUrl,
         prompt,
         title,
         caption,
         description,
-        story,
+        comicBookScene,
         nextPrompt,
         isTextAccurate,
-        model: 'pop-art',
       })
       .returning()
-
+    pp(insertedAiImage, 'INSERTED AI IMAGE')
     revalidatePath('/')
 
     return insertedAiImage[0]
@@ -69,19 +65,19 @@ export const getAiImages = async () => {
       .from(AiImages)
       .where(eq(AiImages.userId, userId))
       .orderBy(desc(AiImages.createdAt))
-
+    console.log(aiImages)
     return aiImages
   } catch (error) {
     return handleError(error)
   }
 }
 
-export async function getAiImage(id: number) {
+export async function getAiImage(id: string) {
   const { userId } = auth()
   if (!userId) throw new AppError('Unauthorized', 401)
 
   const [image] = await db.select().from(AiImages).where(eq(AiImages.id, id))
-
+  console.log('IMAGE', image)
   if (!image) {
     redirect('/')
   }
@@ -111,7 +107,7 @@ export async function toggleFavoriteAiImage(id: number) {
 
     await db
       .update(AiImages)
-      .set({ isFavorite: not(AiImages.isFavorite) })
+      .set({ liked: not(AiImages.liked) })
       .where(eq(AiImages.id, id))
 
     revalidatePath('/')
@@ -163,7 +159,7 @@ export async function incrementLikes(imageId: number, userId: string) {
   return db.transaction(async (tx) => {
     const [updatedImage] = await tx
       .update(AiImages)
-      .set({ favoriteCount: AiImages.favoriteCount + 1 })
+      .set({ numLikes: AiImages.numLikes + 1 })
       .where(eq(AiImages.id, imageId))
       .returning()
 

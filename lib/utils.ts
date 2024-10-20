@@ -13,10 +13,20 @@ export function randomPrompt(key: SamplePromptTag = 'complex') {
   const randomPrompt = prompts[key][Math.floor(Math.random() * prompts[key].length)]
   return randomPrompt
 }
-export function randomPrompts(key: string = 'complex', num: number = 5) {
-  return new Array(num).fill(null).map(() => randomPrompt(key))
+
+export function randomPrompts(key: SamplePromptTag = 'complex', num: number = 5): string[] {
+  const availablePrompts = prompts[key]
+  if (!availablePrompts || availablePrompts.length === 0) {
+    console.warn(`No prompts available for key: ${key}`)
+    return []
+  }
+
+  const shuffled = [...availablePrompts].sort(() => 0.5 - Math.random())
+  return shuffled.slice(0, num)
 }
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+const randomInt = (max: number) => Math.floor(Math.random() * max)
 // Range function
 export const range = (start: number, end: number) => {
   const output = []

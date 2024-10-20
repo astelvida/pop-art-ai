@@ -52,6 +52,6 @@ export async function uploadFromUrl(url: MaybeURL, title: string) {
 }
 
 // Example usage
-const exampleUrl = 'https://replicate.delivery/yhqm/Dfe2oomyuCg7eJ20rzEPwPi4ZI3yW0ofN3pOQyJWx9DZPpiOB/out-0.jpg'
-const exampleTitle = 'Glass Ceilings I Prefer Skylights! 0'
-uploadFromUrl(exampleUrl, exampleTitle)
+// const exampleUrl = 'https://replicate.delivery/yhqm/Dfe2oomyuCg7eJ20rzEPwPi4ZI3yW0ofN3pOQyJWx9DZPpiOB/out-0.jpg'
+// const exampleTitle = 'Glass Ceilings I Prefer Skylights! 0'
+// uploadFromUrl(exampleUrl, exampleTitle)

@@ -11,11 +11,20 @@ const AiImageDetails = z.object({
   title: z.string(),
   caption: z.string(),
   description: z.string(),
-  story: z.string(),
+  comicBookScene: z.string(),
   nextPrompt: z.string(),
   isTextAccurate: z.boolean(),
 })
 
+const createPrompt = (prompt: string) => `
+Given this image, and this prompt: "pop art comic book image of ${prompt}", extract or generate the following:
+title,
+caption that goes with the image,
+a description of the image as if you were a professional art critic, 
+a short comic book scene,
+the next prompt to generate the next comic book panel
+Also, determine if the text in the speech bubble is accurate and legible. 
+`
 export async function generateImageDetails(imageUrl: string, prompt: string) {
   const completion = await openai.beta.chat.completions.parse({
     model: 'gpt-4o-2024-08-06',
@@ -31,7 +40,7 @@ export async function generateImageDetails(imageUrl: string, prompt: string) {
           },
           {
             type: 'text',
-            text: `Given this image, and this prompt: "pop art comic book image of ${prompt}", extract the title, caption that goes with the image, a description, a short story scene that would describe a comic book panel. If there is a speech bubble, compare the text inside it to the prompt and determine if it is accurate, if there is none then set it to NULL. If it is, set isTextAccurate to true, otherwise false. Finally, suggest the next prompt to generate an image that continues the comic book series.`,
+            text: createPrompt(prompt),
           },
         ],
       },
