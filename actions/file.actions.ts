@@ -8,7 +8,7 @@ const utapi = new UTApi()
 export type MaybeURL = string | URL
 export type URLWithOverrides = { url: MaybeURL; name?: string; customId?: string }
 
-export function getFileType(url: URL): string {
+function getFileType(url: URL): string {
   try {
     const pathSegments = url.pathname.split('/')
     return pathSegments[pathSegments.length - 1].split('.')[1]
@@ -18,7 +18,7 @@ export function getFileType(url: URL): string {
   }
 }
 
-export function slugify(text: string): string {
+function slugify(text: string): string {
   return text
     .toLowerCase()
     .trim()
@@ -27,7 +27,7 @@ export function slugify(text: string): string {
     .replace(/\-\-+/g, '-')
 }
 
-export function getFileName(title: string, url: MaybeURL) {
+function getFileName(title: string, url: MaybeURL) {
   return `${slugify(title)}.${getFileType(new URL(url))}`
 }
 
@@ -36,7 +36,7 @@ export async function uploadFromUrl(url: MaybeURL, title: string) {
   const fileName = `${slugify(title)}.${getFileType(replicateUrl)}`
 
   const uploadedFile = await utapi.uploadFilesFromUrl({
-    url: url,
+    url,
     name: fileName,
   } as URLWithOverrides)
 
@@ -48,10 +48,10 @@ export async function uploadFromUrl(url: MaybeURL, title: string) {
   const imageUrl = `${appUrl}/${name}`
   console.log('imageUrl', imageUrl)
 
-  return imageUrl
+  return { imageUrl, fileName: name }
 }
 
 // Example usage
-// const exampleUrl = 'https://replicate.delivery/yhqm/Dfe2oomyuCg7eJ20rzEPwPi4ZI3yW0ofN3pOQyJWx9DZPpiOB/out-0.jpg'
-// const exampleTitle = 'Glass Ceilings I Prefer Skylights! 0'
-// uploadFromUrl(exampleUrl, exampleTitle)
+const exampleUrl = 'https://replicate.delivery/yhqm/Dfe2oomyuCg7eJ20rzEPwPi4ZI3yW0ofN3pOQyJWx9DZPpiOB/out-0.jpg'
+const exampleTitle = 'Glass Ceilings I Prefer Skylights! 0'
+uploadFromUrl(exampleUrl, exampleTitle)

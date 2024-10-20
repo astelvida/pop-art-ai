@@ -8,7 +8,7 @@ interface PromptInputProps {
   isGenerating: boolean
   prompt: string
   setPrompt: (prompt: string) => void
-  handleRandomize: () => void
+  handleRandomize: (category: string) => void
   children: React.ReactNode
 }
 

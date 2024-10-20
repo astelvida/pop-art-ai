@@ -1,9 +1,20 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-
+import data from '@/lib/data/prompts.json'
 // This function has been moved to server-utils.ts
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
+}
+import { SamplePrompts, SamplePromptTag } from '@/lib/types'
+
+const prompts: SamplePrompts = data
+
+export function randomPrompt(key: SamplePromptTag = 'complex') {
+  const randomPrompt = prompts[key][Math.floor(Math.random() * prompts[key].length)]
+  return randomPrompt
+}
+export function randomPrompts(key: string = 'complex', num: number = 5) {
+  return new Array(num).fill(null).map(() => randomPrompt(key))
 }
 
 // Range function
@@ -18,6 +29,8 @@ export const range = (start: number, end: number) => {
   }
   return output
 }
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 // Download photo functions
 function forceDownload(blobUrl: string, filename: string) {

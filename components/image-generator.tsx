@@ -8,11 +8,11 @@ import { Gallery } from '@/components/gallery'
 import { AiImageType } from '@/db/schema'
 import { saveAiImage } from '@/actions/queries'
 import { generatePopArtImage } from '@/actions/ai-services'
-import prompts from '@/public/prompts.json'
 import { SettingsPopover } from './settings-popover'
 import { ImageGenerationOptions, ImageOrImages } from '@/lib/types'
 import { GenerationModal } from './generation-modal'
 import { GallerySkeleton } from './gallery-skeleton'
+import { randomPrompt } from '@/lib/utils'
 
 const Confetti = dynamic(() => import('react-confetti'), { ssr: false })
 
@@ -68,11 +68,6 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
     }
   }
 
-  const handleRandomize = () => {
-    const randomPrompt = prompts.complex[Math.floor(Math.random() * prompts.complex.length)]
-    setPrompt(randomPrompt)
-  }
-
   const saveOne = async (image: string) => {
     await saveAiImage({ url: image, prompt }, settings)
     if (currentImages.length === 1) {
@@ -112,7 +107,7 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
         isGenerating={isGenerating}
         prompt={prompt}
         setPrompt={setPrompt}
-        handleRandomize={handleRandomize}
+        handleRandomize={randomPrompt.bind(null, 'complex')}
       >
         <SettingsPopover
           isOpen={isSettingsOpen}

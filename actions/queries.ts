@@ -9,6 +9,7 @@ import { uploadFromUrl } from './file.actions'
 import { redirect } from 'next/navigation'
 import { generateImageDetails } from './openai'
 import { handleError, AppError } from '@/lib/error-handler'
+import { pp } from '@/lib/pprint'
 
 const { AiImages } = schema
 
@@ -28,29 +29,30 @@ export async function saveAiImage({ url, prompt }: NewImage) {
 
     // Generate image details can be an update function to
     const imageDetails = await generateImageDetails(url, prompt)
-    console.log(imageDetails, 'IMAGE DETAILS')
+    pp(imageDetails, 'IMAGE DETAILS')
 
     const { title, caption, description, story, nextPrompt, isTextAccurate } = imageDetails || {}
-    const imageUrl = await uploadFromUrl(url, title || 'out.jpg')
+    const { imageUrl, fileName } = await uploadFromUrl(url, title)
 
     const insertedAiImage = await db
       .insert(AiImages)
       .values({
-        userId: userId,
+        userId,
         url: imageUrl,
-        name: ,
-        prompt: prompt,
-        title: title,
-        caption: caption,
-        description: description,
-        story: story,
-        nextPrompt: nextPrompt,
-        isTextAccurate: isTextAccurate,
+        name: fileName,
+        prompt,
+        title,
+        caption,
+        description,
+        story,
+        nextPrompt,
+        isTextAccurate,
         model: 'pop-art',
       })
       .returning()
-    // console.log(insertedAiImage)
+
     revalidatePath('/')
+
     return insertedAiImage[0]
   } catch (error) {
     return handleError(error)
