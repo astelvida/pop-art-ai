@@ -12,6 +12,7 @@ import prompts from '@/lib/data/prompts.json'
 import { sleep } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { type InputSchema, type SettingsSchema } from '@/lib/schemas/inputSchema'
+import { settingsData } from '@/lib/data/settings'
 
 const mySettings: SettingsSchema = {
   aspect_ratio: '1:1',
@@ -31,7 +32,17 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
   const [showModal, setShowModal] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [selectedPromptCategory, setSelectedPromptCategory] = useState<keyof typeof prompts>('complex')
-  const [settings, setSettings] = useState<SettingsSchema>(mySettings)
+  const [settings, setSettings] = useState(() => {
+    const initialState: { [key: string]: string | number } = {}
+    settingsData.forEach((setting) => {
+      initialState[setting.name] = setting.default
+    })
+    return initialState
+  })
+
+  const handleSetting = (name: string, value: string | number) => {
+    setSettings((prev) => ({ ...prev, [name]: value }))
+  }
 
   const toggleSettings = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
@@ -92,10 +103,6 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
     }
   }, [prompt, settings])
 
-  const handleSettingChange = useCallback((newSettings: Partial<InputSchema>) => {
-    setSettings((prevSettings) => ({ ...prevSettings, ...newSettings }))
-  }, [])
-
   const saveOne = (url: string) => saveAiImage.bind(null, { predictionId: prediction.id, url, prompt })
 
   const saveAll = useCallback(async () => {
@@ -133,7 +140,7 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
         <SettingsPopover
           isOpen={isSettingsOpen}
           onOpenChange={setIsSettingsOpen}
-          handleSettingChange={handleSettingChange}
+          handleSettingChange={handleSetting}
           settings={settings}
           toggleSettings={toggleSettings}
         />
