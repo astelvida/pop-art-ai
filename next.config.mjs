@@ -4,7 +4,6 @@ const nextConfig = {
   images: {
     remotePatterns: [
       { hostname: "utfs.io" },
-      { hostname: "fmzpxyoqrdbpjmrxhpjr.supabase.co" },
       { hostname: "oaidalleapiprodscus.blob.core.windows.net" },
       { hostname: "replicate.delivery", protocol: "https",  }, //pathname: '/pbxt/**',
       { hostname: "replicate.com", protocol: "https"  },
@@ -19,17 +18,3 @@ const nextConfig = {
 };
 
 export default nextConfig;
-
-// {
-//   protocol: "https",
-//   hostname: "replicate.com",
-// },
-// {
-//   protocol: "https",
-//   hostname: "replicate.delivery",
-// },
-
-// // const nextConfig = {};
-
-// export default nextConfig;
-// /** @type {import('next').NextConfig} */

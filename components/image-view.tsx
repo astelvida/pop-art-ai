@@ -1,16 +1,19 @@
 'use client'
-// import { clerkClient } from '@clerk/nextjs/server'
 import { Button } from '@/components/ui/button'
-// import { HeartIcon, DownloadIcon, TrashIcon } from '@radix-ui/react-icons'
 import Image from 'next/image'
-import { Download, Heart, Heart as HeartIcon, X } from 'lucide-react'
+import { Heart, X } from 'lucide-react'
 import { DownloadButton } from '@/components/download-button'
 import { ExternalLinkIcon } from '@/components/external-link-icon'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { notFound } from 'next/navigation'
 import { useState } from 'react'
+import { type AiImage } from '@/db/schema'
 
-export function ImageView({ image, toggleFavorite }: { image: AiImage; toggleFavorite: () => void }) {
+export function ImageView({
+  image,
+  toggleFavorite,
+}: {
+  image: AiImage
+  toggleFavorite: (formData: FormData) => Promise<void>
+}) {
   const [isOpen, setIsOpen] = useState(true)
 
   return (
@@ -38,7 +41,7 @@ export function ImageView({ image, toggleFavorite }: { image: AiImage; toggleFav
             />
           </div>
           <div className='mt-6 hidden md:flex'>
-            <Button variant='outline' className='font-bangers w-full p-6 text-xl' onClick={() => setIsOpen(!isOpen)}>
+            <Button variant='outline' className='w-full p-6 font-bangers text-xl' onClick={() => setIsOpen(!isOpen)}>
               {isOpen ? 'Hide Details' : 'Show Details'}
             </Button>
           </div>
@@ -48,7 +51,7 @@ export function ImageView({ image, toggleFavorite }: { image: AiImage; toggleFav
             <form action={toggleFavorite} name='toggleFavorite'>
               <input type='hidden' name='imageId' value={image.id} />
               <Button variant='secondary' size='icon' type='submit'>
-                <HeartIcon className={`h-5 w-5 ${image.liked ? 'fill-current text-current' : ''}`} />
+                <Heart className={`h-5 w-5 ${image.liked ? 'fill-current text-current' : ''}`} />
               </Button>
             </form>
           </div>
@@ -58,7 +61,7 @@ export function ImageView({ image, toggleFavorite }: { image: AiImage; toggleFav
         className={`relative z-20 w-full overflow-y-auto bg-white p-4 md:fixed md:bottom-0 md:right-0 md:top-0 md:w-[400px] md:transform md:transition-transform md:duration-300 md:ease-in-out ${isOpen ? 'md:translate-x-0' : 'md:translate-x-full'} `}
       >
         <div className='md:hidden'>
-          <h2 className='font-bangers mb-4 text-4xl font-bold'>{image.title}</h2>
+          <h2 className='mb-4 font-bangers text-4xl font-bold'>{image.title}</h2>
           <p className='mb-4 text-base font-medium'>{image.caption}</p>
           <p className='mb-6 text-sm text-gray-600'>{image.description}</p>
         </div>
@@ -72,9 +75,14 @@ export function ImageView({ image, toggleFavorite }: { image: AiImage; toggleFav
           >
             <X className='h-4 w-4' />
           </Button>
-          <h2 className='font-bangers mb-4 text-4xl font-bold'>{image.title}</h2>
+          <h2 className='mb-4 font-bangers text-4xl font-bold'>{image.title}</h2>
           <p className='mb-4 text-base font-medium'>{image.caption}</p>
           <p className='mb-6 text-sm text-gray-600'>{image.description}</p>
+          <p className='mb-6 text-sm text-gray-600'>{image.comicBookScene}</p>
+          <p className='mb-6 text-sm text-gray-600'>{image.nextPrompt}</p>
+          <p className='mb-6 text-sm text-gray-600'>
+            {image.isTextAccurate ? 'Text is accurate' : 'Text is not accurate'}
+          </p>
         </div>
       </div>
     </div>

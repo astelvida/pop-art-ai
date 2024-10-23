@@ -9,14 +9,14 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Settings } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { imageGenerationSchema, ImageGenerationSettings } from '@/lib/schemas/image-generation-schema'
-import inputData from '@/lib/data/input.json'
+import { Switch } from '@/components/ui/switch'
+import { type InputSchema, type SettingsSchema, inputSchema } from '@/lib/schemas/inputSchema'
 
 interface SettingsPopoverProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
-  handleSettingChange: (settings: Partial<ImageGenerationSettings>) => void
-  settings: ImageGenerationSettings
+  handleSettingChange: (settings: SettingsSchema) => void
+  settings: SettingsSchema
   toggleSettings: (e: React.MouseEvent<HTMLButtonElement>) => void
 }
 
@@ -27,8 +27,8 @@ export function SettingsPopover({
   settings,
   toggleSettings,
 }: SettingsPopoverProps) {
-  const { control, watch } = useForm<ImageGenerationSettings>({
-    resolver: zodResolver(imageGenerationSchema),
+  const { control, watch } = useForm<SettingsSchema>({
+    resolver: zodResolver(inputSchema.omit({ prompt: true })),
     defaultValues: settings,
   })
 
@@ -36,11 +36,13 @@ export function SettingsPopover({
 
   useEffect(() => {
     const subscription = watch((value) => {
-      formValues.current = value as ImageGenerationSettings
+      formValues.current = value as InputSchema
       handleSettingChange(value)
     })
     return () => subscription.unsubscribe()
   }, [watch, handleSettingChange])
+
+  console.log(Object.entries(inputSchema.shape).filter(([key]) => key !== 'prompt' && key in settings))
 
   return (
     <Popover open={isOpen} onOpenChange={onOpenChange}>
@@ -53,14 +55,14 @@ export function SettingsPopover({
       <PopoverContent className='w-80'>
         <div className='space-y-4'>
           <h3 className='font-semibold'>Image Generation Settings</h3>
-          {Object.entries(inputData)
-            .filter(([key]) => key in settings) // filter out any keys that are not in the settings object
+          {Object.entries(inputSchema.shape)
+            .filter(([key]) => key !== 'prompt' && key in settings)
             .map(([key, value]) => (
               <div key={key} className='space-y-2'>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Label>{value.title}</Label>
+                      <Label htmlFor={key}>{value.description}</Label>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>{value.description}</p>
@@ -68,18 +70,17 @@ export function SettingsPopover({
                   </Tooltip>
                 </TooltipProvider>
                 <Controller
-                  name={key as keyof ImageGenerationSettings}
+                  name={key as keyof SettingsSchema}
                   control={control}
                   render={({ field }) => {
-                    if ((value.type === 'string' && value.enum) || (value.allOf && value.allOf[0].enum)) {
-                      const enumValues = value.enum || value.allOf[0].enum
+                    if (key === 'aspect_ratio') {
                       return (
                         <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger>
+                          <SelectTrigger id={key}>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {enumValues.map((option: string) => (
+                            {(value as any)._def.values.map((option: string) => (
                               <SelectItem key={option} value={option}>
                                 {option}
                               </SelectItem>
@@ -87,29 +88,35 @@ export function SettingsPopover({
                           </SelectContent>
                         </Select>
                       )
-                    } else if (value.type === 'integer' || value.type === 'number') {
+                    } else if (key === 'output_format') {
+                      return (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger id={key}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(value as any)._def.values.map((option: string) => (
+                              <SelectItem key={option} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )
+                    } else if (key === 'num_inference_steps' || key === 'num_outputs' || key === 'output_quality') {
                       return (
                         <div className='flex items-center space-x-2'>
                           <Slider
-                            min={value.minimum}
-                            max={value.maximum}
-                            step={value.type === 'integer' ? 1 : 0.1}
+                            id={key}
+                            min={(value as any).minValue ?? 0}
+                            max={(value as any).maxValue ?? 100}
+                            step={1}
                             value={[field.value]}
                             onValueChange={([val]) => field.onChange(val)}
                           />
                           <span className='w-12 text-right'>{field.value}</span>
                         </div>
                       )
-                    } else if (value.type === 'boolean') {
-                      return (
-                        <Input
-                          type='checkbox'
-                          checked={field.value}
-                          onChange={(e) => field.onChange(e.target.checked)}
-                        />
-                      )
-                    } else {
-                      return <Input {...field} />
                     }
                   }}
                 />

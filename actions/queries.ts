@@ -1,6 +1,6 @@
 'use server'
 
-import { eq, not, desc, and, isNull } from 'drizzle-orm'
+import { eq, not, desc, and, sql } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import * as schema from '@/db/schema'
 import { db } from '@/db/drizzle'
@@ -9,8 +9,7 @@ import { uploadFromUrl } from './file'
 import { redirect } from 'next/navigation'
 import { generateImageDetails } from './openai'
 import { handleError, AppError } from '@/lib/error-handler'
-import { pp } from '@/lib/pprint'
-import { ImageGenerationSettings } from '@/lib/schemas/image-generation-schema'
+// import { pp } from '@/lib/pprint'
 
 const { AiImages, Likes } = schema
 
@@ -30,13 +29,11 @@ export async function saveAiImage({
   aspectRatio: string
 }) {
   try {
-    console.log('PREDICTION ID', predictionId)
     const { userId } = auth()
     if (!userId) throw new AppError('User not authorized', 401)
 
     // Generate image details can be an update function to
     const imageDetails = await generateImageDetails(url, prompt)
-    pp(imageDetails, 'IMAGE DETAILS')
 
     const { title, caption, description, comicBookScene, nextPrompt, isTextAccurate } = imageDetails || {}
     const { imageUrl, fileName } = await uploadFromUrl(url, title)
@@ -56,7 +53,7 @@ export async function saveAiImage({
         isTextAccurate,
       })
       .returning()
-    pp(insertedAiImage, 'INSERTED AI IMAGE')
+    // pp(insertedAiImage, 'INSERTED AI IMAGE')
     revalidatePath('/')
 
     return insertedAiImage[0]
@@ -75,7 +72,6 @@ export const getAiImages = async () => {
       .from(AiImages)
       .where(eq(AiImages.userId, userId))
       .orderBy(desc(AiImages.createdAt))
-    console.log(aiImages)
     return aiImages
   } catch (error) {
     return handleError(error)
@@ -87,7 +83,6 @@ export async function getAiImage(id: string) {
   if (!userId) throw new AppError('Unauthorized', 401)
 
   const [image] = await db.select().from(AiImages).where(eq(AiImages.id, id))
-  console.log('IMAGE', image)
   if (!image) {
     redirect('/')
   }
@@ -97,12 +92,13 @@ export async function getAiImage(id: string) {
   return image
 }
 
-export async function deleteAiImage(id: number) {
+export async function deleteAiImage(formData: FormData) {
+  const id = formData.get('imageId')
   try {
     const { userId } = auth()
     if (!userId) throw new AppError('Unauthorized', 401)
 
-    await db.delete(AiImages).where(and(eq(AiImages.id, id), eq(AiImages.userId, userId)))
+    await db.delete(AiImages).where(and(eq(AiImages.id, Number(id)), eq(AiImages.userId, userId)))
   } catch (error) {
     return handleError(error)
   }
@@ -110,7 +106,9 @@ export async function deleteAiImage(id: number) {
   revalidatePath('/')
 }
 
-export async function toggleFavoriteAiImage(id: number) {
+export async function toggleFavoriteAiImage(formData: FormData) {
+  const id = formData.get('imageId')
+
   try {
     const { userId } = auth()
     if (!userId) throw new AppError('User not authorized', 401)
@@ -118,7 +116,7 @@ export async function toggleFavoriteAiImage(id: number) {
     await db
       .update(AiImages)
       .set({ liked: not(AiImages.liked) })
-      .where(eq(AiImages.id, id))
+      .where(eq(AiImages.id, Number(id)))
 
     revalidatePath('/')
     // revalidatePath(`/img/${id}`)
@@ -146,30 +144,11 @@ export async function getAiImageById(id: number) {
   }
 }
 
-export async function updateNullAiImageNames() {
-  try {
-    const { userId } = auth()
-    if (!userId) throw new AppError('User not authorized', 401)
-
-    const result = await db
-      .update(AiImages)
-      .set({ name: 'pop_art_image.jpg' })
-      .where(isNull(AiImages.name))
-      .returning({ updatedId: AiImages.id })
-
-    console.log(`Updated ${result.length} images with null names`)
-    revalidatePath('/')
-    return result
-  } catch (error) {
-    return handleError(error)
-  }
-}
-
 export async function incrementLikes(imageId: number, userId: string) {
   return db.transaction(async (tx) => {
     const [updatedImage] = await tx
       .update(AiImages)
-      .set({ numLikes: AiImages.numLikes + 1 })
+      .set({ numLikes: sql`${AiImages.numLikes} + 1` })
       .where(eq(AiImages.id, imageId))
       .returning()
 
@@ -181,3 +160,22 @@ export async function incrementLikes(imageId: number, userId: string) {
     return updatedImage
   })
 }
+
+// export async function updateNullAiImageNames() {
+//   try {
+//     const { userId } = auth()
+//     if (!userId) throw new AppError('User not authorized', 401)
+
+//     const result = await db
+//       .update(AiImages)
+//       .set({ name: 'pop_art_image.jpg' })
+//       .where(isNull(AiImages.name))
+//       .returning({ updatedId: AiImages.id })
+
+//     console.log(`Updated ${result.length} images with null names`)
+//     revalidatePath('/')
+//     return result
+//   } catch (error) {
+//     return handleError(error)
+//   }
+// }

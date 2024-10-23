@@ -34,14 +34,14 @@ export function GenerationModal({
   const [imageSize, setImageSize] = useState({ width: 300, height: 300 })
 
   useEffect(() => {
-    // const updateImageSize = () => {
-    //   const width = Math.min(window.innerWidth * 0.4, 500)
-    //   const height = Math.min(window.innerHeight * 0.6, 500)
-    //   setImageSize({ width, height })
-    // }
-    // updateImageSize()
-    // window.addEventListener('resize', updateImageSize)
-    // return () => window.removeEventListener('resize', updateImageSize)
+    const updateImageSize = () => {
+      const width = Math.min(window.innerWidth * 0.4, 500)
+      const height = Math.min(window.innerHeight * 0.6, 500)
+      setImageSize({ width, height })
+    }
+    updateImageSize()
+    window.addEventListener('resize', updateImageSize)
+    return () => window.removeEventListener('resize', updateImageSize)
   }, [])
 
   return (
@@ -102,7 +102,7 @@ export function GenerationModal({
           </Button>
         </DialogFooter>
       </DialogContent>
-      {/* {zoomedImage && (
+      {zoomedImage && (
         <Dialog open={!!zoomedImage} onOpenChange={() => setZoomedImage(null)}>
           <DialogContent className='h-auto max-h-none w-auto max-w-none p-0'>
             <div className='relative'>
@@ -118,7 +118,7 @@ export function GenerationModal({
             </div>
           </DialogContent>
         </Dialog>
-      )} */}
+      )}
     </Dialog>
   )
 }

@@ -50,4 +50,4 @@ export const Likes = pgTable(
 //   creator_userld
 
 export type AiImageInsertModel = InferInsertModel<typeof AiImages>
-export type AiImageType = InferSelectModel<typeof AiImages>
+export type AiImage = InferSelectModel<typeof AiImages>

@@ -4,15 +4,15 @@ import { Button } from '@/components/ui/button'
 import { Heart, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { type AiImage } from '@/db/schema'
 import { DownloadButton } from './download-button'
 
 export async function Gallery() {
   const images = await getAiImages()
-  console.log(images)
 
   return (
     <div className='columns-1 gap-4 sm:columns-2 xl:columns-3 2xl:columns-4'>
-      {images.map((image) => (
+      {images.map((image: AiImage) => (
         <div key={image.id} className='group relative mb-5'>
           <Link
             href={`/img/${image.id}`}
@@ -22,8 +22,8 @@ export async function Gallery() {
               alt={`Generated image ${image.id} - ${image.title}`}
               className='transform rounded-lg brightness-90 transition will-change-auto group-hover:brightness-110'
               style={{ transform: 'translate3d(0, 0, 0)' }}
-              placeholder={image.blurDataUrl ? 'blur' : 'empty'}
-              blurDataURL={image.blurDataURL || undefined}
+              // placeholder={image.blurDataUrl ? 'blur' : 'empty'}
+              // blurDataURL={image.blurDataURL || undefined}
               src={image.imageUrl}
               width={720}
               height={480}
@@ -40,13 +40,13 @@ export async function Gallery() {
             </div>
           </Link>
           <div className='absolute right-2 top-2 flex space-x-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100'>
-            <form action={toggleFavoriteAiImage.bind(null, image.id)}>
+            <form action={toggleFavoriteAiImage} name='toggleFavoritAiImage'>
               <input type='hidden' name='imageId' value={image.id} />
               <Button type='submit' variant='secondary' size='icon'>
-                <Heart className={`h-4 w-4 ${image.isFavorite ? 'fill-current' : ''}`} />
+                <Heart className={`h-4 w-4 ${image.liked ? 'fill-current' : ''}`} />
               </Button>
             </form>
-            <form action={deleteAiImage.bind(null, image.id)}>
+            <form action={deleteAiImage} name='deleteAiImage'>
               <input type='hidden' name='imageId' value={image.id} />
               <Button type='submit' variant='secondary' size='icon'>
                 <Trash2 className='h-4 w-4' />

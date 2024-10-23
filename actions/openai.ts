@@ -8,12 +8,12 @@ const openai = new OpenAI({
 })
 
 const AiImageDetails = z.object({
-  title: z.string(),
-  caption: z.string(),
-  description: z.string(),
-  comicBookScene: z.string(),
-  nextPrompt: z.string(),
-  isTextAccurate: z.boolean(),
+  title: z.string().optional(),
+  caption: z.string().optional(),
+  description: z.string().optional(),
+  comicBookScene: z.string().optional(),
+  nextPrompt: z.string().optional(),
+  isTextAccurate: z.boolean().optional(),
 })
 
 const createPrompt = (prompt: string) => `
@@ -49,7 +49,6 @@ export async function generateImageDetails(imageUrl: string, prompt: string) {
   })
 
   const result = completion.choices[0].message.parsed
-  pp(result, 'RESULT')
   return result
 }
 
@@ -106,7 +105,6 @@ export async function generatePrompts() {
   })
 
   const result = completion.choices[0].message.content
-  pp(result, 'RESULT')
   return result
 }
 
@@ -128,7 +126,6 @@ export async function generatePrompts() {
 //       },
 //     ],
 //   });
-//   console.log(response.choices[0]);
 
 //   return response.choices[0].message.content;
 // }

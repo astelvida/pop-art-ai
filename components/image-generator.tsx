@@ -8,16 +8,15 @@ import { SettingsPopover } from './settings-popover'
 import { GenerationModal } from './generation-modal'
 import { randomPrompt } from '@/lib/utils'
 import { type Prediction } from 'replicate'
-import { ImageGenerationSettings } from '@/lib/schemas/image-generation-schema'
-import inputData from '@/lib/data/input.json'
 import prompts from '@/lib/data/prompts.json'
-import { randomInt, sleep } from '@/lib/utils'
+import { sleep } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { type InputSchema, type SettingsSchema } from '@/lib/schemas/inputSchema'
 
-const mySettings = {
+const mySettings: SettingsSchema = {
   aspect_ratio: '1:1',
   num_outputs: 2,
-  output_format: 'jpg',
+  output_format: 'webp',
   output_quality: 90,
   num_inference_steps: 28,
   // seed: null,
@@ -32,19 +31,7 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
   const [showModal, setShowModal] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [selectedPromptCategory, setSelectedPromptCategory] = useState<keyof typeof prompts>('complex')
-
-  const getInitialSettings = () => {
-    const initialSettings: Partial<ImageGenerationSettings> = {}
-    Object.entries(inputData).forEach(([key, value]) => {
-      if (value.default !== undefined) {
-        initialSettings[key as keyof ImageGenerationSettings] = value.default
-      }
-    })
-    console.log(initialSettings)
-    return initialSettings as ImageGenerationSettings
-  }
-
-  const [settings, setSettings] = useState<ImageGenerationSettings>(mySettings)
+  const [settings, setSettings] = useState<SettingsSchema>(mySettings)
 
   const toggleSettings = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
@@ -56,7 +43,6 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
     setShowModal(true)
     setError(null)
 
-    console.log({ prompt, ...settings })
     try {
       const response = await fetch('/api/predictions', {
         method: 'POST',
@@ -81,12 +67,10 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
           throw new Error(prediction.detail || 'An error occurred while checking prediction status')
         }
         setPrediction(prediction)
-        console.log('---', prediction)
       }
 
       if (prediction.status === 'succeeded') {
         console.log('PREDICTION', prediction)
-        console.log('PREDICTION OUTPUT', prediction.output)
         setCurrentImages(prediction.output)
         for (let i = 0; i < prediction.output.length; i++) {
           const currentImage = prediction.output[i]
@@ -94,6 +78,7 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
             predictionId: prediction.id,
             url: currentImage,
             prompt,
+            aspectRatio: settings.aspect_ratio,
           })
         }
       } else {
@@ -107,11 +92,11 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
     }
   }, [prompt, settings])
 
-  const handleSettingChange = useCallback((newSettings: Partial<ImageGenerationSettings>) => {
+  const handleSettingChange = useCallback((newSettings: Partial<InputSchema>) => {
     setSettings((prevSettings) => ({ ...prevSettings, ...newSettings }))
   }, [])
 
-  const saveOne = (url: string) => saveAiImage.bind(null, { predictionId: prediction?.id, url, prompt })
+  const saveOne = (url: string) => saveAiImage.bind(null, { predictionId: prediction.id, url, prompt })
 
   const saveAll = useCallback(async () => {
     await Promise.all(currentImages.map((url) => saveOne(url)))
