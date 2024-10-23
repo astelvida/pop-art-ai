@@ -27,13 +27,13 @@ function slugify(text: string): string {
     .replace(/\-\-+/g, '-')
 }
 
-function getFileName(title: string, url: MaybeURL) {
+function getFileName(url: MaybeURL, title: string) {
   return `${slugify(title)}.${getFileType(new URL(url))}`
 }
 
 export async function uploadFromUrl(url: MaybeURL, title: string) {
   const replicateUrl = new URL(url)
-  const fileName = `${slugify(title)}.${getFileType(replicateUrl)}`
+  const fileName = getFileName(url, title)
 
   const uploadedFile = await utapi.uploadFilesFromUrl({
     url,

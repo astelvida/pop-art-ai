@@ -1,9 +1,9 @@
 import { ImageGenerator } from '@/components/image-generator'
 import { Gallery } from '@/components/gallery'
+import { Suspense } from 'react'
+import { GallerySkeleton } from '@/components/gallery-skeleton'
 
 export default async function Page() {
-  // const images = await getAiImages()
-
   return (
     <main className='container mx-auto flex-grow space-y-8 p-4'>
       <div className='mb-2 text-center'>
@@ -18,7 +18,9 @@ export default async function Page() {
         </h2>
       </div>
       <ImageGenerator />
-      <Gallery />
+      <Suspense fallback={<GallerySkeleton />}>
+        <Gallery />
+      </Suspense>
     </main>
   )
 }

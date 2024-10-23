@@ -12,11 +12,9 @@ interface GenerationModalProps {
   onOpenChange: (open: boolean) => void
   isGenerating: boolean
   progress: number
-  currentImages: string[]
-  discardAll: () => void
-  discardOne: (image: string) => void
-  saveAll: () => void
-  saveOne: (image: string) => void
+  currentImage: string | null
+  discardImage: () => void
+  saveImage: () => void
 }
 
 export function GenerationModal({
@@ -24,11 +22,9 @@ export function GenerationModal({
   onOpenChange,
   isGenerating,
   progress,
-  currentImages,
-  discardAll,
-  discardOne,
-  saveAll,
-  saveOne,
+  currentImage,
+  discardImage,
+  saveImage,
 }: GenerationModalProps) {
   const [zoomedImage, setZoomedImage] = useState<string | null>(null)
   const [imageSize, setImageSize] = useState({ width: 300, height: 300 })
@@ -47,58 +43,49 @@ export function GenerationModal({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className='w-[95vw] max-w-[1200px]'>
-        <div className='flex max-h-[80vh] flex-wrap items-center justify-center gap-8 overflow-y-auto'>
+        <div className='flex max-h-[80vh] items-center justify-center gap-8 overflow-y-auto'>
           {isGenerating ? (
             <div className='w-full text-center'>
-              <p className='mb-4'>Generating your pop art masterpieces...</p>
+              <p className='mb-4'>Generating your pop art masterpiece...</p>
               <Progress value={progress} className='mx-auto w-[250px]' />
             </div>
-          ) : currentImages.length > 0 ? (
-            currentImages.map((image, index) => (
-              <div key={index} className='flex flex-col items-center'>
-                <h3 className='font-comic-sans mb-2 text-center text-xl'>Image {index + 1}</h3>
-                <img
-                  src={image}
-                  alt={`Generated image ${image}`}
-                  style={{
-                    maxWidth: `${imageSize.width}px`,
-                    maxHeight: `${imageSize.height}px`,
-                    width: 'auto',
-                    height: 'auto',
-                  }}
-                  className='mb-4 cursor-pointer rounded-lg object-contain'
-                  onClick={() => setZoomedImage(image)}
-                />
-                <div className='flex space-x-2'>
-                  <Button
-                    variant='default'
-                    size='sm'
-                    onClick={async (e) => {
-                      e.preventDefault()
-                      await saveOne(image)
-                    }}
-                  >
-                    <Save className='mr-2 h-4 w-4' />
-                    Save
-                  </Button>
-                  <Button variant='destructive' size='sm' onClick={() => discardOne(image)}>
-                    <Trash2 className='mr-2 h-4 w-4' />
-                    Discard Image
-                  </Button>
-                  <DownloadButton image={image} />
-                </div>
+          ) : currentImage ? (
+            <div className='flex flex-col items-center'>
+              <h3 className='font-comic-sans mb-2 text-center text-xl'>Generated Image</h3>
+              <img
+                src={currentImage}
+                alt='Generated image'
+                style={{
+                  maxWidth: `${imageSize.width}px`,
+                  maxHeight: `${imageSize.height}px`,
+                  width: 'auto',
+                  height: 'auto',
+                }}
+                className='mb-4 cursor-pointer rounded-lg object-contain'
+                onClick={() => setZoomedImage(currentImage)}
+              />
+              <div className='flex space-x-2'>
+                <Button variant='default' size='sm' onClick={saveImage}>
+                  <Save className='mr-2 h-4 w-4' />
+                  Save
+                </Button>
+                <Button variant='destructive' size='sm' onClick={discardImage}>
+                  <Trash2 className='mr-2 h-4 w-4' />
+                  Discard Image
+                </Button>
+                <DownloadButton image={currentImage} />
               </div>
-            ))
+            </div>
           ) : (
-            <p>No images generated yet.</p>
+            <p>No image generated yet.</p>
           )}
         </div>
         <DialogFooter>
-          <Button variant='outline' onClick={discardAll} disabled={isGenerating}>
-            Discard All
+          <Button variant='outline' onClick={discardImage} disabled={isGenerating || !currentImage}>
+            Discard Image
           </Button>
-          <Button onClick={saveAll} disabled={isGenerating || currentImages.length === 0}>
-            Save All to Gallery
+          <Button onClick={saveImage} disabled={isGenerating || !currentImage}>
+            Save to Gallery
           </Button>
         </DialogFooter>
       </DialogContent>

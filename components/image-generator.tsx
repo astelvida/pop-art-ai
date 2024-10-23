@@ -28,7 +28,7 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null)
   const [prompt, setPrompt] = useState(prompts['complex'][0])
   const [isGenerating, setIsGenerating] = useState(false)
-  const [currentImages, setCurrentImages] = useState<string[]>([])
+  const [currentImage, setCurrentImage] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [selectedPromptCategory, setSelectedPromptCategory] = useState<keyof typeof prompts>('complex')
@@ -82,16 +82,13 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
 
       if (prediction.status === 'succeeded') {
         console.log('PREDICTION', prediction)
-        setCurrentImages(prediction.output)
-        for (let i = 0; i < prediction.output.length; i++) {
-          const currentImage = prediction.output[i]
-          await saveAiImage({
-            predictionId: prediction.id,
-            url: currentImage,
-            prompt,
-            aspectRatio: settings.aspect_ratio,
-          })
-        }
+        setCurrentImage(prediction.output[0]) // Set only the first image
+        await saveAiImage({
+          predictionId: prediction.id,
+          url: prediction.output[0],
+          prompt,
+          aspectRatio: settings.aspect_ratio,
+        })
       } else {
         throw new Error('Image generation failed')
       }
@@ -103,27 +100,19 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
     }
   }, [prompt, settings])
 
-  const saveOne = (url: string) => saveAiImage.bind(null, { predictionId: prediction.id, url, prompt })
+  const saveImage = useCallback(() => {
+    if (currentImage && prediction) {
+      saveAiImage({
+        predictionId: prediction.id,
+        url: currentImage,
+        prompt,
+        aspectRatio: settings.aspect_ratio,
+      })
+    }
+  }, [currentImage, prediction, prompt, settings.aspect_ratio])
 
-  const saveAll = useCallback(async () => {
-    await Promise.all(currentImages.map((url) => saveOne(url)))
-    setShowModal(false)
-    setPrompt('')
-  }, [currentImages, prompt, settings])
-
-  const discardOne = useCallback(
-    (image: string) => {
-      setCurrentImages((prevImages) => prevImages.filter((img) => img !== image))
-      if (currentImages.length === 1) {
-        setPrompt('')
-        setShowModal(false)
-      }
-    },
-    [currentImages.length],
-  )
-
-  const discardAll = useCallback(() => {
-    setCurrentImages([])
+  const discardImage = useCallback(() => {
+    setCurrentImage(null)
     setPrompt('')
     setShowModal(false)
   }, [])
@@ -168,11 +157,9 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
         onOpenChange={setShowModal}
         isGenerating={isGenerating}
         progress={prediction?.status === 'processing' ? 50 : prediction?.status === 'succeeded' ? 100 : 0}
-        currentImages={currentImages}
-        discardOne={discardOne}
-        discardAll={discardAll}
-        saveOne={saveOne}
-        saveAll={saveAll}
+        currentImage={currentImage}
+        discardImage={discardImage}
+        saveImage={saveImage}
       />
       <div className='mt-4 text-red-500'>{error || ''}</div>
       <pre>{JSON.stringify(settings, null, 2)}</pre>
