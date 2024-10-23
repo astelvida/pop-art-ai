@@ -19,7 +19,7 @@ export const DownloadButton = ({ image }) => {
       variant='secondary'
       size='icon'
     >
-      <DownloadIcon className={clsx('h-5 w-5', downloaded && 'fill-slate-500')} />
+      <DownloadIcon className='h-5 w-5' />
     </Button>
   )
 }

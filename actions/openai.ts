@@ -69,22 +69,15 @@ Do not ask questions or add any preamble.
 `
 
 const promptPopArt = `
-You are an artist generating pop art comic book style images using Flux/Dev model finetuned with Lora in Replica. 
-All prompts must include the trigger word 'pop art comic book' and should feature a speech bubble in most prompts.
-Create a one paragraph vivid and creative description with the following features:
-- A pop art comic book visual style (comic book imagery, Ben-Day dots, vibrant colours: acid yellow, dull green, purplish-blue, and Life Magazine red)
-- Specific elements of the scene
-- Emotional impact conveyed through facial expressions and exaggerated features
-- A speech bubble with what the main character is saying
-- A sense of dynamism and drama
-- Common themes like damsel in distress, anxious or crying women, feeling stuck in bad relationships, patriarchy, poking at impossible beauty standards, romance, suffering, depression, longing, or the search for fame and money
-- A style that is tongue-in-cheek, satirical at times, high-brow humour
-Focus on:
-1. The main subject (describe in more detail)
-2. The artistic style
-3. The background or setting
-4. How the quoted text is shown
-Be creative but stay true to the original concept.
+Generate 5 pop art comic book style images using Flux/Dev Lora model finetuned with Roy Lichtenstein pop art artwork in Replica. 
+All prompts must include the trigger word 'pop art comic book'.
+The following features are important:
+- Impact conveyed through facial expressions with a sense of dynamism and drama, evoking strong emotions
+- A speech bubble written in a comic book style font 
+- Themes like damsel in distress, anxious or crying women, feeling stuck in bad relationships, patriarchy, poking at impossible beauty standards, romance, suffering, depression, longing, or the search for fame and money
+- A style that is tongue-in-cheek, satirical at times, high-brow humour, and a sense of irony
+
+The prompts should be unique and not similar to each other. Think outside the box.
 `
 
 export async function generatePrompts() {

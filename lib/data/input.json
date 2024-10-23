@@ -1,0 +1,167 @@
+{
+  "mask": {
+    "type": "string",
+    "title": "Mask",
+    "format": "uri",
+    "x-order": 2,
+    "description": "Input mask for inpainting mode. Black areas will be preserved, white areas will be inpainted. Must be provided along with 'image' for inpainting mode."
+  },
+  "seed": {
+    "type": "integer",
+    "title": "Seed",
+    "x-order": 12,
+    "description": "Random seed. Set for reproducible generation."
+  },
+  "image": {
+    "type": "string",
+    "title": "Image",
+    "format": "uri",
+    "x-order": 1,
+    "description": "Input image for img2img or inpainting mode. If provided, aspect_ratio, width, and height inputs are ignored."
+  },
+  "model": {
+    "allOf": [
+      {
+        "enum": ["dev", "schnell"],
+        "type": "string",
+        "title": "model"
+      }
+    ],
+    "default": "dev",
+    "x-order": 9,
+    "description": "Which model to run inferences with. The dev model needs around 28 steps but the schnell model only needs around 4 steps."
+  },
+  "width": {
+    "type": "integer",
+    "title": "Width",
+    "maximum": 1440,
+    "minimum": 256,
+    "x-order": 4,
+    "description": "Width of the generated image in text-to-image mode. Only used when aspect_ratio=custom. Must be a multiple of 16 (if it's not, it will be rounded to nearest multiple of 16). Note: Ignored in img2img and inpainting modes."
+  },
+  "height": {
+    "type": "integer",
+    "title": "Height",
+    "maximum": 1440,
+    "minimum": 256,
+    "x-order": 5,
+    "description": "Height of the generated image in text-to-image mode. Only used when aspect_ratio=custom. Must be a multiple of 16 (if it's not, it will be rounded to nearest multiple of 16). Note: Ignored in img2img and inpainting modes."
+  },
+  "prompt": {
+    "type": "string",
+    "title": "Prompt",
+    "x-order": 0,
+    "description": "Prompt for generated image. If you include the `trigger_word` used in the training process you are more likely to activate the trained object, style, or concept in the resulting image."
+  },
+  "extra_lora": {
+    "type": "string",
+    "title": "Extra Lora",
+    "x-order": 13,
+    "description": "Combine this fine-tune with another LoRA. Supports Replicate models in the format <owner>/<username> or <owner>/<username>/<version>, HuggingFace URLs in the format huggingface.co/<owner>/<model-name>, CivitAI URLs in the format civitai.com/models/<id>[/<model-name>], or arbitrary .safetensors URLs from the Internet. For example, 'fofr/flux-pixar-cars'"
+  },
+  "lora_scale": {
+    "type": "number",
+    "title": "Lora Scale",
+    "default": 1,
+    "maximum": 2,
+    "minimum": -1,
+    "x-order": 7,
+    "description": "Determines how strongly the main LoRA should be applied. Sane results between 0 and 1."
+  },
+  "num_outputs": {
+    "type": "integer",
+    "title": "Num Outputs",
+    "default": 1,
+    "maximum": 4,
+    "minimum": 1,
+    "x-order": 6,
+    "description": "Number of images to output."
+  },
+
+  "aspect_ratio": {
+    "allOf": [
+      {
+        "enum": ["1:1", "16:9", "21:9", "3:2", "2:3", "4:5", "5:4", "3:4", "4:3", "9:16", "9:21", "custom"],
+        "type": "string",
+        "title": "aspect_ratio",
+        "description": "An enumeration."
+      }
+    ],
+
+    "default": "1:1",
+    "x-order": 3,
+    "description": "Aspect ratio for the generated image in text-to-image mode. The size will always be 1 megapixel, i.e. 1024x1024 if aspect ratio is 1:1. To use arbitrary width and height, set aspect ratio to 'custom'. Note: Ignored in img2img and inpainting modes."
+  },
+  "output_format": {
+    "allOf": [
+      {
+        "enum": ["webp", "jpg", "png"],
+        "type": "string",
+        "title": "output_format",
+        "description": "An enumeration."
+      }
+    ],
+
+    "default": "webp",
+    "x-order": 15,
+    "description": "Format of the output images."
+  },
+  "guidance_scale": {
+    "type": "number",
+    "title": "Guidance Scale",
+    "default": 3.5,
+    "maximum": 10,
+    "minimum": 0,
+    "x-order": 10,
+    "description": "Guidance scale for the diffusion process. Lower values can give more realistic images. Good values to try are 2, 2.5, 3 and 3.5"
+  },
+  "output_quality": {
+    "type": "integer",
+    "title": "Output Quality",
+    "default": 90,
+    "maximum": 100,
+    "minimum": 0,
+    "x-order": 16,
+    "description": "Quality when saving the output images, from 0 to 100. 100 is best quality, 0 is lowest quality. Not relevant for .png outputs"
+  },
+  "prompt_strength": {
+    "type": "number",
+    "title": "Prompt Strength",
+    "default": 0.8,
+    "maximum": 1,
+    "minimum": 0,
+    "x-order": 11,
+    "description": "Prompt strength when using img2img / inpaint. 1.0 corresponds to full destruction of information in image"
+  },
+  "extra_lora_scale": {
+    "type": "number",
+    "title": "Extra Lora Scale",
+    "default": 1,
+    "maximum": 2,
+    "minimum": -1,
+    "x-order": 14,
+    "description": "Determines how strongly the extra LoRA should be applied."
+  },
+  "replicate_weights": {
+    "type": "string",
+    "title": "Replicate Weights",
+    "x-order": 17,
+    "description": "Replicate LoRA weights to use. Leave blank to use the default weights."
+  },
+  "num_inference_steps": {
+    "type": "integer",
+    "title": "Num Inference Steps",
+    "default": 28,
+    "maximum": 50,
+    "minimum": 1,
+    "x-order": 8,
+    "description": "Number of inference steps. More steps can give more detailed images, but take longer."
+  },
+  "disable_safety_checker": {
+    "type": "boolean",
+    "title": "Disable Safety Checker",
+    "default": false,
+    "x-order": 18,
+    "description": "Disable safety checker for generated images."
+  }
+}

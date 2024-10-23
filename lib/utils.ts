@@ -25,8 +25,7 @@ export function randomPrompts(key: SamplePromptTag = 'complex', num: number = 5)
   return shuffled.slice(0, num)
 }
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
-const randomInt = (max: number) => Math.floor(Math.random() * max)
+export const randomInt = (max: number = 100000) => Math.floor(Math.random() * max)
 // Range function
 export const range = (start: number, end: number) => {
   const output = []
@@ -40,7 +39,7 @@ export const range = (start: number, end: number) => {
   return output
 }
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 // Download photo functions
 function forceDownload(blobUrl: string, filename: string) {
@@ -70,4 +69,16 @@ export function downloadPhoto(url: string, filename: string) {
       forceDownload(blobUrl, filename)
     })
     .catch((e) => console.error(e))
+}
+/**
+ * Shuffles an array in place using the Fisher-Yates algorithm.
+ * @param array The array to be shuffled
+ * @returns The same array, shuffled in place
+ */
+export function shuffle<T>(array: T[]): T[] {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[array[i], array[j]] = [array[j], array[i]]
+  }
+  return array
 }

@@ -11,15 +11,16 @@ import { type Prediction } from 'replicate'
 import { ImageGenerationSettings } from '@/lib/schemas/image-generation-schema'
 import inputData from '@/lib/data/input.json'
 import prompts from '@/lib/data/prompts.json'
-import { init } from 'next/dist/compiled/webpack/webpack'
+import { randomInt, sleep } from '@/lib/utils'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const mySettings = {
   aspect_ratio: '1:1',
-  num_outputs: 1,
-  output_format: 'webp',
-  output_quality: 50,
-  inference_steps: 28,
-  seed: randomInt(1000000000),
+  num_outputs: 2,
+  output_format: 'jpg',
+  output_quality: 90,
+  num_inference_steps: 28,
+  // seed: null,
 }
 
 export function ImageGenerator({ children }: { children?: React.ReactNode }) {
@@ -30,6 +31,7 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
   const [currentImages, setCurrentImages] = useState<string[]>([])
   const [showModal, setShowModal] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [selectedPromptCategory, setSelectedPromptCategory] = useState<keyof typeof prompts>('complex')
 
   const getInitialSettings = () => {
     const initialSettings: Partial<ImageGenerationSettings> = {}
@@ -41,6 +43,7 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
     console.log(initialSettings)
     return initialSettings as ImageGenerationSettings
   }
+
   const [settings, setSettings] = useState<ImageGenerationSettings>(mySettings)
 
   const toggleSettings = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
@@ -140,7 +143,7 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
         isGenerating={isGenerating}
         prompt={prompt}
         setPrompt={setPrompt}
-        handleRandomize={() => setPrompt(randomPrompt('complex'))}
+        handleRandomize={() => setPrompt(randomPrompt(selectedPromptCategory))}
       >
         <SettingsPopover
           isOpen={isSettingsOpen}
@@ -150,7 +153,24 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
           toggleSettings={toggleSettings}
         />
       </PromptInput>
-      <PromptSuggestions setPrompt={setPrompt} />
+      <div className='mb-4 flex items-center space-x-4'>
+        <Select
+          value={selectedPromptCategory}
+          onValueChange={(value) => setSelectedPromptCategory(value as keyof typeof prompts)}
+        >
+          <SelectTrigger className='w-[180px]'>
+            <SelectValue placeholder='Select prompt category' />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.keys(prompts).map((category) => (
+              <SelectItem key={category} value={category}>
+                {category}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <PromptSuggestions setPrompt={setPrompt} category={selectedPromptCategory} />
       <GenerationModal
         isOpen={showModal}
         onOpenChange={setShowModal}
@@ -163,6 +183,7 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
         saveAll={saveAll}
       />
       <div className='mt-4 text-red-500'>{error || ''}</div>
+      <pre>{JSON.stringify(settings, null, 2)}</pre>
       {children}
     </>
   )

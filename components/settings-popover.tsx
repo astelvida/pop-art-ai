@@ -54,7 +54,7 @@ export function SettingsPopover({
         <div className='space-y-4'>
           <h3 className='font-semibold'>Image Generation Settings</h3>
           {Object.entries(inputData)
-            .filter(([key]) => key in settings)
+            .filter(([key]) => key in settings) // filter out any keys that are not in the settings object
             .map(([key, value]) => (
               <div key={key} className='space-y-2'>
                 <TooltipProvider>

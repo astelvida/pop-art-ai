@@ -18,7 +18,7 @@ export function ModalImage({ children }: { children: React.ReactNode }) {
     <Dialog open={true} modal={true}>
       <DialogPortal container={document.getElementById('modal-root')}>
         <DialogOverlay />
-        <DialogContent className='mx-auto h-full max-w-[1960px] border-none p-4'>
+        <DialogContent hideCloseButton={true} className='mx-auto h-full max-w-[1960px] border-none'>
           {children}
           <DialogClose asChild>
             <Button className='absolute left-4 top-4 z-50' variant='secondary' size='icon' onClick={onClose}>

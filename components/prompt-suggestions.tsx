@@ -3,19 +3,20 @@
 import { Button } from '@/components/ui/button'
 import { ArrowTopRightIcon } from '@radix-ui/react-icons'
 import prompts from '@/lib/data/prompts.json'
-
+import { shuffle } from '@/lib/utils'
 interface PromptSuggestionsProps {
-  setP: (suggestion: string) => void
+  setPrompt: (suggestion: string) => void
+  category: string
 }
 
-export function PromptSuggestions({ setPrompt }: PromptSuggestionsProps) {
+export function PromptSuggestions({ setPrompt, category }: PromptSuggestionsProps) {
   const truncateSuggestion = (suggestion: string, maxLength: number) => {
     return suggestion.length > maxLength ? suggestion.slice(0, maxLength - 3) + '...' : suggestion
   }
 
   return (
     <div className='flex flex-wrap items-center justify-center gap-2 space-x-2 pb-2'>
-      {prompts['complex'].map((suggestion, index) => (
+      {prompts[category].map((suggestion, index) => (
         <Button
           key={index}
           variant='outline'

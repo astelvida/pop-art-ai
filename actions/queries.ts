@@ -5,19 +5,30 @@ import { revalidatePath } from 'next/cache'
 import * as schema from '@/db/schema'
 import { db } from '@/db/drizzle'
 import { auth } from '@clerk/nextjs/server'
-import { uploadFromUrl } from './file.actions'
+import { uploadFromUrl } from './file'
 import { redirect } from 'next/navigation'
 import { generateImageDetails } from './openai'
 import { handleError, AppError } from '@/lib/error-handler'
 import { pp } from '@/lib/pprint'
+import { ImageGenerationSettings } from '@/lib/schemas/image-generation-schema'
 
-const { AiImages } = schema
+const { AiImages, Likes } = schema
 
 export const handleClose = async () => {
   redirect('/')
 }
 
-export async function saveAiImage({ predictionId, url, prompt, aspectRatio }) {
+export async function saveAiImage({
+  predictionId,
+  url,
+  prompt,
+  aspectRatio,
+}: {
+  predictionId: string
+  url: string
+  prompt: string
+  aspectRatio: string
+}) {
   try {
     console.log('PREDICTION ID', predictionId)
     const { userId } = auth()
@@ -29,7 +40,6 @@ export async function saveAiImage({ predictionId, url, prompt, aspectRatio }) {
 
     const { title, caption, description, comicBookScene, nextPrompt, isTextAccurate } = imageDetails || {}
     const { imageUrl, fileName } = await uploadFromUrl(url, title)
-    // imageUrl = imageUrl || url
 
     const insertedAiImage = await db
       .insert(AiImages)

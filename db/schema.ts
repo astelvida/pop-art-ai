@@ -27,20 +27,20 @@ export const AiImages = pgTable(
   }),
 )
 
-// export const Likes = pgTable(
-//   'likes',
-//   {
-//     id: serial('id').primaryKey(),
-//     userId: varchar('userId', { length: 255 }).notNull(),
-//     aiImageId: integer('aiImageId')
-//       .notNull()
-//       .references(() => AiImages.id),
-//     createdAt: timestamp('created_at').notNull().defaultNow(),
-//   },
-//   (table) => ({
-//     userIdAiImageIdIdx: index('likes_userId_aiImageId_idx').on(table.userId, table.aiImageId),
-//   }),
-// )
+export const Likes = pgTable(
+  'likes',
+  {
+    id: serial('id').primaryKey(),
+    userId: varchar('userId', { length: 255 }).notNull(),
+    aiImageId: integer('aiImageId')
+      .notNull()
+      .references(() => AiImages.id),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdAiImageIdIdx: index('likes_userId_aiImageId_idx').on(table.userId, table.aiImageId),
+  }),
+)
 
 // ## aiImages table
 //   id
