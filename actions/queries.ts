@@ -32,19 +32,17 @@ export async function saveAiImage({
     const { userId } = auth()
     if (!userId) throw new AppError('User not authorized', 401)
 
-    console.log('URL', url)
     // Generate image details can be an update function to
     const imageDetails = await generateImageDetails(url, prompt)
-
     const { title, caption, description, comicBookScene, nextPrompt, isTextAccurate } = imageDetails || {}
-    const { imageUrl, fileName } = await uploadFromUrl(url, title)
 
     const insertedAiImage = await db
       .insert(AiImages)
       .values({
         predictionId,
         userId,
-        imageUrl,
+        imageUrl: url,
+        aspectRatio,
         prompt,
         title,
         caption,
@@ -54,7 +52,7 @@ export async function saveAiImage({
         isTextAccurate,
       })
       .returning()
-    pp(insertedAiImage, 'INSERTED AI IMAGE')
+    // pp(insertedAiImage, 'INSERTED AI IMAGE')
     revalidatePath('/')
 
     return insertedAiImage[0]

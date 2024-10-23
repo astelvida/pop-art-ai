@@ -1,5 +1,5 @@
 import Replicate from 'replicate'
-
+import { put } from '@vercel/blob'
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 })
@@ -26,8 +26,6 @@ export async function POST(req: Request) {
   }
 
   const enhancedPrompt = enhancePrompt(userInput.prompt)
-  console.log('enhancedPrompt', enhancedPrompt)
-
   const finalPrompt = `pop art comic book ${enhancedPrompt}`
   const prediction = await replicate.predictions.create({
     // See https://replicate.com/astelvida/pop-art:393c9b328cd1ac2f0127db9c7871eef86fded0c369ce2bfb888f9f217c21ca62

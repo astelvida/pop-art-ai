@@ -16,7 +16,7 @@ export function PromptSuggestions({ setPrompt, category }: PromptSuggestionsProp
 
   return (
     <div className='flex flex-wrap items-center justify-center gap-2 space-x-2 pb-2'>
-      {prompts[category as keyof typeof prompts].map((suggestion, index) => (
+      {prompts[category as keyof typeof prompts].slice(0, 5).map((suggestion, index) => (
         <Button
           key={index}
           variant='outline'

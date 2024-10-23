@@ -82,10 +82,10 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
 
       if (prediction.status === 'succeeded') {
         console.log('PREDICTION', prediction)
-        setCurrentImage(prediction.output[0]) // Set only the first image
+        setCurrentImage(prediction.vercelUrl) // Set only the first image
         await saveAiImage({
           predictionId: prediction.id,
-          url: prediction.output[0],
+          url: prediction.vercelUrl,
           prompt,
           aspectRatio: settings.aspect_ratio,
         })
@@ -133,8 +133,6 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
           settings={settings}
           toggleSettings={toggleSettings}
         />
-      </PromptInput>
-      <div className='mb-4 flex items-center space-x-4'>
         <Select
           value={selectedPromptCategory}
           onValueChange={(value) => setSelectedPromptCategory(value as keyof typeof prompts)}
@@ -150,7 +148,7 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </PromptInput>
       <PromptSuggestions setPrompt={setPrompt} category={selectedPromptCategory} />
       <GenerationModal
         isOpen={showModal}
@@ -162,7 +160,7 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
         saveImage={saveImage}
       />
       <div className='mt-4 text-red-500'>{error || ''}</div>
-      <pre>{JSON.stringify(settings, null, 2)}</pre>
+      {/* <pre>{JSON.stringify(settings, null, 2)}</pre> */}
       {children}
     </>
   )

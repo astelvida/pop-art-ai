@@ -47,7 +47,7 @@ export function PromptInput({
   }
 
   return (
-    <div className='mx-auto max-w-2xl space-y-1 pr-4'>
+    <div className='mx-auto max-w-4xl space-y-1 pr-4'>
       <form onSubmit={handleSubmit} className='space-y-4'>
         <div className='relative'>
           <Textarea
@@ -57,7 +57,7 @@ export function PromptInput({
             }
             value={prompt}
             onChange={handlePromptChange}
-            className='min-h-[100px] resize-none overflow-hidden rounded-2xl px-4 pb-16 pr-16 pt-4'
+            className='text-md min-h-[150px] resize-none overflow-hidden rounded-2xl px-4 pb-16 pr-16 pt-4'
           />
 
           <div className='absolute bottom-3 left-3 flex items-center space-x-2'>{children}</div>

@@ -4,7 +4,7 @@ const nextConfig = {
   images: {
     remotePatterns: [
       { hostname: "utfs.io" },
-      { hostname: "oaidalleapiprodscus.blob.core.windows.net" },
+      { hostname: "idvk613jhus86wua.public.blob.vercel-storage.com", protocol: "https" },
       { hostname: "replicate.delivery", protocol: "https",  }, //pathname: '/pbxt/**',
       { hostname: "replicate.com", protocol: "https"  },
     ],
