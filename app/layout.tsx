@@ -4,6 +4,7 @@ import './globals.css'
 import { ClerkProvider } from '@clerk/nextjs'
 import { Header } from '@/components/header'
 import { Bangers } from 'next/font/google'
+import { ThemeProvider as NextThemesProvider, ThemeProvider } from 'next-themes'
 
 // If loading a variable font, you don't need to specify the font weight
 const bangers = Bangers({
@@ -38,23 +39,18 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      {/* <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      > */}
       <html lang='en'>
         <body className={`${geistSans.variable} ${geistMono.variable} ${bangers.variable} antialiased`}>
-          <div className='flex min-h-screen flex-col'>
-            <Header />
-            {children}
-            {modal}
-          </div>
-          <div id='modal-root' />
+          <NextThemesProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
+            <div className='flex min-h-screen flex-col'>
+              <Header />
+              {children}
+              {modal}
+            </div>
+            <div id='modal-root' />
+          </NextThemesProvider>
         </body>
       </html>
-      {/* </ThemeProvider> */}
     </ClerkProvider>
   )
 }

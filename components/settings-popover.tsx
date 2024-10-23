@@ -1,16 +1,7 @@
-import { useRef, useEffect } from 'react'
-import { useForm, Controller } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
-import { Slider } from '@/components/ui/slider'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Settings } from 'lucide-react'
-import { Label } from '@/components/ui/label'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Switch } from '@/components/ui/switch'
-import { type InputSchema, type SettingsSchema, inputSchema } from '@/lib/schemas/inputSchema'
+import { type SettingsSchema } from '@/lib/schemas/inputSchema'
 import { SettingsLayout } from '@/components/settings-layout'
 
 interface SettingsPopoverProps {

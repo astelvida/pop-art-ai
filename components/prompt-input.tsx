@@ -52,7 +52,6 @@ export function PromptInput({
         <div className='relative'>
           <Textarea
             ref={textareaRef}
-            defaultValue={prompt}
             placeholder={
               prompt.length > 0 ? '' : 'Write a pop art comic book scene or start with some of the suggestions below'
             }

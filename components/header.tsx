@@ -8,7 +8,7 @@ import { GitHubLogoIcon } from '@radix-ui/react-icons'
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs'
 import { Menu, MessageSquare, X } from 'lucide-react'
 import { useState } from 'react'
-
+import { ModeToggle } from '@/components/mode-toggle'
 export function Header() {
   const pathname = usePathname()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -47,6 +47,7 @@ export function Header() {
           <MessageSquare className='mr-2 h-4 w-4' />
           Feedback
         </Button>
+        <ModeToggle />
       </div>
 
       <div className='mr-4 mt-4 flex items-center justify-end space-x-4'>
