@@ -11,17 +11,8 @@ import { type Prediction } from 'replicate'
 import prompts from '@/lib/data/prompts.json'
 import { sleep } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { type InputSchema, type SettingsSchema } from '@/lib/schemas/inputSchema'
 import { settingsData } from '@/lib/data/settings'
-
-const mySettings: SettingsSchema = {
-  aspect_ratio: '1:1',
-  num_outputs: 2,
-  output_format: 'webp',
-  output_quality: 90,
-  num_inference_steps: 28,
-  // seed: null,
-}
+import { Skeleton } from '@/components/ui/skeleton'
 
 export function ImageGenerator({ children }: { children?: React.ReactNode }) {
   const [prediction, setPrediction] = useState<Prediction | null>(null)
@@ -39,8 +30,9 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
     })
     return initialState
   })
+  const [progress, setProgress] = useState(0)
 
-  const handleSetting = (name: string, value: string | number) => {
+  const handleSettingChange = (name: string, value: string | number) => {
     setSettings((prev) => ({ ...prev, [name]: value }))
   }
 
@@ -53,6 +45,7 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
     setIsGenerating(true)
     setShowModal(true)
     setError(null)
+    setProgress(0)
 
     try {
       const response = await fetch('/api/predictions', {
@@ -78,9 +71,19 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
           throw new Error(prediction.detail || 'An error occurred while checking prediction status')
         }
         setPrediction(prediction)
+
+        // Update progress based on prediction status
+        if (prediction.status === 'starting') {
+          setProgress(10)
+        } else if (prediction.status === 'processing') {
+          setProgress(50)
+        } else if (prediction.output && prediction.output.length > 0) {
+          setProgress(90)
+        }
       }
 
       if (prediction.status === 'succeeded') {
+        setProgress(100)
         console.log('PREDICTION', prediction)
         setCurrentImage(prediction.vercelUrl) // Set only the first image
         await saveAiImage({
@@ -129,7 +132,7 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
         <SettingsPopover
           isOpen={isSettingsOpen}
           onOpenChange={setIsSettingsOpen}
-          handleSettingChange={handleSetting}
+          handleSettingChange={handleSettingChange}
           settings={settings}
           toggleSettings={toggleSettings}
         />
@@ -154,14 +157,12 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
         isOpen={showModal}
         onOpenChange={setShowModal}
         isGenerating={isGenerating}
-        progress={prediction?.status === 'processing' ? 50 : prediction?.status === 'succeeded' ? 100 : 0}
+        progress={progress}
         currentImage={currentImage}
         discardImage={discardImage}
         saveImage={saveImage}
+        aspectRatio={settings.aspect_ratio as string}
       />
-      <div className='mt-4 text-red-500'>{error || ''}</div>
-      {/* <pre>{JSON.stringify(settings, null, 2)}</pre> */}
-      {children}
     </>
   )
 }

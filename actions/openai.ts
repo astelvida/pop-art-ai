@@ -18,13 +18,13 @@ const AiImageDetails = z.object({
 
 const createPrompt = (prompt: string) => `
 Given this image, and this prompt: "pop art comic book image of ${prompt}", extract or generate the following:
-title,
-caption that goes with the image,
-a description of the image as if you were a professional art critic, 
-a short comic book scene,
-the next prompt to generate the next comic book panel
-Also, determine if the text in the speech bubble is accurate and legible. 
+- title,
+- caption that goes with the image,
+- description of the image as if you were a professional art critic, 
 `
+// a short comic book scene,
+// the next prompt to generate the next comic book panel
+// Also, determine if the text in the speech bubble is accurate and legible.
 export async function generateImageDetails(imageUrl: string, prompt: string) {
   const completion = await openai.beta.chat.completions.parse({
     model: 'gpt-4o-2024-08-06',

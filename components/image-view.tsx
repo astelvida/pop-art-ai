@@ -3,17 +3,12 @@ import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import { Heart, X } from 'lucide-react'
 import { DownloadButton } from '@/components/download-button'
-import { ExternalLinkIcon } from '@/components/external-link-icon'
+import { ExternalLinkButton } from '@/components/external-link-button'
 import { useState } from 'react'
 import { type AiImage } from '@/db/schema'
+import { toggleFavoriteAiImage } from '@/actions/queries'
 
-export function ImageView({
-  image,
-  toggleFavorite,
-}: {
-  image: AiImage
-  toggleFavorite: (formData: FormData) => Promise<void>
-}) {
+export function ImageView({ image }: { image: AiImage }) {
   const [isOpen, setIsOpen] = useState(true)
 
   return (
@@ -46,9 +41,9 @@ export function ImageView({
             </Button>
           </div>
           <div className='absolute right-4 top-4 flex flex-row space-x-2 md:right-6 md:top-4'>
-            <ExternalLinkIcon url={image.imageUrl} />
-            <DownloadButton image={image} />
-            <form action={toggleFavorite} name='toggleFavorite'>
+            <ExternalLinkButton url={image.imageUrl} />
+            <DownloadButton url={image.imageUrl} title={image.title || 'img'} />
+            <form action={toggleFavoriteAiImage} name='toggleFavorite'>
               <input type='hidden' name='imageId' value={image.id} />
               <Button variant='secondary' size='icon' type='submit'>
                 <Heart className={`h-5 w-5 ${image.liked ? 'fill-current text-current' : ''}`} />

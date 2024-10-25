@@ -5,14 +5,14 @@ import { DownloadIcon } from 'lucide-react'
 import { downloadPhoto } from '@/lib/utils'
 import { type AiImage } from '@/db/schema'
 
-export const DownloadButton = ({ image }: { image: AiImage }) => {
+export const DownloadButton = ({ url, title }: { url: string; title: string }) => {
   // Create a functional component
   return (
     // Return the button JSX
     <Button
-      onClick={async (e) => {
+      onClick={(e) => {
         e.preventDefault()
-        await downloadPhoto(image.imageUrl, image.title || 'img')
+        downloadPhoto(url, title || 'img')
       }}
       variant='secondary'
       size='icon'

@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogClose, DialogPortal, DialogOverlay } from 
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
-import { CloseButton } from './close-button'
 
 export function ModalImage({ children }: { children: React.ReactNode }) {
   const router = useRouter()

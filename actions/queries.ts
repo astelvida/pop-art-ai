@@ -34,7 +34,7 @@ export async function saveAiImage({
 
     // Generate image details can be an update function to
     const imageDetails = await generateImageDetails(url, prompt)
-    const { title, caption, description, comicBookScene, nextPrompt, isTextAccurate } = imageDetails || {}
+    const { title, caption, description } = imageDetails || {}
 
     const insertedAiImage = await db
       .insert(AiImages)
@@ -47,9 +47,6 @@ export async function saveAiImage({
         title,
         caption,
         description,
-        comicBookScene,
-        nextPrompt,
-        isTextAccurate,
       })
       .returning()
     // pp(insertedAiImage, 'INSERTED AI IMAGE')
@@ -77,11 +74,23 @@ export const getAiImages = async () => {
   }
 }
 
+export const getPublicAiImages = async () => {
+  try {
+    const aiImages = await db.select().from(AiImages).orderBy(desc(AiImages.createdAt))
+    return aiImages
+  } catch (error) {
+    return handleError(error)
+  }
+}
+
 export async function getAiImage(id: string) {
   const { userId } = auth()
   if (!userId) throw new AppError('Unauthorized', 401)
 
-  const [image] = await db.select().from(AiImages).where(eq(AiImages.id, id))
+  const [image] = await db
+    .select()
+    .from(AiImages)
+    .where(eq(AiImages.id, Number(id)))
   if (!image) {
     redirect('/')
   }
