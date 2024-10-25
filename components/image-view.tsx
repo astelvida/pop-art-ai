@@ -73,11 +73,6 @@ export function ImageView({ image }: { image: AiImage }) {
           <h2 className='mb-4 font-bangers text-4xl font-bold'>{image.title}</h2>
           <p className='mb-4 text-base font-medium'>{image.caption}</p>
           <p className='mb-6 text-sm text-gray-600'>{image.description}</p>
-          <p className='mb-6 text-sm text-gray-600'>{image.comicBookScene}</p>
-          <p className='mb-6 text-sm text-gray-600'>{image.nextPrompt}</p>
-          <p className='mb-6 text-sm text-gray-600'>
-            {image.isTextAccurate ? 'Text is accurate' : 'Text is not accurate'}
-          </p>
         </div>
       </div>
     </div>
