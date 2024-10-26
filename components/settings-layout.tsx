@@ -10,7 +10,7 @@ export function SettingsLayout({
   handleSettingChange,
   settings,
 }: {
-  handleSettingChange: (settings: SettingsSchema) => void
+  handleSettingChange: (settingKey: keyof SettingsSchema, value: string | number) => void
   settings: SettingsSchema
 }) {
   return (

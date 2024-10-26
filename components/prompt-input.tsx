@@ -1,13 +1,14 @@
 'use client'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { ArrowUp, Shuffle } from 'lucide-react'
+import { ArrowUp, SettingsIcon, Shuffle } from 'lucide-react'
 import { useEffect, useMemo, useRef } from 'react'
 import useWindowSize from '@/lib/hooks/use-window-size'
 import { ArrowTopRightIcon } from '@radix-ui/react-icons'
 import { randomPrompt, randomPrompts, shuffle } from '@/lib/utils'
 import prompts from '@/lib/data/prompts.json'
 import { SamplePromptTag } from '@/lib/types'
+import { useSidebar } from '@/components/ui/sidebar'
 
 interface PromptSuggestionsProps {
   setPrompt: (suggestion: string) => void
@@ -33,6 +34,7 @@ export function PromptInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const { width } = useWindowSize()
   const suggestions = useMemo(() => randomPrompts(category as SamplePromptTag), [category])
+  const { toggleSidebar } = useSidebar()
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -79,21 +81,35 @@ export function PromptInput({
             value={prompt}
             onChange={handlePromptChange}
             className='min-h-[24px] resize-none overflow-hidden rounded-xl border-none bg-muted px-4 pb-16 pr-16 pt-4 text-base focus-visible:ring-0 focus-visible:ring-offset-0'
-            // rows={3}
-            // onKeyDown={(event) => {
-            //   if (event.key === 'Enter' && !event.shiftKey) {
-            //     event.preventDefault()
+            rows={3}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault()
 
-            //     if (isGenerating) {
-            //       // toast.error('Please wait for the model to finish its response!')
-            //     } else {
-            //       handleSubmit(event)
-            //     }
-            //   }
-            // }}
+                if (isGenerating) {
+                  // toast.error('Please wait for the model to finish its response!')
+                } else {
+                  handleSubmit(event)
+                }
+              }
+            }}
             // className='text-md min-h-[150px] resize-none overflow-hidden rounded-2xl px-4 pb-16 pr-16 pt-4'
           />
-          <div className='absolute bottom-3 left-3 flex items-center space-x-2'>{children}</div>
+
+          {/* <div className='absolute bottom-3 left-3 flex items-center space-x-2'> */}
+          <Button
+            // variant='secondary'
+            // size='icon'
+            className='absolute bottom-3 left-3 rounded-full [&_svg]:size-6'
+            onClick={(e) => {
+              e.preventDefault()
+              toggleSidebar()
+            }}
+          >
+            <SettingsIcon className='h-6 w-6' />
+            <span>Settings</span>
+            <span className='sr-only'>Open settings</span>
+          </Button>
           <Button
             type='button'
             variant='ghost'

@@ -2,11 +2,9 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { PromptInput } from '@/components/prompt-input'
-import { saveAiImage, toggleFavoriteAiImage } from '@/actions/queries'
-import { SettingsPopover } from './settings-popover'
+import { saveAiImage } from '@/actions/queries'
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { settingsData } from '@/lib/data/settings'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
@@ -41,24 +39,14 @@ function extractLatestPercentage(logs: string) {
   return lastPercentage
 }
 
-const initialSettingsState = settingsData.reduce(
-  (acc, setting) => {
-    acc[setting.name] = setting.default
-    return acc
-  },
-  {} as { [key in keyof SettingsSchema]: SettingsSchema[key] },
-)
-
-export function ImageGenerator({ children }: { children?: React.ReactNode }) {
+export function ImageGenerator({ settings, children }: { settings: SettingsSchema; children?: React.ReactNode }) {
   const [prediction, setPrediction] = useState<Prediction | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [prompt, setPrompt] = useState(prompts['complex'][8])
   const [isGenerating, setIsGenerating] = useState(false)
   const [currentImage, setCurrentImage] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [promptCategory, setPromptCategory] = useState<keyof typeof prompts>('complex')
-  const [settings, setSettings] = useState<SettingsSchema>(initialSettingsState)
   const [progress, setProgress] = useState(0)
   const { user } = useUser()
 
@@ -74,15 +62,6 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
     console.log(prediction?.status)
     console.log('prediction', prediction)
   }, [prediction])
-
-  const handleSettingChange = (name: string, value: string | number) => {
-    setSettings((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const toggleSettings = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault()
-    setIsSettingsOpen((prev) => !prev)
-  }, [])
 
   const handleGenerateImage = useCallback(async () => {
     setIsGenerating(true)
@@ -179,13 +158,6 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
         setPrompt={setPrompt}
         category={promptCategory}
       >
-        <SettingsPopover
-          isOpen={isSettingsOpen}
-          onOpenChange={setIsSettingsOpen}
-          handleSettingChange={handleSettingChange}
-          settings={settings}
-          toggleSettings={toggleSettings}
-        />
         <Select value={promptCategory} onValueChange={(value) => setPromptCategory(value as keyof typeof prompts)}>
           <SelectTrigger className='w-[180px]'>
             <SelectValue placeholder='Select prompt category' />
