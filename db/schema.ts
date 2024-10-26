@@ -1,19 +1,31 @@
 import { integer, text, boolean, pgTable, serial, varchar, timestamp, index, uuid } from 'drizzle-orm/pg-core'
 import { InferInsertModel, InferSelectModel, relations, sql } from 'drizzle-orm'
+import { auth, currentUser } from '@clerk/nextjs/server'
+
+export const Users = pgTable('users', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  name: varchar('name', { length: 255 }),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at')
+    .notNull()
+    .$onUpdate(() => new Date()),
+})
+
 
 export const AiImages = pgTable(
   'aiImages',
   {
     id: serial('id').primaryKey(),
-    predictionId: varchar('predictionId', { length: 255 }).unique().notNull(),
-    userId: varchar('userId', { length: 255 }).notNull(),
+    userId: varchar('userId', { length: 255 })
+      .notNull()
+      .references(() => Users.id),
     imageUrl: varchar('imageUrl', { length: 2083 }).notNull().unique(), // Max URL length
     aspectRatio: varchar('aspectRatio', { length: 255 }).notNull(),
     prompt: text('prompt').notNull(),
     title: text('title'),
     caption: text('caption'),
     description: text('description'),
-    liked: boolean('liked').default(false),
     numLikes: integer('numLikes').default(0),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at')
@@ -29,7 +41,7 @@ export const Likes = pgTable(
   'likes',
   {
     id: serial('id').primaryKey(),
-    userId: varchar('userId', { length: 255 }).notNull(),
+    userId: varchar('userId', { length: 255 }).notNull().references(() => Users.id),
     aiImageId: integer('aiImageId')
       .notNull()
       .references(() => AiImages.id),
@@ -40,5 +52,35 @@ export const Likes = pgTable(
   }),
 )
 
-export type AiImageInsertModel = InferInsertModel<typeof AiImages>
+export const usersRelations = relations(Users, ({ many }) => ({
+  aiImages: many(AiImages),
+  likes: many(Likes),
+}))
+
+export const aiImagesRelations = relations(AiImages, ({ one, many }) => ({
+  user: one(Users, {
+    fields: [AiImages.userId],
+    references: [Users.id],
+  }),
+  likes: many(Likes),
+}))
+
+export const likesRelations = relations(Likes, ({ one }) => ({
+  user: one(Users, {
+    fields: [Likes.userId],
+    references: [Users.id],
+  }),
+  aiImage: one(AiImages, {
+    fields: [Likes.aiImageId],
+    references: [AiImages.id],
+  }),
+}))
+
+export type User = InferSelectModel<typeof Users>
+export type UserInsert = InferInsertModel<typeof Users>
+
 export type AiImage = InferSelectModel<typeof AiImages>
+export type AiImageInsert = InferInsertModel<typeof AiImages>
+
+export type Like = InferSelectModel<typeof Likes>
+export type LikeInsert = InferInsertModel<typeof Likes>

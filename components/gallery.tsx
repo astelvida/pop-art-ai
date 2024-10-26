@@ -11,6 +11,7 @@ export function Gallery({ images }: { images: AiImage[] }) {
 
   return (
     <div className='columns-1 gap-4 sm:columns-2 xl:columns-3 2xl:columns-4'>
+    
       {images.map((image: AiImage) => (
         <div key={image.id} className='group relative mb-5'>
           <Link
@@ -39,6 +40,7 @@ export function Gallery({ images }: { images: AiImage[] }) {
             </div>
           </Link>
           <div className='absolute right-2 top-2 flex space-x-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100'>
+            <p className='rounded-md bg-muted px-2 py-1 text-sm'>{image.numLikes} likes</p>
             <form action={toggleFavoriteAiImage} name='toggleFavoritAiImage'>
               <input type='hidden' name='imageId' value={image.id} />
               <Button type='submit' variant='secondary' size='icon'>

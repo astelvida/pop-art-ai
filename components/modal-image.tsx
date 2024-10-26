@@ -7,9 +7,9 @@ import { X } from 'lucide-react'
 
 export function ModalImage({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  // const [isOpen, setIsOpen] = useState(true)
 
-  function onClose() {
+  function onClose(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault()
     router.back()
   }
 

@@ -22,11 +22,14 @@ export type AiImageData = {
   aspectRatio: '1:1' | '3:4' | '4:3' | '16:9' | '9:16'
 }
 
+console.log('AUTH')
+console.log(auth())
+
+
 export async function saveAiImage({ predictionId, url, prompt, aspectRatio }: AiImageData) {
   try {
     const { userId } = auth()
     if (!userId) throw new AppError('User not authorized', 401)
-
     // Generate image details can be an update function to
     const imageDetails = await generateImageDetails(url, prompt)
     const { title, caption, description } = imageDetails || {}
@@ -34,7 +37,6 @@ export async function saveAiImage({ predictionId, url, prompt, aspectRatio }: Ai
     const insertedAiImage = await db
       .insert(AiImages)
       .values({
-        predictionId,
         userId,
         imageUrl: url,
         aspectRatio,
@@ -110,23 +112,30 @@ export async function deleteAiImage(formData: FormData) {
   revalidatePath('/')
 }
 
-export async function toggleFavoriteAiImage(formData: FormData, imageId?: number) {
-  console.log(formData, 'FORM DATA')
-  console.log(imageId, 'IMAGE ID')
-  const id = imageId || formData.get('imageId')
+export async function toggleFavoriteAiImage(formData: FormData) {
+  const id = formData.get('imageId')
   // const id = formData.get('imageId')
   //
   try {
     const { userId } = auth()
     if (!userId) throw new AppError('User not authorized', 401)
 
-    await db
+    const [updatedImage] = await db
       .update(AiImages)
       .set({ liked: not(AiImages.liked) })
       .where(eq(AiImages.id, Number(id)))
+      .returning()
+
+    if (updatedImage.liked) {
+      await incrementLikes(Number(id), userId)
+    } else {
+      await decrementLikes(Number(id), userId)
+    }
+    console.log('LIKED UPDATED')
   } catch (error) {
     return handleError(error)
   }
+
   revalidatePath('/')
 }
 
@@ -150,20 +159,33 @@ export async function getAiImageById(id: number) {
 }
 
 export async function incrementLikes(imageId: number, userId: string) {
-  return db.transaction(async (tx) => {
-    const [updatedImage] = await tx
-      .update(AiImages)
-      .set({ numLikes: sql`${AiImages.numLikes} + 1` })
-      .where(eq(AiImages.id, imageId))
-      .returning()
+  const [updatedImage] = await db
+    .update(AiImages)
+    .set({ numLikes: sql`${AiImages.numLikes} + 1` })
+    .where(eq(AiImages.id, imageId))
+    .returning()
 
-    await tx.insert(schema.Likes).values({
-      userId,
-      aiImageId: imageId,
-    })
-
-    return updatedImage
+  await db.insert(schema.Likes).values({
+    userId,
+    aiImageId: imageId,
   })
+
+  revalidatePath('/')
+  return updatedImage
+}
+
+export async function decrementLikes(imageId: number, userId: string) {
+  const [updatedImage] = await db
+    .update(AiImages)
+    .set({ numLikes: sql`${AiImages.numLikes} - 1` })
+    .where(eq(AiImages.id, imageId))
+    .returning()
+
+  await db.delete(schema.Likes).where(and(eq(Likes.userId, userId), eq(Likes.aiImageId, imageId)))
+
+  revalidatePath('/')
+
+  return updatedImage
 }
 
 // export async function updateNullAiImageNames() {

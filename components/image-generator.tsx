@@ -11,23 +11,23 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Heart, MoreHorizontal, Download, Copy, ThumbsUp, Flag, Shuffle, Share2, Loader2 } from 'lucide-react'
-import confetti from 'canvas-confetti'
-import { downloadPhoto } from '@/lib/utils'
+import { downloadPhoto, sleep } from '@/lib/utils'
 import { type Prediction } from 'replicate'
 import prompts from '@/lib/data/prompts.json'
-import { sleep } from '@/lib/utils'
 import { useUser } from '@clerk/nextjs'
 import Image from 'next/image'
 import { type SettingsSchema } from '@/lib/schemas/inputSchema'
 import { Progress } from '@/components/ui/progress'
 import { extractLatestPercentage } from '@/lib/utils'
+import { type AiImage } from '@/db/schema'
+import confetti from 'canvas-confetti'
 
 export function ImageGenerator({ settings, children }: { settings: SettingsSchema; children?: React.ReactNode }) {
   const [prediction, setPrediction] = useState<Prediction | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [prompt, setPrompt] = useState(prompts['complex'][8])
   const [isGenerating, setIsGenerating] = useState(false)
-  const [currentImage, setCurrentImage] = useState<string | null>(null)
+  const [currentImage, setCurrentImage] = useState<AiImage | null>(null)
   const [showModal, setShowModal] = useState(false)
 
   const [progress, setProgress] = useState(0)
@@ -36,10 +36,10 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
   const handleCopy = useCallback(() => {
     if (!currentImage) return
     navigator.clipboard
-      .writeText(currentImage)
+      .writeText(currentImage.imageUrl)
       .then(() => alert('Copied to clipboard!'))
       .catch((err) => console.error('Failed to copy: ', err))
-  }, [currentImage])
+  }, [currentImage?.imageUrl])
 
   useEffect(() => {
     console.log(prediction?.status)
@@ -49,6 +49,7 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
   const handleGenerateImage = useCallback(async () => {
     setIsGenerating(true)
     setShowModal(true)
+    setCurrentImage(null)
     setError(null)
     setProgress(0)
 
@@ -85,15 +86,16 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
       if (predictionResult.status === 'succeeded') {
         setProgress(100)
         console.log('Final prediction', predictionResult)
-        setCurrentImage(predictionResult.vercelUrl) // Set only the first image
         setPrediction(predictionResult)
 
-        saveAiImage({
+        const newAiImage = await saveAiImage({
           predictionId: predictionResult.id,
           url: predictionResult.vercelUrl,
           prompt: predictionResult.input.prompt,
           aspectRatio: predictionResult.input.aspect_ratio,
         })
+
+        setCurrentImage(newAiImage)
       } else {
         throw new Error('Image generation failed')
       }
@@ -136,7 +138,7 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
         isGenerating={isGenerating}
         prompt={prompt}
         setPrompt={setPrompt}
-      ></PromptInput>
+      />
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent className='sm:max-w-[450px]'>
           <Card className='w-full border-0 shadow-none'>
@@ -146,40 +148,50 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
                   <AvatarImage src={user?.imageUrl} />
                   <AvatarFallback>S</AvatarFallback>
                 </Avatar>
-                <span className='font-semibold'>{user?.username || user?.emailAddresses[0].emailAddress}</span>
+                <span className='font-semibold'>{user?.username || user?.emailAddresses[0]?.emailAddress}</span>
               </div>
-              <div className='flex items-center space-x-2'>
-                <Button variant='ghost' size='icon' onClick={() => toggleFavoriteAiImage.bind(null, prediction?.id)}>
-                  <Heart className='h-4 w-4' />
-                  <span className='sr-only'>Like</span>
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant='ghost' size='icon'>
-                      <MoreHorizontal className='h-4 w-4' />
-                      <span className='sr-only'>More options</span>
+              {!isGenerating && (
+                <div className='flex items-center space-x-2'>
+                  <form
+                    action={async (formData) => {
+                      toggleFavoriteAiImage(formData)
+                      setCurrentImage((img) => (img ? { ...img, liked: !img.liked } : null))
+                    }}
+                    name='imageId'
+                  >
+                    <input type='hidden' name='imageId' value={currentImage?.id} />
+                    <Button type='submit' variant='secondary' size='icon'>
+                      <Heart className={`h-4 w-4 ${currentImage?.liked ? 'fill-current' : ''}`} />
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align='end'>
-                    <DropdownMenuItem>
-                      <Download className='mr-2 h-4 w-4' />
-                      <span>Download</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Copy className='mr-2 h-4 w-4' />
-                      <span>Copy</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <ThumbsUp className='mr-2 h-4 w-4' />
-                      <span>Rate</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Flag className='mr-2 h-4 w-4' />
-                      <span>Report</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+                  </form>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant='ghost' size='icon'>
+                        <MoreHorizontal className='h-4 w-4' />
+                        <span className='sr-only'>More options</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align='end'>
+                      <DropdownMenuItem>
+                        <Download className='mr-2 h-4 w-4' />
+                        <span>Download</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Copy className='mr-2 h-4 w-4' />
+                        <span>Copy</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <ThumbsUp className='mr-2 h-4 w-4' />
+                        <span>Rate</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Flag className='mr-2 h-4 w-4' />
+                        <span>Report</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              )}
             </div>
             <CardContent className='p-0'>
               {isGenerating ? (
@@ -187,11 +199,12 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
                   className={`w-full max-w-[400px] ${getAspectRatioClass(aspectRatio)} flex flex-col items-center justify-center rounded-md bg-muted`}
                 >
                   <Loader2 className='h-8 w-8 animate-spin text-primary' />
+                  <p className='text-sm text-muted-foreground'>Generating image...</p>
                 </div>
-              ) : currentImage ? (
+              ) : currentImage && currentImage.imageUrl ? (
                 <div className={`relative w-full max-w-[400px] ${getAspectRatioClass(aspectRatio)}`}>
                   <Image
-                    src={currentImage}
+                    src={currentImage.imageUrl}
                     width={400}
                     height={
                       400 *
@@ -212,11 +225,11 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
                         origin: { y: 0.6 },
                       })
                     }}
-                    alt='A crocodile in bed'
+                    alt='Generated image'
                     className='h-full w-full rounded-md object-cover'
                   />
                   <div className='absolute right-2 top-2 flex space-x-2'>
-                    <Button variant='secondary' size='icon' onClick={() => downloadPhoto(currentImage)}>
+                    <Button variant='secondary' size='icon' onClick={() => downloadPhoto(currentImage.imageUrl)}>
                       <Download className='h-4 w-4' />
                       <span className='sr-only'>Download</span>
                     </Button>
@@ -232,7 +245,7 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
               {isGenerating ? (
                 <div className='w-full space-y-2'>
                   <Progress value={progress} className='w-full' />
-                  <p className='text-center text-sm text-muted-foreground'>Generating image... {progress}%</p>
+                  <p className='text-center'>{progress}%</p>
                 </div>
               ) : (
                 <>
@@ -242,6 +255,9 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
                   <Button variant='outline' className='ml-2 w-full'>
                     <Share2 className='mr-2 h-4 w-4' /> Share
                   </Button>
+                  <p className='text-center text-xs text-muted-foreground'>
+                    Generated with AI in {Math.round(Number(prediction?.metrics?.predict_time) * 100) / 100} seconds
+                  </p>
                 </>
               )}
             </CardFooter>
