@@ -57,8 +57,11 @@ const config: Config = {
         sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
-        comic: ['Comic Sans MS', 'cursive'],
         bangers: ['var(--font-bangers)', 'cursive'],
+        rubik: ['var(--font-rubik)', 'sans-serif'],
+        rubikMono: ['var(--font-rubik-mono)', 'sans-serif'],
+        marker: ['var(--font-marker)', 'cursive'],
+        lato: ['var(--font-lato)', 'sans-serif'],
       },
     },
   },

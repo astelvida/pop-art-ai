@@ -18,10 +18,8 @@ export function Header() {
   return (
     <header className='flex items-center justify-between border-b bg-background p-4'>
       <Link href='/' className='flex items-center space-x-2'>
-        <Image src='/logo.png' alt='POP ART Logo' width={40} height={40} />
-        <p className='text-2xl font-bold' style={{ fontFamily: "'Rubik Mono One', sans-serif" }}>
-          moody comics
-        </p>
+        <Image src='/logo.webp' alt='POP ART Logo' width={50} height={50} />
+        <p className='font-bangers text-xl font-bold'>moody pop art</p>
       </Link>
 
       <nav className='hidden md:block'>
@@ -40,9 +38,9 @@ export function Header() {
       </nav>
 
       <div className='flex items-center space-x-4'>
-        <Button variant='ghost' size='icon'>
-          <GitHubLogoIcon className='h-6 w-6' />
-        </Button>
+        <Link href='https://github.com/astelvida/pop-art-ai' target='_blank' rel='noopener noreferrer'>
+          <GitHubLogoIcon className='h-8 w-8' />
+        </Link>
         <SignedIn>
           <UserButton />
         </SignedIn>
