@@ -42,7 +42,7 @@ export function ImageView({ image }: { image: AiImage }) {
           </div>
           <div className='absolute right-4 top-4 flex flex-row space-x-2 md:right-6 md:top-4'>
             <ExternalLinkButton url={image.imageUrl} />
-            <DownloadButton url={image.imageUrl} title={image.title || 'img'} />
+            <DownloadButton url={image.imageUrl} title={image.title} />
             <form action={toggleFavoriteAiImage} name='toggleFavorite'>
               <input type='hidden' name='imageId' value={image.id} />
               <Button variant='secondary' size='icon' type='submit'>

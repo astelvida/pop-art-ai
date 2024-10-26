@@ -89,7 +89,7 @@ function forceDownload(blobUrl: string, filename: string) {
   a.remove()
 }
 
-export function downloadPhoto(url: string, filename: string) {
+export function downloadPhoto(url: string, filename?: string | null) {
   if (!filename) {
     const urlParts = url.split(/[\\\/]/)
     filename = urlParts[urlParts.length - 1] || ''

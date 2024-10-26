@@ -89,8 +89,8 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
         await saveAiImage({
           predictionId: prediction.id,
           url: prediction.vercelUrl,
-          prompt,
-          aspectRatio: settings.aspect_ratio,
+          prompt: prediction.input.prompt,
+          aspectRatio: prediction.input.aspect_ratio,
         })
       } else {
         throw new Error('Image generation failed')

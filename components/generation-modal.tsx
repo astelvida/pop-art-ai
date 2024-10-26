@@ -35,21 +35,12 @@ export function GenerationModal({
   const getSkeletonDimensions = () => {
     const [width, height] = aspectRatio.split(':').map(Number)
     const ratio = height / width
-    const skeletonWidth = Math.min(window.innerWidth * 0.4, 500)
+    const skeletonWidth = 400
     const skeletonHeight = skeletonWidth * ratio
     return { width: skeletonWidth, height: skeletonHeight }
   }
-  const [skeletonSize, setSkeletonSize] = useState(getSkeletonDimensions())
 
-  useEffect(() => {
-    const updateSizes = () => {
-      setImageSize({ width: Math.min(window.innerWidth * 0.4, 500), height: Math.min(window.innerHeight * 0.6, 500) })
-      setSkeletonSize(getSkeletonDimensions())
-    }
-    updateSizes()
-    window.addEventListener('resize', updateSizes)
-    return () => window.removeEventListener('resize', updateSizes)
-  }, [aspectRatio])
+  const { width, height } = getSkeletonDimensions()
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -61,8 +52,8 @@ export function GenerationModal({
                 <Skeleton
                   className='mx-auto'
                   style={{
-                    width: `${skeletonSize.width}px`,
-                    height: `${skeletonSize.height}px`,
+                    width: `${width}px`,
+                    height: `${height}px`,
                   }}
                 />
                 <div className='absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 p-4'>
@@ -77,8 +68,8 @@ export function GenerationModal({
                   src={currentImage}
                   alt='Generated image'
                   style={{
-                    maxWidth: `${imageSize.width}px`,
-                    maxHeight: `${imageSize.height}px`,
+                    maxWidth: `${width}px`,
+                    maxHeight: `${height}px`,
                     width: 'auto',
                     height: 'auto',
                   }}
@@ -86,15 +77,11 @@ export function GenerationModal({
                   onClick={() => setZoomedImage(currentImage)}
                 />
                 <div className='flex space-x-2'>
-                  <Button variant='default' size='sm' onClick={saveImage}>
-                    <Save className='mr-2 h-4 w-4' />
-                    Save
-                  </Button>
                   <Button variant='destructive' size='sm' onClick={discardImage}>
                     <Trash2 className='mr-2 h-4 w-4' />
                     Discard Image
                   </Button>
-                  <DownloadButton image={currentImage} />
+                  <DownloadButton url={currentImage} />
                 </div>
               </div>
             ) : (

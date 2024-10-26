@@ -52,7 +52,7 @@ export async function Gallery() {
                 <Trash2 className='h-4 w-4' />
               </Button>
             </form>
-            <DownloadButton image={image} />
+            <DownloadButton url={image.imageUrl} title={image.title} />
           </div>
         </div>
       ))}
