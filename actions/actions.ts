@@ -14,7 +14,6 @@ async function createUser() {
   const myUser = await currentUser()
   if (!myUser || !userId) return new Error('User not found')
 
-  pp(myUser, 'myUser')
   const insertedUser = await db
     .insert(Users)
     .values({
@@ -28,115 +27,41 @@ async function createUser() {
   return insertedUser[0]
 }
 
-export async function createImage(formData: FormData) {
-  const { userId } = auth()
-  if (!userId) {
-    throw new Error('Unauthorized')
-  }
-
-  const imageUrl = formData.get('imageUrl') as string
-  const aspectRatio = formData.get('aspectRatio') as string
-  const prompt = formData.get('prompt') as string
-  const title = formData.get('title') as string
-  const caption = formData.get('caption') as string
-  const description = formData.get('description') as string
-
-  try {
-    const newImage = await db
-      .insert(AiImages)
-      .values({
-        userId,
-        imageUrl,
-        aspectRatio,
-        prompt,
-        title,
-        caption,
-        description,
-      })
-      .returning()
-
-    revalidatePath('/gallery')
-    return { success: true, image: newImage[0] }
-  } catch (error) {
-    console.error('Error creating AI image:', error)
-    return { success: false, error: 'Failed to create image' }
-  }
-}
-
 export async function getImages(limit = 10, offset = 0) {
   const { userId } = auth()
+  if (!userId) {
+    return new Error('Unauthorized')
+  }
 
-  try {
-    const images = await db
-      .select({
-        id: AiImages.id,
-        imageUrl: AiImages.imageUrl,
-        aspectRatio: AiImages.aspectRatio,
-        prompt: AiImages.prompt,
-        title: AiImages.title,
-        caption: AiImages.caption,
-        description: AiImages.description,
-        numLikes: AiImages.numLikes,
-        createdAt: AiImages.createdAt,
-        userName: Users.name,
-        userId: Users.id,
-        isLikedByUser: sql<boolean>`EXISTS (
+  const images = await db
+    .select({
+      id: AiImages.id,
+      imageUrl: AiImages.imageUrl,
+      aspectRatio: AiImages.aspectRatio,
+      prompt: AiImages.prompt,
+      title: AiImages.title,
+      caption: AiImages.caption,
+      description: AiImages.description,
+      numLikes: AiImages.numLikes,
+      createdAt: AiImages.createdAt,
+      userName: Users.name,
+      userId: Users.id,
+      isLikedByUser: sql<boolean>`EXISTS (
         SELECT 1 FROM ${Likes}
         WHERE ${Likes.aiImageId} = ${AiImages.id}
         AND ${Likes.userId} = ${userId}
       )`.as('isLikedByUser'),
-      })
-      .from(AiImages)
-      .innerJoin(Users, eq(AiImages.userId, Users.id))
-      .orderBy(desc(AiImages.createdAt))
-    // .limit(limit)
-    // .offset(offset)
+    })
+    .from(AiImages)
+    .innerJoin(Users, eq(AiImages.userId, Users.id))
+    .orderBy(desc(AiImages.createdAt))
+  // .limit(limit)
+  // .offset(offset)
 
-    return images
-  } catch (error) {
-    console.error('Error fetching images:', error)
-    throw new Error('Failed to fetch images')
-  }
-}
-
-export async function getImagesForUser(limit = 10, offset = 0) {
-  const { userId } = auth()
-
-  try {
-    const images = await db
-      .select({
-        id: AiImages.id,
-        imageUrl: AiImages.imageUrl,
-        aspectRatio: AiImages.aspectRatio,
-        prompt: AiImages.prompt,
-        title: AiImages.title,
-        caption: AiImages.caption,
-        description: AiImages.description,
-        numLikes: AiImages.numLikes,
-        createdAt: AiImages.createdAt,
-        userName: Users.name,
-        userId: Users.id,
-        isLikedByUser: sql<boolean>`EXISTS (
-        SELECT 1 FROM ${Likes}
-        WHERE ${Likes.aiImageId} = ${AiImages.id}
-        AND ${Likes.userId} = ${userId}
-      )`.as('isLikedByUser'),
-      })
-      .from(AiImages)
-      .innerJoin(Users, eq(AiImages.userId, Users.id))
-      .orderBy(desc(AiImages.createdAt))
-    // .limit(limit)
-    // .offset(offset)
-
-    return images
-  } catch (error) {
-    console.error('Error fetching images:', error)
-    throw new Error('Failed to fetch images')
-  }
+  return images
 }
 
 export async function toggleLike(imageId: number) {
-  console.log('toggleLike', imageId)
   const { userId } = auth()
   if (!userId) {
     throw new Error('Unauthorized')

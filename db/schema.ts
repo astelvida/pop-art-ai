@@ -1,6 +1,5 @@
 import { integer, text, boolean, pgTable, serial, varchar, timestamp, index, uuid } from 'drizzle-orm/pg-core'
 import { InferInsertModel, InferSelectModel, relations, sql } from 'drizzle-orm'
-import { auth, currentUser } from '@clerk/nextjs/server'
 
 export const Users = pgTable('users', {
   id: varchar('id', { length: 255 }).primaryKey(),
@@ -11,7 +10,6 @@ export const Users = pgTable('users', {
     .notNull()
     .$onUpdate(() => new Date()),
 })
-
 
 export const AiImages = pgTable(
   'aiImages',
@@ -41,7 +39,9 @@ export const Likes = pgTable(
   'likes',
   {
     id: serial('id').primaryKey(),
-    userId: varchar('userId', { length: 255 }).notNull().references(() => Users.id),
+    userId: varchar('userId', { length: 255 })
+      .notNull()
+      .references(() => Users.id),
     aiImageId: integer('aiImageId')
       .notNull()
       .references(() => AiImages.id),

@@ -2,7 +2,7 @@
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { ArrowUp, SettingsIcon, Shuffle } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import useWindowSize from '@/hooks/use-window-size'
 import { ArrowTopRightIcon } from '@radix-ui/react-icons'
 import { randomPrompt, randomPrompts, shuffle } from '@/lib/utils'
@@ -10,7 +10,7 @@ import { SamplePromptTag } from '@/lib/types'
 import { useSidebar } from '@/components/ui/sidebar'
 import { useToast } from '@/hooks/use-toast'
 import prompts from '@/lib/data/prompts.json'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
 interface PromptSuggestionsProps {
   setPrompt: (suggestion: string) => void
   category: string

@@ -59,14 +59,14 @@ export default function Generator({
               Lichtenstein's signature aesthetic. Each artwork features expressive characters, comic book speech
               bubbles, and explores themes like love, suffering, patriarchy, and impossible beauty standards. With its
               satirical, tongue-in-cheek style, these images evoke strong emotions while delivering a dose of irony and
-              humor. Perfect for those seeking bold visuals with depth and meaning.
+              humor. <br /> Perfect for those seeking bold visuals with depth and meaning.
             </h2>
           </div>
-          <Suspense fallback={<div>Loading...</div>}>
-            <ImageGenerator settings={settings} />
-          </Suspense>
+
+          <ImageGenerator settings={settings} />
 
           <Separator className='my-12 space-y-12' />
+
           <div className='my-12 mb-6 flex items-center justify-start space-x-16 space-y-8'>
             <h1 className='text-center font-rubik text-6xl font-bold'>Gallery </h1>
             <Tabs
