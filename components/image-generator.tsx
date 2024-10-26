@@ -313,7 +313,6 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
           </Card>
         </DialogContent>
       </Dialog>
-      )
     </>
   )
 }
