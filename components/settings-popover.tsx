@@ -7,7 +7,7 @@ import { SettingsLayout } from '@/components/settings-layout'
 interface SettingsPopoverProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
-  handleSettingChange: (settings: SettingsSchema) => void
+  handleSettingChange: (name: string, value: string | number) => void
   settings: SettingsSchema
   toggleSettings: (e: React.MouseEvent<HTMLButtonElement>) => void
 }

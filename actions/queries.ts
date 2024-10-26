@@ -16,18 +16,14 @@ const { AiImages, Likes } = schema
 export const handleClose = async () => {
   redirect('/')
 }
-
-export async function saveAiImage({
-  predictionId,
-  url,
-  prompt,
-  aspectRatio,
-}: {
+export type AiImageData = {
   predictionId: string
   url: string
   prompt: string
-  aspectRatio: string
-}) {
+  aspectRatio: '1:1' | '3:4' | '4:3' | '16:9' | '9:16'
+}
+
+export async function saveAiImage({ predictionId, url, prompt, aspectRatio }: AiImageData) {
   try {
     const { userId } = auth()
     if (!userId) throw new AppError('User not authorized', 401)
@@ -114,9 +110,10 @@ export async function deleteAiImage(formData: FormData) {
   revalidatePath('/')
 }
 
-export async function toggleFavoriteAiImage(formData: FormData) {
-  const id = formData.get('imageId')
-
+export async function toggleFavoriteAiImage(formData: FormData, imageId?: number) {
+  const id = imageId || formData.get('imageId')
+  // const id = formData.get('imageId')
+  //
   try {
     const { userId } = auth()
     if (!userId) throw new AppError('User not authorized', 401)

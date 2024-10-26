@@ -45,7 +45,7 @@ export const settingsData: Setting[] = [
     description:
       "Aspect ratio for the generated image in text-to-image mode. The size will always be 1 megapixel, i.e. 1024x1024 if aspect ratio is 1:1. To use arbitrary width and height, set aspect ratio to 'custom'. Note: Ignored in img2img and inpainting modes.",
     default: '1:1',
-    options: ['1:1', '16:9', '9:16', '3:4', '4:3', '21:9', '3:2', '2:3', '4:5', '5:4', 'custom'],
+    options: ['1:1', '16:9', '9:16', '3:4', '4:3' /* '21:9', '3:2', '2:3', '4:5', '5:4', 'custom' */],
   },
   {
     name: 'output_format',

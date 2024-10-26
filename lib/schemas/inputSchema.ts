@@ -21,7 +21,7 @@ export const inputSchema = z.object({
   num_outputs: z.number().int().min(1).max(4).default(1).describe('Number of images to output. [Title: Num Outputs]'),
 
   aspect_ratio: z
-    .enum(['1:1', '16:9', '9:16', '3:4', '4:3', '21:9', '3:2', '2:3', '4:5', '5:4', 'custom'])
+    .enum(['1:1', '16:9', '9:16', '3:4', '4:3' /* '21:9', '3:2', '2:3', '4:5', '5:4', 'custom' */])
     .default('1:1')
     .optional()
     .describe(
