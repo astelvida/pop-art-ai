@@ -76,7 +76,7 @@ export function PromptInput({ handleGenerateImage, isGenerating, prompt, setProm
 
   return (
     <>
-      <form onSubmit={handleSubmit} className='mx-auto flex w-full gap-2 bg-background px-3 pb-1 md:max-w-3xl md:pb-3'>
+      <form onSubmit={handleSubmit} className='mx-auto flex w-full gap-2 bg-background px-3 pb-1 md:max-w-3xl md:pb-2'>
         <div className='relative flex w-full flex-col gap-4'>
           <Textarea
             ref={textareaRef}

@@ -16,60 +16,36 @@ export const handleClose = async () => {
   redirect('/')
 }
 export type AiImageData = {
-  predictionId: string
-  url: string
+  imageUrl: string
   prompt: string
   aspectRatio: '1:1' | '3:4' | '4:3' | '16:9' | '9:16'
 }
 
-console.log('AUTH')
-console.log(auth())
+export async function saveAiImage({ imageUrl, prompt, aspectRatio }: AiImageData) {
+  const { userId } = auth()
+  if (!userId) throw new AppError('User not authorized', 401)
+  // Generate image details can be an update function to
+  const imageDetails = await generateImageDetails(imageUrl, prompt)
+  const { title, caption, description } = imageDetails || {}
 
+  const insertedAiImage = await db
+    .insert(AiImages)
+    .values({
+      userId,
+      imageUrl,
+      aspectRatio,
+      prompt,
+      title,
+      caption,
+      description,
+    })
+    .returning()
+  // pp(insertedAiImage, 'INSERTED AI IMAGE')
+  revalidatePath('/')
+  revalidatePath('/gallery')
+  revalidatePath(`/img/${insertedAiImage[0].id}`)
 
-export async function saveAiImage({ predictionId, url, prompt, aspectRatio }: AiImageData) {
-  try {
-    const { userId } = auth()
-    if (!userId) throw new AppError('User not authorized', 401)
-    // Generate image details can be an update function to
-    const imageDetails = await generateImageDetails(url, prompt)
-    const { title, caption, description } = imageDetails || {}
-
-    const insertedAiImage = await db
-      .insert(AiImages)
-      .values({
-        userId,
-        imageUrl: url,
-        aspectRatio,
-        prompt,
-        title,
-        caption,
-        description,
-      })
-      .returning()
-    // pp(insertedAiImage, 'INSERTED AI IMAGE')
-    revalidatePath('/')
-
-    return insertedAiImage[0]
-  } catch (error) {
-    return handleError(error)
-  }
-}
-
-export const getAiImages = async () => {
-  try {
-    const { userId } = auth()
-    if (!userId) throw new AppError('User not authorized', 401)
-
-    const aiImages = await db
-      .select()
-      .from(AiImages)
-      .where(eq(AiImages.userId, userId))
-      .orderBy(desc(AiImages.createdAt))
-
-    return aiImages
-  } catch (error) {
-    return handleError(error)
-  }
+  return insertedAiImage[0]
 }
 
 export const getPublicAiImages = async () => {
@@ -93,22 +69,19 @@ export async function getAiImage(id: string) {
     redirect('/')
   }
 
-  if (image.userId !== userId) throw new AppError('Unauthorized', 403)
-
   return image
 }
 
-export async function deleteAiImage(formData: FormData) {
-  const id = formData.get('imageId')
-  try {
-    const { userId } = auth()
-    if (!userId) throw new AppError('Unauthorized', 401)
+export async function deleteAiImage(id: number) {
+  const { userId } = auth()
+  if (!userId) throw new AppError('Unauthorized', 401)
 
-    await db.delete(AiImages).where(and(eq(AiImages.id, Number(id)), eq(AiImages.userId, userId)))
-  } catch (error) {
-    return handleError(error)
-  }
+  const image = await getAiImage(id.toString())
+  if (image.userId !== userId) return { success: false, error: 'Unauthorized' }
 
+  const deletedImage = await db.delete(AiImages).where(and(eq(AiImages.id, Number(id)), eq(AiImages.userId, userId)))
+
+  console.log('DELETED IMAGE', deletedImage)
   revalidatePath('/')
 }
 

@@ -2,8 +2,8 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { PromptInput } from '@/components/prompt-input'
-import { saveAiImage, toggleFavoriteAiImage } from '@/actions/queries'
-
+import { saveAiImage } from '@/actions/queries'
+import { toggleLike } from '@/actions/actions'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,8 @@ import { Progress } from '@/components/ui/progress'
 import { extractLatestPercentage } from '@/lib/utils'
 import { type AiImage } from '@/db/schema'
 import confetti from 'canvas-confetti'
+import { useToast } from '@/hooks/use-toast'
+import LikeButton from '@/components/buttons/like-button'
 
 export function ImageGenerator({ settings, children }: { settings: SettingsSchema; children?: React.ReactNode }) {
   const [prediction, setPrediction] = useState<Prediction | null>(null)
@@ -29,9 +31,21 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
   const [isGenerating, setIsGenerating] = useState(false)
   const [currentImage, setCurrentImage] = useState<AiImage | null>(null)
   const [showModal, setShowModal] = useState(false)
-
   const [progress, setProgress] = useState(0)
   const { user } = useUser()
+  const { toast } = useToast()
+
+  useEffect(() => {
+    const preventClose = (e: BeforeUnloadEvent) => {
+      if (isGenerating) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+
+    window.addEventListener('beforeunload', preventClose)
+    return () => window.removeEventListener('beforeunload', preventClose)
+  }, [isGenerating])
 
   const handleCopy = useCallback(() => {
     if (!currentImage) return
@@ -89,8 +103,7 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
         setPrediction(predictionResult)
 
         const newAiImage = await saveAiImage({
-          predictionId: predictionResult.id,
-          url: predictionResult.vercelUrl,
+          imageUrl: predictionResult.vercelUrl,
           prompt: predictionResult.input.prompt,
           aspectRatio: predictionResult.input.aspect_ratio,
         })
@@ -106,12 +119,6 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
       setIsGenerating(false)
     }
   }, [prompt, settings])
-
-  const discardImage = useCallback(() => {
-    setCurrentImage(null)
-    setPrompt('')
-    setShowModal(false)
-  }, [])
 
   const getAspectRatioClass = (ratio: SettingsSchema['aspect_ratio']) => {
     switch (ratio) {
@@ -131,6 +138,56 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
   }
 
   const aspectRatio = settings.aspect_ratio
+
+  const handleShare = useCallback(() => {
+    if (!currentImage) return
+
+    const shareData = {
+      title: 'Check out this AI-generated image!',
+      text: `Generated with the prompt: "${currentImage.prompt}"`,
+      url: currentImage.imageUrl,
+    }
+
+    if (navigator.share) {
+      navigator
+        .share(shareData)
+        .then(() => toast({ title: 'Shared successfully!' }))
+        .catch((error) => {
+          console.error('Error sharing:', error)
+          toast({ title: 'Error sharing', description: 'Please try again later.', variant: 'destructive' })
+        })
+    } else {
+      navigator.clipboard
+        .writeText(`${shareData.title}\n${shareData.text}\n${shareData.url}`)
+        .then(() => toast({ title: 'Share info copied to clipboard!' }))
+        .catch(() =>
+          toast({ title: 'Failed to copy share info', description: 'Please try again.', variant: 'destructive' }),
+        )
+    }
+  }, [currentImage])
+
+  const handleRemix = useCallback(() => {
+    if (!currentImage) return
+
+    // Set the current image's prompt as the new prompt
+    setPrompt(currentImage.prompt)
+
+    // Optionally, you can modify some settings here
+    // For example, slightly change the aspect ratio or other parameters
+
+    // Generate a new image with the remixed prompt
+    handleGenerateImage()
+
+    toast({ title: 'Remixing image...', description: 'Creating a new variation based on the current image.' })
+  }, [currentImage, handleGenerateImage])
+
+  // Update the useEffect hook that handles the modal
+  useEffect(() => {
+    if (isGenerating || currentImage) {
+      setShowModal(true)
+    }
+  }, [isGenerating, currentImage])
+
   return (
     <>
       <PromptInput
@@ -139,58 +196,51 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
         prompt={prompt}
         setPrompt={setPrompt}
       />
-      <Dialog open={showModal} onOpenChange={setShowModal}>
+      <Dialog
+        open={showModal}
+        onOpenChange={(open) => {
+          if (!isGenerating) {
+            setShowModal(open)
+          }
+        }}
+      >
         <DialogContent className='sm:max-w-[450px]'>
           <Card className='w-full border-0 shadow-none'>
-            <div className='flex items-center justify-between space-y-0 pb-2'>
-              <div className='flex items-center space-x-2'>
-                <Avatar>
-                  <AvatarImage src={user?.imageUrl} />
-                  <AvatarFallback>S</AvatarFallback>
-                </Avatar>
-                <span className='font-semibold'>{user?.username || user?.emailAddresses[0]?.emailAddress}</span>
-              </div>
+            <div className='flex items-center space-x-2'>
+              {/* <Avatar>
+                <AvatarImage src={user?.imageUrl} />
+                <AvatarFallback>S</AvatarFallback>
+              </Avatar> */}
+              {/* <span className='font-semibold'>{user?.username || user?.emailAddresses[0]?.emailAddress}</span> */}
+            </div>
+            <div className='flex items-center justify-between pb-4 pt-6'>
               {!isGenerating && (
-                <div className='flex items-center space-x-2'>
-                  <form
-                    action={async (formData) => {
-                      toggleFavoriteAiImage(formData)
-                      setCurrentImage((img) => (img ? { ...img, liked: !img.liked } : null))
-                    }}
-                    name='imageId'
-                  >
-                    <input type='hidden' name='imageId' value={currentImage?.id} />
-                    <Button type='submit' variant='secondary' size='icon'>
-                      <Heart className={`h-4 w-4 ${currentImage?.liked ? 'fill-current' : ''}`} />
-                    </Button>
-                  </form>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant='ghost' size='icon'>
-                        <MoreHorizontal className='h-4 w-4' />
-                        <span className='sr-only'>More options</span>
+                <>
+                  <h1 className='text-xl font-semibold'>{currentImage?.title}</h1>
+                  <div className='flex items-center space-x-2'>
+                    {/* <form action={toggleLike.bind(null, currentImage?.id)} name='toggle'>
+                      <input type='hidden' name='imageId' value={currentImage?.id} />
+                      <Button type='submit' variant='secondary' size='icon'>
+                        <Heart className={`h-4 w-4 ${currentImage?.liked ? 'fill-current' : ''}`} />
                       </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align='end'>
-                      <DropdownMenuItem>
-                        <Download className='mr-2 h-4 w-4' />
-                        <span>Download</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Copy className='mr-2 h-4 w-4' />
-                        <span>Copy</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <ThumbsUp className='mr-2 h-4 w-4' />
-                        <span>Rate</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Flag className='mr-2 h-4 w-4' />
-                        <span>Report</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                    </form> */}
+
+                    <LikeButton
+                      showLikes={false}
+                      imageId={Number(currentImage?.id)}
+                      initialLikes={Number(currentImage?.numLikes) || 0}
+                      initialLikedState={currentImage?.liked || false}
+                    />
+                    <Button variant='secondary' size='icon' onClick={() => downloadPhoto(currentImage.imageUrl)}>
+                      <Download className='h-4 w-4' />
+                      <span className='sr-only'>Download</span>
+                    </Button>
+                    <Button variant='secondary' size='icon' onClick={handleCopy}>
+                      <Copy className='h-4 w-4' />
+                      <span className='sr-only'>Copy</span>
+                    </Button>
+                  </div>
+                </>
               )}
             </div>
             <CardContent className='p-0'>
@@ -228,37 +278,29 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
                     alt='Generated image'
                     className='h-full w-full rounded-md object-cover'
                   />
-                  <div className='absolute right-2 top-2 flex space-x-2'>
-                    <Button variant='secondary' size='icon' onClick={() => downloadPhoto(currentImage.imageUrl)}>
-                      <Download className='h-4 w-4' />
-                      <span className='sr-only'>Download</span>
-                    </Button>
-                    <Button variant='secondary' size='icon' onClick={handleCopy}>
-                      <Copy className='h-4 w-4' />
-                      <span className='sr-only'>Copy</span>
-                    </Button>
-                  </div>
                 </div>
               ) : null}
             </CardContent>
-            <CardFooter className='flex justify-between pt-4'>
+            <CardFooter className='flex flex-col items-stretch justify-center space-y-8 pt-6'>
               {isGenerating ? (
                 <div className='w-full space-y-2'>
                   <Progress value={progress} className='w-full' />
                   <p className='text-center'>{progress}%</p>
                 </div>
               ) : (
-                <>
-                  <Button variant='outline' className='mr-2 w-full'>
-                    <Shuffle className='mr-2 h-4 w-4' /> Remix
-                  </Button>
-                  <Button variant='outline' className='ml-2 w-full'>
-                    <Share2 className='mr-2 h-4 w-4' /> Share
-                  </Button>
-                  <p className='text-center text-xs text-muted-foreground'>
+                <div className='flex flex-col justify-center space-y-2'>
+                  <div className='flex justify-between space-x-2'>
+                    <Button variant='outline' className='mr-2 w-full' onClick={handleRemix}>
+                      <Shuffle className='mr-2 h-4 w-4' /> Remix
+                    </Button>
+                    <Button variant='outline' className='ml-2 w-full' onClick={handleShare}>
+                      <Share2 className='mr-2 h-4 w-4' /> Share
+                    </Button>
+                  </div>
+                  <p className='text-center align-bottom text-xs text-muted-foreground'>
                     Generated with AI in {Math.round(Number(prediction?.metrics?.predict_time) * 100) / 100} seconds
                   </p>
-                </>
+                </div>
               )}
             </CardFooter>
           </Card>

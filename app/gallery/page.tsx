@@ -1,6 +1,6 @@
-import { getImages } from '../actions'
+import { getImages } from '../../actions/actions'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
-import LikeButton from '../components/LikeButton'
+import LikeButton from '../../components/buttons/like-button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { formatDistanceToNow } from 'date-fns'
 

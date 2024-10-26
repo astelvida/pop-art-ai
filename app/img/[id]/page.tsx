@@ -1,4 +1,4 @@
-import { CloseButton } from '@/components/close-button'
+import { CloseButton } from '@/components/buttons/close-button'
 import { FullPageImageView } from '@/components/full-page-image-view'
 
 export default async function PhotoModal({ params: { id: imageId } }: { params: { id: string } }) {

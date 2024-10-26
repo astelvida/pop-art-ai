@@ -1,18 +1,17 @@
-import { toggleFavoriteAiImage, deleteAiImage, getAiImages } from '@/actions/queries'
+import { deleteAiImage } from '@/actions/queries'
+import { toggleLike } from '@/actions/actions'
 import { Button } from '@/components/ui/button'
 import { Heart, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { type AiImage } from '@/db/schema'
-import { DownloadButton } from './download-button'
+import { useUser } from '@clerk/nextjs'
+import { DownloadButton } from './buttons/download-button'
 
 export function Gallery({ images }: { images: AiImage[] }) {
-  // const images = await getAiImages()
-
+  const user = useUser()
   return (
-    <div className='columns-1 gap-4 sm:columns-2 xl:columns-3 2xl:columns-4'>
-    
-      {images.map((image: AiImage) => (
+    <div className='columns-1 gap-4 pt-8 sm:columns-2 xl:columns-3 2xl:columns-4'>
+      {images.map((image) => (
         <div key={image.id} className='group relative mb-5'>
           <Link
             href={`/img/${image.id}`}
@@ -41,18 +40,26 @@ export function Gallery({ images }: { images: AiImage[] }) {
           </Link>
           <div className='absolute right-2 top-2 flex space-x-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100'>
             <p className='rounded-md bg-muted px-2 py-1 text-sm'>{image.numLikes} likes</p>
-            <form action={toggleFavoriteAiImage} name='toggleFavoritAiImage'>
-              <input type='hidden' name='imageId' value={image.id} />
+            <form action={toggleLike.bind(null, image.id)} name='toggleLike'>
+              {/* <input type='hidden' name='imageId' value={image.id} /> */}
               <Button type='submit' variant='secondary' size='icon'>
-                <Heart className={`h-4 w-4 ${image.liked ? 'fill-current' : ''}`} />
+                <Heart className={`h-4 w-4 ${image.isLikedByUser ? 'fill-current' : ''}`} />
               </Button>
             </form>
-            <form action={deleteAiImage} name='deleteAiImage'>
-              <input type='hidden' name='imageId' value={image.id} />
-              <Button type='submit' variant='secondary' size='icon'>
-                <Trash2 className='h-4 w-4' />
-              </Button>
-            </form>
+            {/* <LikeButton 
+              imageId={image.id} 
+              initialLikes={image.numLikes || 0} 
+              initialLikedState={image.isLikedByUser || false} 
+            />     */}
+
+            {user?.user?.id === image.userId && (
+              <form action={deleteAiImage.bind(null, Number(image.id))} name='deleteAiImage'>
+                <input type='hidden' name='imageId' value={image.id} />
+                <Button type='submit' variant='secondary' size='icon'>
+                  <Trash2 className='h-4 w-4' />
+                </Button>
+              </form>
+            )}
             <DownloadButton url={image.imageUrl} title={image.title} />
           </div>
         </div>

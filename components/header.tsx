@@ -16,31 +16,22 @@ export function Header() {
   }
 
   return (
-    <header className='flex items-center justify-between border-b bg-background p-4'>
+    <header className='flex items-center justify-between bg-background'>
       <Link href='/' className='flex items-center space-x-2'>
-        <Image src='/logo.webp' alt='POP ART Logo' width={50} height={50} />
-        <p className='font-bangers text-xl font-bold'>moody pop art</p>
+        <Image src='/speech-bubble.webp' alt='POP ART Logo' width={60} height={60} className='rounded-full' />
+        <h2 className='font-rubik text-2xl font-bold'>Pop Art AI </h2>
       </Link>
 
-      <nav className='hidden md:block'>
+      {/* <nav className='hidden md:block'>
         <ul className='flex space-x-4'>
           <li>
-            <Link href='/explore' className={`text-lg ${pathname === '/explore' ? 'font-bold' : ''}`}>
-              Explore
+            <Link href='/gallery' className={`text-lg ${pathname === '/gallery' ? 'font-bold' : ''}`}>
+              Gallery
             </Link>
           </li>
-          <li>
-            <Link href='/library' className={`text-lg ${pathname === '/library' ? 'font-bold' : ''}`}>
-              Library
-            </Link>
-          </li>
-          <li>
-            <Link href='/dashboard' className={`text-lg ${pathname === '/dashboard' ? 'font-bold' : ''}`}>
-              Dashboard
-            </Link>
-          </li>
+
         </ul>
-      </nav>
+      </nav> */}
 
       <div className='flex items-center space-x-4'>
         <Link href='https://github.com/astelvida/pop-art-ai' target='_blank' rel='noopener noreferrer'>

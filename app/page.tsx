@@ -1,8 +1,9 @@
-import { type AiImage } from '@/db/schema'
+import { type AiImage as LibraryImage } from '@/db/schema'
 import Generator from './generator'
-import { getAiImages } from '@/actions/queries'
+import { getImages } from '@/actions/actions'
+export const dynamic = 'force-dynamic'
 
 export default async function Page() {
-  const images = await getAiImages()
-  return <Generator images={images as AiImage[]} />
+  const images = await getImages()
+  return <Generator images={images} />
 }

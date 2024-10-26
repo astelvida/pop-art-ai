@@ -74,7 +74,7 @@ export default function RootLayout({
         >
           <NextThemesProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
             <div className='flex min-h-screen flex-col'>
-              <Header />
+              {/* <Header /> */}
               {children}
               {modal}
             </div>
