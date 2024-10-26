@@ -18,11 +18,11 @@ export function PromptSuggestions({ setPrompt, category }: PromptSuggestionsProp
     <div className='flex flex-wrap items-center justify-center gap-2 space-x-2 pb-2'>
       {prompts[category as keyof typeof prompts].slice(0, 5).map((suggestion, index) => (
         <Button
-          key={index}
+          key={suggestion.substring(0, 20)}
           variant='outline'
           className='flex-shrink-0 rounded-full'
-          onClick={(e) => {
-            e.preventDefault()
+          onClick={async (e) => {
+            // e.preventDefault()
             setPrompt(suggestion)
           }}
         >

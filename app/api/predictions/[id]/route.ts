@@ -10,12 +10,14 @@ export async function GET(request: Request, { params }: { params: { id: string }
   const prediction = await replicate.predictions.get(params.id)
 
   if (prediction.status === 'succeeded') {
-    console.log('GET prediction', prediction)
     const file = await fetch(prediction.output[0]).then((res) => res.blob())
     // upload & store in Vercel Blob
-    const { url } = await put(`${prediction.id}.webp`, file, { access: 'public' })
-    console.log('url', url)
+    const { url } = await put(`${prediction.id}.${prediction.input.output_format || 'webp'}`, file, {
+      access: 'public',
+    })
+    console.log('url', url, 'id', prediction.id)
     prediction.vercelUrl = url
+    console.log('GET prediction', prediction)
   }
 
   if (prediction?.error) {

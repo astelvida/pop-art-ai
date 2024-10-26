@@ -7,7 +7,7 @@ export const AiImages = pgTable(
     id: serial('id').primaryKey(),
     predictionId: varchar('predictionId', { length: 255 }).unique().notNull(),
     userId: varchar('userId', { length: 255 }).notNull(),
-    imageUrl: varchar('imageUrl', { length: 2083 }).notNull(), // Max URL length
+    imageUrl: varchar('imageUrl', { length: 2083 }).notNull().unique(), // Max URL length
     aspectRatio: varchar('aspectRatio', { length: 255 }).notNull(),
     prompt: text('prompt').notNull(),
     title: text('title'),
@@ -39,13 +39,6 @@ export const Likes = pgTable(
     userIdAiImageIdIdx: index('likes_userId_aiImageId_idx').on(table.userId, table.aiImageId),
   }),
 )
-
-// ## aiImages table
-//   id
-//   img_url
-//   prompt
-//   num_likes
-//   creator_userld
 
 export type AiImageInsertModel = InferInsertModel<typeof AiImages>
 export type AiImage = InferSelectModel<typeof AiImages>

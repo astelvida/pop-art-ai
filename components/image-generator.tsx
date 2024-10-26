@@ -17,7 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 export function ImageGenerator({ children }: { children?: React.ReactNode }) {
   const [prediction, setPrediction] = useState<Prediction | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [prompt, setPrompt] = useState(prompts['complex'][0])
+  const [prompt, setPrompt] = useState(prompts['complex'][8])
   const [isGenerating, setIsGenerating] = useState(false)
   const [currentImage, setCurrentImage] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
@@ -127,7 +127,7 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
         isGenerating={isGenerating}
         prompt={prompt}
         setPrompt={setPrompt}
-        handleRandomize={() => setPrompt(randomPrompt(selectedPromptCategory))}
+        category={selectedPromptCategory}
       >
         <SettingsPopover
           isOpen={isSettingsOpen}
@@ -152,7 +152,6 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
           </SelectContent>
         </Select>
       </PromptInput>
-      <PromptSuggestions setPrompt={setPrompt} category={selectedPromptCategory} />
       <GenerationModal
         isOpen={showModal}
         onOpenChange={setShowModal}
