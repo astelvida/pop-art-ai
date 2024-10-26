@@ -138,7 +138,7 @@ export function PromptInput({ handleGenerateImage, isGenerating, prompt, setProm
             <span className='sr-only'>Generate Image</span>
           </Button>
           <div className='absolute bottom-3 right-10'>
-            <Select value={promptCategory} onValueChange={(value) => setPromptCategory(value as keyof typeof prompts)}>
+            {/* <Select value={promptCategory} onValueChange={(value) => setPromptCategory(value as keyof typeof prompts)}>
               <SelectTrigger className='w-[180px]'>
                 <SelectValue placeholder='Select prompt category' />
               </SelectTrigger>
@@ -149,8 +149,8 @@ export function PromptInput({ handleGenerateImage, isGenerating, prompt, setProm
                   </SelectItem>
                 ))}
               </SelectContent>
-            </Select>
-          </div>{' '}
+            </Select> */}
+          </div>
         </div>
       </form>
       {/* const NoSSR = dynamic(() => import('../components/no-ssr'), { ssr: false }) */}

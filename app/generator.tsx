@@ -2,7 +2,7 @@
 
 import { ImageGenerator } from '@/components/image-generator'
 import { Gallery } from '@/components/gallery'
-import { Suspense, useState } from 'react'
+import { Suspense, useState, useMemo } from 'react'
 import { GallerySkeleton } from '@/components/gallery-skeleton'
 import { Sidebar, SidebarHeader, SidebarContent, SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { SettingsLayout } from '@/components/settings-layout'
@@ -13,7 +13,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useUser } from '@clerk/nextjs'
 import { Separator } from '@/components/ui/separator'
 
-export const dynamic = 'force-dynamic'
+// export const dynamic = 'force-dynamic'
 
 const initialSettingsState = settingsData.reduce((acc, setting) => {
   acc[setting.name as keyof SettingsSchema] = setting.default as SettingsSchema[keyof SettingsSchema]
@@ -32,6 +32,10 @@ export default function Generator({
   const handleSettingChange = (name: keyof SettingsSchema, value: SettingsSchema[keyof SettingsSchema]) => {
     setSettings((prev) => ({ ...prev, [name]: value }))
   }
+
+  const filteredImages = useMemo(() => {
+    return activeTab === 'myGenerations' ? images.filter((img) => img.userId === user.user?.id) : images
+  }, [activeTab, images, user.user?.id])
 
   return (
     <SidebarProvider defaultOpen={false}>
@@ -58,10 +62,13 @@ export default function Generator({
               humor. Perfect for those seeking bold visuals with depth and meaning.
             </h2>
           </div>
-          <ImageGenerator settings={settings} />
+          <Suspense fallback={<div>Loading...</div>}>
+            <ImageGenerator settings={settings} />
+          </Suspense>
 
           <Separator className='my-12 space-y-12' />
           <div className='my-12 mb-6 flex items-center justify-start space-x-16 space-y-8'>
+            <h1 className='text-center font-rubik text-6xl font-bold'>Gallery </h1>
             <Tabs
               value={activeTab}
               onValueChange={setActiveTab}
@@ -78,11 +85,8 @@ export default function Generator({
               </TabsList>
             </Tabs>
           </div>
-          <h1 className='text-center font-rubik text-6xl font-bold'>Gallery </h1>
           <Suspense fallback={<GallerySkeleton />}>
-            <Gallery
-              images={activeTab === 'myGenerations' ? images.filter((img) => img.userId === user.user?.id) : images}
-            />
+            <Gallery images={filteredImages} />
           </Suspense>
         </main>
       </SidebarInset>
