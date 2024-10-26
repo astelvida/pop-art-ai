@@ -2,14 +2,15 @@
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { ArrowUp, SettingsIcon, Shuffle } from 'lucide-react'
-import { useEffect, useMemo, useRef } from 'react'
-import useWindowSize from '@/lib/hooks/use-window-size'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import useWindowSize from '@/hooks/use-window-size'
 import { ArrowTopRightIcon } from '@radix-ui/react-icons'
 import { randomPrompt, randomPrompts, shuffle } from '@/lib/utils'
-import prompts from '@/lib/data/prompts.json'
 import { SamplePromptTag } from '@/lib/types'
 import { useSidebar } from '@/components/ui/sidebar'
-
+import { useToast } from '@/hooks/use-toast'
+import prompts from '@/lib/data/prompts.json'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 interface PromptSuggestionsProps {
   setPrompt: (suggestion: string) => void
   category: string
@@ -20,21 +21,26 @@ interface PromptInputProps {
   isGenerating: boolean
   prompt: string
   setPrompt: (prompt: string) => void
-  category: string
-  children: React.ReactNode
+  children?: React.ReactNode
 }
-export function PromptInput({
-  handleGenerateImage,
-  isGenerating,
-  prompt,
-  setPrompt,
-  category,
-  children,
-}: PromptInputProps) {
+export function PromptInput({ handleGenerateImage, isGenerating, prompt, setPrompt, children }: PromptInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const { width } = useWindowSize()
-  const suggestions = useMemo(() => randomPrompts(category as SamplePromptTag), [category])
+  const [promptCategory, setPromptCategory] = useState<keyof typeof prompts>('complex')
   const { toggleSidebar } = useSidebar()
+  const { toast } = useToast()
+  const [suggestions, setSuggestions] = useState<string[]>([])
+
+  // Use useCallback to memoize the function
+  const generateSuggestions = useCallback(() => {
+    const newSuggestions = randomPrompts(promptCategory as SamplePromptTag)
+    setSuggestions(newSuggestions)
+  }, [promptCategory])
+
+  // Use useEffect to generate suggestions on mount and when promptCategory changes
+  useEffect(() => {
+    generateSuggestions()
+  }, [generateSuggestions])
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -51,7 +57,7 @@ export function PromptInput({
 
   const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setPrompt(e.target.value)
-    // adjustHeight()
+    adjustHeight()
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -59,7 +65,6 @@ export function PromptInput({
     if (prompt.trim()) {
       handleGenerateImage()
     }
-
     if (width && width > 768) {
       textareaRef.current?.focus()
     }
@@ -71,7 +76,7 @@ export function PromptInput({
 
   return (
     <>
-      <form onSubmit={handleSubmit} className='mx-auto flex w-full gap-2 bg-background px-4 pb-4 md:max-w-3xl md:pb-6'>
+      <form onSubmit={handleSubmit} className='mx-auto flex w-full gap-2 bg-background px-3 pb-1 md:max-w-3xl md:pb-3'>
         <div className='relative flex w-full flex-col gap-4'>
           <Textarea
             ref={textareaRef}
@@ -85,18 +90,16 @@ export function PromptInput({
             onKeyDown={(event) => {
               if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault()
-
                 if (isGenerating) {
-                  // toast.error('Please wait for the model to finish its response!')
+                  toast({
+                    title: 'Please wait for the model to finish its response!',
+                  })
                 } else {
                   handleSubmit(event)
                 }
               }
             }}
-            // className='text-md min-h-[150px] resize-none overflow-hidden rounded-2xl px-4 pb-16 pr-16 pt-4'
           />
-
-          {/* <div className='absolute bottom-3 left-3 flex items-center space-x-2'> */}
           <Button
             // variant='secondary'
             // size='icon'
@@ -107,7 +110,7 @@ export function PromptInput({
             }}
           >
             <SettingsIcon className='h-6 w-6' />
-            <span>Settings</span>
+            Settings
             <span className='sr-only'>Open settings</span>
           </Button>
           <Button
@@ -117,8 +120,8 @@ export function PromptInput({
             className='absolute right-2 top-2'
             onClick={(e) => {
               e.preventDefault()
-              setPrompt(randomPrompt(category as SamplePromptTag))
-              // adjustHeight()
+              setPrompt(randomPrompt(promptCategory as SamplePromptTag))
+              adjustHeight()
             }}
             disabled={isGenerating}
           >
@@ -134,10 +137,25 @@ export function PromptInput({
             <ArrowUp className='h-4 w-4' />
             <span className='sr-only'>Generate Image</span>
           </Button>
+          <div className='absolute bottom-3 right-10'>
+            <Select value={promptCategory} onValueChange={(value) => setPromptCategory(value as keyof typeof prompts)}>
+              <SelectTrigger className='w-[180px]'>
+                <SelectValue placeholder='Select prompt category' />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.keys(prompts).map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>{' '}
         </div>
       </form>
+      {/* const NoSSR = dynamic(() => import('../components/no-ssr'), { ssr: false }) */}
 
-      <div className='flex flex-wrap items-center justify-center gap-2 space-x-2 pb-2'>
+      <div className='flex flex-wrap justify-center gap-2 space-x-2 pb-2'>
         {suggestions.map((suggestion, index) => (
           <Button
             key={index}
@@ -146,7 +164,7 @@ export function PromptInput({
             onClick={(e) => {
               e.preventDefault()
               setPrompt(suggestion)
-              // adjustHeight()
+              adjustHeight()
             }}
           >
             <span className='text-s whitespace-nowrap text-muted-foreground'>{truncateSuggestion(suggestion, 50)}</span>

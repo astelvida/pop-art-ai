@@ -5,7 +5,6 @@ import { revalidatePath } from 'next/cache'
 import * as schema from '@/db/schema'
 import { db } from '@/db/drizzle'
 import { auth } from '@clerk/nextjs/server'
-import { uploadFromUrl } from './file'
 import { redirect } from 'next/navigation'
 import { generateImageDetails } from './openai'
 import { handleError, AppError } from '@/lib/error-handler'
@@ -64,6 +63,7 @@ export const getAiImages = async () => {
       .from(AiImages)
       .where(eq(AiImages.userId, userId))
       .orderBy(desc(AiImages.createdAt))
+
     return aiImages
   } catch (error) {
     return handleError(error)
@@ -111,6 +111,8 @@ export async function deleteAiImage(formData: FormData) {
 }
 
 export async function toggleFavoriteAiImage(formData: FormData, imageId?: number) {
+  console.log(formData, 'FORM DATA')
+  console.log(imageId, 'IMAGE ID')
   const id = imageId || formData.get('imageId')
   // const id = formData.get('imageId')
   //
@@ -122,12 +124,10 @@ export async function toggleFavoriteAiImage(formData: FormData, imageId?: number
       .update(AiImages)
       .set({ liked: not(AiImages.liked) })
       .where(eq(AiImages.id, Number(id)))
-
-    revalidatePath('/')
-    // revalidatePath(`/img/${id}`)
   } catch (error) {
     return handleError(error)
   }
+  revalidatePath('/')
 }
 
 export async function getAiImageById(id: number) {

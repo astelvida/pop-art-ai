@@ -9,6 +9,25 @@ export function cn(...inputs: ClassValue[]) {
 
 import { SamplePrompts, SamplePromptTag } from '@/lib/types'
 
+export function extractLatestPercentage(logs: string) {
+  // Split the logs into individual lines
+  const lines = logs.split('\n')
+  let lastPercentage = null
+
+  // Regular expression to match the percentage at the beginning of a line
+  const percentageRegex = /^\s*(\d+)%\|/
+
+  // Iterate over each line to find the latest percentage
+  for (const line of lines) {
+    const match = line.match(percentageRegex)
+    if (match) {
+      lastPercentage = parseInt(match[1], 10)
+    }
+  }
+
+  return lastPercentage
+}
+
 // 7-character random string
 export const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 7)
 

@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { PromptInput } from '@/components/prompt-input'
-import { saveAiImage } from '@/actions/queries'
+import { saveAiImage, toggleFavoriteAiImage } from '@/actions/queries'
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -19,25 +19,8 @@ import { sleep } from '@/lib/utils'
 import { useUser } from '@clerk/nextjs'
 import Image from 'next/image'
 import { type SettingsSchema } from '@/lib/schemas/inputSchema'
-
-function extractLatestPercentage(logs: string) {
-  // Split the logs into individual lines
-  const lines = logs.split('\n')
-  let lastPercentage = null
-
-  // Regular expression to match the percentage at the beginning of a line
-  const percentageRegex = /^\s*(\d+)%\|/
-
-  // Iterate over each line to find the latest percentage
-  for (const line of lines) {
-    const match = line.match(percentageRegex)
-    if (match) {
-      lastPercentage = parseInt(match[1], 10)
-    }
-  }
-
-  return lastPercentage
-}
+import { Progress } from '@/components/ui/progress'
+import { extractLatestPercentage } from '@/lib/utils'
 
 export function ImageGenerator({ settings, children }: { settings: SettingsSchema; children?: React.ReactNode }) {
   const [prediction, setPrediction] = useState<Prediction | null>(null)
@@ -46,12 +29,12 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
   const [isGenerating, setIsGenerating] = useState(false)
   const [currentImage, setCurrentImage] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
-  const [promptCategory, setPromptCategory] = useState<keyof typeof prompts>('complex')
+
   const [progress, setProgress] = useState(0)
   const { user } = useUser()
 
-  console.log(user)
   const handleCopy = useCallback(() => {
+    if (!currentImage) return
     navigator.clipboard
       .writeText(currentImage)
       .then(() => alert('Copied to clipboard!'))
@@ -83,8 +66,6 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
         throw new Error(predictionResult.detail || 'An error occurred during image generation')
       }
 
-      setPrediction(predictionResult)
-
       while (predictionResult.status !== 'succeeded' && predictionResult.status !== 'failed') {
         await sleep(1000)
         const response = await fetch('/api/predictions/' + predictionResult.id, { cache: 'no-store' })
@@ -92,7 +73,6 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
         if (response.status !== 200) {
           throw new Error(predictionResult.detail || 'An error occurred while checking prediction status')
         }
-        setPrediction(predictionResult)
         // Update progress based on prediction status
         if (predictionResult.status === 'processing') {
           const percentage = extractLatestPercentage(predictionResult.logs)
@@ -156,21 +136,7 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
         isGenerating={isGenerating}
         prompt={prompt}
         setPrompt={setPrompt}
-        category={promptCategory}
-      >
-        <Select value={promptCategory} onValueChange={(value) => setPromptCategory(value as keyof typeof prompts)}>
-          <SelectTrigger className='w-[180px]'>
-            <SelectValue placeholder='Select prompt category' />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.keys(prompts).map((category) => (
-              <SelectItem key={category} value={category}>
-                {category}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </PromptInput>
+      ></PromptInput>
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent className='sm:max-w-[450px]'>
           <Card className='w-full border-0 shadow-none'>
@@ -183,10 +149,10 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
                 <span className='font-semibold'>{user?.username || user?.emailAddresses[0].emailAddress}</span>
               </div>
               <div className='flex items-center space-x-2'>
-                {/* <Button variant='ghost' size='icon' onClick={() => toggleFavoriteAiImage(prediction?.id)}>
+                <Button variant='ghost' size='icon' onClick={() => toggleFavoriteAiImage.bind(null, prediction?.id)}>
                   <Heart className='h-4 w-4' />
                   <span className='sr-only'>Like</span>
-                </Button> */}
+                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant='ghost' size='icon'>
@@ -265,10 +231,7 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
             <CardFooter className='flex justify-between pt-4'>
               {isGenerating ? (
                 <div className='w-full space-y-2'>
-                  <div className='h-2.5 w-full rounded-full bg-gray-200 dark:bg-gray-700'>
-                    <div className='bg-grey-800 h-2.5 rounded-full' style={{ width: `${progress}%` }}></div>
-                  </div>
-                  {/* <Progress value={progress} className='w-full' /> */}
+                  <Progress value={progress} className='w-full' />
                   <p className='text-center text-sm text-muted-foreground'>Generating image... {progress}%</p>
                 </div>
               ) : (

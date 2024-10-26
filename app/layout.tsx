@@ -5,6 +5,7 @@ import { ClerkProvider } from '@clerk/nextjs'
 import { Header } from '@/components/header'
 import { Bangers, Rubik_Mono_One, Rubik, Poppins, Permanent_Marker, Lato, Roboto } from 'next/font/google'
 import { ThemeProvider as NextThemesProvider, ThemeProvider } from 'next-themes'
+import { Toaster } from '@/components/ui/toaster'
 
 // If loading a variable font, you don't need to specify the font weight
 const bangers = Bangers({
@@ -67,7 +68,7 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang='en'>
+      <html lang='en' suppressHydrationWarning>
         <body
           className={`${geistSans.variable} ${geistMono.variable} ${bangers.variable} ${rubik.variable} ${rubikMono.variable} ${marker.variable} ${lato.variable} antialiased`}
         >
@@ -78,6 +79,7 @@ export default function RootLayout({
               {modal}
             </div>
             <div id='modal-root' />
+            <Toaster />
           </NextThemesProvider>
         </body>
       </html>

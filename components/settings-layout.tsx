@@ -4,7 +4,7 @@ import { Slider } from '@/components/ui/slider'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { type SettingsSchema } from '@/lib/schemas/inputSchema'
-import { settingsData } from '@/lib/data/settings'
+import { settingsData, type Setting } from '@/lib/data/settings'
 
 export function SettingsLayout({
   handleSettingChange,
@@ -17,7 +17,7 @@ export function SettingsLayout({
     <form className='mx-auto max-w-2xl space-y-8 p-6'>
       <h2 className='mb-4 text-2xl font-bold'>Image Generation Settings</h2>
       <div className='space-y-6'>
-        {settingsData.map((setting) => (
+        {settingsData.map((setting: Setting) => (
           <TooltipProvider key={setting.name}>
             <div className='space-y-2'>
               <div className='flex justify-between'>
@@ -32,14 +32,16 @@ export function SettingsLayout({
                   </TooltipContent>
                 </Tooltip>
                 {setting.type === 'number' && (
-                  <span className='text-sm text-muted-foreground'>{settings[setting.name]}</span>
+                  <span className='text-sm text-muted-foreground'>
+                    {settings[setting.name as keyof SettingsSchema]}
+                  </span>
                 )}
               </div>
               {setting.type === 'text' && (
                 <Input
                   id={setting.name}
-                  value={settings[setting.name] as string}
-                  onChange={(e) => handleSettingChange(setting.name, e.target.value)}
+                  value={settings[setting.name as keyof SettingsSchema]}
+                  onChange={(e) => handleSettingChange(setting.name as keyof SettingsSchema, e.target.value)}
                   placeholder={`Enter ${setting.label.toLowerCase()}`}
                 />
               )}
@@ -49,14 +51,14 @@ export function SettingsLayout({
                   min={setting.min}
                   max={setting.max}
                   step={setting.step}
-                  value={[settings[setting.name] as number]}
-                  onValueChange={(value) => handleSettingChange(setting.name, value[0])}
+                  value={[settings[setting.name as keyof SettingsSchema] as number]}
+                  onValueChange={(value) => handleSettingChange(setting.name as keyof SettingsSchema, value[0])}
                 />
               )}
               {setting.type === 'select' && (
                 <Select
-                  value={settings[setting.name] as string}
-                  onValueChange={(value) => handleSettingChange(setting.name, value)}
+                  value={settings[setting.name as keyof SettingsSchema] as string}
+                  onValueChange={(value) => handleSettingChange(setting.name as keyof SettingsSchema, value)}
                 >
                   <SelectTrigger id={setting.name}>
                     <SelectValue placeholder={`Select ${setting.label.toLowerCase()}`} />

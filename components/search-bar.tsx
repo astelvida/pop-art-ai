@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { ChevronRight, Search, type LucideIcon } from 'lucide-react'
 
-import { useIsMobile } from '@/lib/hooks/useMobile'
+import { useIsMobile } from '@/hooks/useMobile'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer'

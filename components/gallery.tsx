@@ -1,4 +1,3 @@
-import { Suspense } from 'react'
 import { toggleFavoriteAiImage, deleteAiImage, getAiImages } from '@/actions/queries'
 import { Button } from '@/components/ui/button'
 import { Heart, Trash2 } from 'lucide-react'
@@ -7,8 +6,8 @@ import Image from 'next/image'
 import { type AiImage } from '@/db/schema'
 import { DownloadButton } from './download-button'
 
-export async function Gallery() {
-  const images = await getAiImages()
+export function Gallery({ images }: { images: AiImage[] }) {
+  // const images = await getAiImages()
 
   return (
     <div className='columns-1 gap-4 sm:columns-2 xl:columns-3 2xl:columns-4'>
