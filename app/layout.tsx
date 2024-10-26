@@ -72,11 +72,11 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} ${bangers.variable} ${rubik.variable} ${rubikMono.variable} ${marker.variable} ${lato.variable} antialiased`}
         >
           <NextThemesProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
-            {/* <div className='flex min-h-screen flex-col'> */}
-            <Header />
-            {children}
-            {modal}
-            {/* </div> */}
+            <div className='flex min-h-screen flex-col'>
+              <Header />
+              {children}
+              {modal}
+            </div>
             <div id='modal-root' />
           </NextThemesProvider>
         </body>

@@ -25,13 +25,18 @@ export function Header() {
       <nav className='hidden md:block'>
         <ul className='flex space-x-4'>
           <li>
-            <Link href='/explore' className={`text-sm ${pathname === '/explore' ? 'font-bold' : ''}`}>
+            <Link href='/explore' className={`text-lg ${pathname === '/explore' ? 'font-bold' : ''}`}>
               Explore
             </Link>
           </li>
           <li>
-            <Link href='/library' className={`text-sm ${pathname === '/library' ? 'font-bold' : ''}`}>
+            <Link href='/library' className={`text-lg ${pathname === '/library' ? 'font-bold' : ''}`}>
               Library
+            </Link>
+          </li>
+          <li>
+            <Link href='/dashboard' className={`text-lg ${pathname === '/dashboard' ? 'font-bold' : ''}`}>
+              Dashboard
             </Link>
           </li>
         </ul>
