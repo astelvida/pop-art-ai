@@ -14,23 +14,33 @@ async function createUser() {
   const myUser = await currentUser()
   if (!myUser || !userId) return new Error('User not found')
 
-  const insertedUser = await db
+  const { firstName, lastName, id, emailAddresses } = myUser
+
+  const userName = firstName || lastName ? `${firstName} ${lastName}` : null
+
+  const [insertedUser] = await db
     .insert(Users)
     .values({
-      id: myUser.id,
-      name: myUser.firstName + ' ' + myUser?.lastName,
-      email: myUser?.emailAddresses[0]?.emailAddress,
+      id,
+      name: userName,
+      email: emailAddresses[0].emailAddress,
     })
     .returning()
 
   pp(insertedUser, 'insertedUser')
-  return insertedUser[0]
+  return insertedUser
 }
 
 export async function getImages(limit = 10, offset = 0) {
   const { userId } = auth()
   if (!userId) {
     return new Error('Unauthorized')
+  }
+
+  const user = await db.select().from(Users).where(eq(Users.id, userId)).limit(1)
+
+  if (!user.length) {
+    await createUser()
   }
 
   const images = await db
@@ -44,7 +54,6 @@ export async function getImages(limit = 10, offset = 0) {
       description: AiImages.description,
       numLikes: AiImages.numLikes,
       createdAt: AiImages.createdAt,
-      userName: Users.name,
       userId: Users.id,
       isLikedByUser: sql<boolean>`EXISTS (
         SELECT 1 FROM ${Likes}
