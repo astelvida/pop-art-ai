@@ -23,7 +23,6 @@ export const inputSchema = z.object({
   aspect_ratio: z
     .enum(['1:1', '16:9', '9:16', '3:4', '4:3' /* '21:9', '3:2', '2:3', '4:5', '5:4', 'custom' */])
     .default('1:1')
-    .optional()
     .describe(
       "Aspect ratio for the generated image in text-to-image mode. The size will always be 1 megapixel, i.e. 1024x1024 if aspect ratio is 1:1. To use arbitrary width and height, set aspect ratio to 'custom'. Note: Ignored in img2img and inpainting modes. [Title: Aspect Ratio]",
     ),

@@ -12,19 +12,16 @@ import { Header } from '@/components/header'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useUser } from '@clerk/nextjs'
 import { Separator } from '@/components/ui/separator'
+import { type AiImage } from '@/db/schema'
 
 // export const dynamic = 'force-dynamic'
 
-const initialSettingsState = settingsData.reduce((acc, setting) => {
+const initialSettingsState = settingsData.reduce<SettingsSchema>((acc, setting) => {
   acc[setting.name as keyof SettingsSchema] = setting.default as SettingsSchema[keyof SettingsSchema]
   return acc
 }, {} as SettingsSchema)
 
-export default function Generator({
-  images,
-}: {
-  images: Array<{ id: string; url: string; isUserGenerated?: boolean }>
-}) {
+export function App({ images }: { images: Array<AiImage> }) {
   const [settings, setSettings] = useState<SettingsSchema>(initialSettingsState)
   const [activeTab, setActiveTab] = useState('explore')
   const user = useUser()
