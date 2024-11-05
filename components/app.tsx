@@ -4,7 +4,7 @@ import { ImageGenerator } from '@/components/image-generator'
 import { Gallery, GallerySkeleton } from '@/components/gallery'
 import { Suspense, useState, useMemo, use } from 'react'
 import { Sidebar, SidebarHeader, SidebarContent, SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
-import { SettingsLayout } from '@/components/settings-layout'
+import SettingsForm from '@/components/settings-form'
 import { settingsData } from '@/lib/data/settings'
 import { type SettingsSchema } from '@/lib/schemas/inputSchema'
 import { Header } from '@/components/header'
@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator'
 import { type AiImage } from '@/db/schema'
 
 // export const dynamic = 'force-dynamic' // TODO: remove this
+import { type ActiveTab } from '@/lib/types'
 
 const initialSettingsState = settingsData.reduce<SettingsSchema>((acc, setting) => {
   acc[setting.name as keyof SettingsSchema] = setting.default as SettingsSchema[keyof SettingsSchema]
@@ -22,7 +23,7 @@ const initialSettingsState = settingsData.reduce<SettingsSchema>((acc, setting) 
 
 export function App({ imagesPromise }: { imagesPromise: Promise<Array<AiImage>> }) {
   const [settings, setSettings] = useState<SettingsSchema>(initialSettingsState)
-  const [activeTab, setActiveTab] = useState('explore')
+  const [activeTab, setActiveTab] = useState<ActiveTab>('explore')
 
   const handleSettingChange = (name: keyof SettingsSchema, value: SettingsSchema[keyof SettingsSchema]) => {
     setSettings((prev) => ({ ...prev, [name]: value }))
@@ -36,7 +37,7 @@ export function App({ imagesPromise }: { imagesPromise: Promise<Array<AiImage>> 
           <h2 className='mb-4 mt-4 text-center text-lg font-bold'>Image Generation Settings</h2>
         </SidebarHeader>
         <SidebarContent>
-          <SettingsLayout handleSettingChange={handleSettingChange} settings={settings} />
+          <SettingsForm handleSettingChange={handleSettingChange} settings={settings} />
         </SidebarContent>
       </Sidebar>
       {/* MAIN CONTENT */}
@@ -45,7 +46,7 @@ export function App({ imagesPromise }: { imagesPromise: Promise<Array<AiImage>> 
           <Header />
           <div className='mb-6 flex-grow text-center'>
             <h1 className='mb-6 font-marker text-6xl font-bold'>Existential Pop Art </h1>
-            <h2 className='mx-auto mb-4 max-w-5xl font-lato text-lg text-muted-foreground'>
+            <h2 className='mx-auto mb-4 max-w-5xl text-lg text-muted-foreground'>
               Discover dynamic pop art comic book style images created with the Flux/Dev Lora model, inspired by Roy
               Lichtenstein's signature aesthetic. Each artwork features expressive characters, comic book speech
               bubbles, and explores themes like love, suffering, patriarchy, and impossible beauty standards. With its
@@ -77,7 +78,7 @@ export function App({ imagesPromise }: { imagesPromise: Promise<Array<AiImage>> 
             </Tabs>
           </div>
           <Suspense fallback={<GallerySkeleton />}>
-            <Gallery imagesPromise={imagesPromise} activeTab={activeTab} />
+            <Gallery key={activeTab} imagesPromise={imagesPromise} activeTab={activeTab} />
           </Suspense>
         </main>
       </SidebarInset>

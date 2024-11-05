@@ -1,14 +1,12 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import { PromptInput } from '@/components/prompt-input'
+import PromptForm from '@/components/prompt-form'
 import { saveAiImage } from '@/actions/queries'
-import { toggleLike } from '@/actions/actions'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Heart, MoreHorizontal, Download, Copy, ThumbsUp, Flag, Shuffle, Share2, Loader2 } from 'lucide-react'
+import { Heart, Download, Copy, Shuffle, Share2, Loader2 } from 'lucide-react'
 import { downloadPhoto, sleep } from '@/lib/utils'
 import { type Prediction } from 'replicate'
 import prompts from '@/lib/data/prompts.json'
@@ -146,14 +144,13 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
       url: currentImage.imageUrl,
     }
 
+    console.log(shareData)
     if (navigator.share) {
-      navigator
-        .share(shareData)
-        .then(() => toast({ title: 'Shared successfully!' }))
-        .catch((error) => {
-          console.error('Error sharing:', error)
-          toast({ title: 'Error sharing', description: 'Please try again later.', variant: 'destructive' })
-        })
+      navigator.share(shareData).then(() => toast({ title: 'Shared successfully!' }))
+      // .catch((error) => {
+      //   console.error('Error sharing:', error)
+      //   toast({ title: 'Error sharing', description: 'Please try again later.', variant: 'destructive' })
+      // })
     } else {
       navigator.clipboard
         .writeText(`${shareData.title}\n${shareData.text}\n${shareData.url}`)
@@ -175,7 +172,6 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
 
     // Generate a new image with the remixed prompt
     handleGenerateImage()
-
     toast({ title: 'Remixing image...', description: 'Creating a new variation based on the current image.' })
   }, [currentImage, handleGenerateImage])
 
@@ -188,7 +184,7 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
 
   return (
     <>
-      <PromptInput
+      <PromptForm
         handleGenerateImage={handleGenerateImage}
         isGenerating={isGenerating}
         prompt={prompt}
@@ -204,30 +200,16 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
       >
         <DialogContent className='sm:max-w-[450px]'>
           <Card className='w-full border-0 shadow-none'>
-            <div className='flex items-center space-x-2'>
-              {/* <Avatar>
-                <AvatarImage src={user?.imageUrl} />
-                <AvatarFallback>S</AvatarFallback>
-              </Avatar> */}
-              {/* <span className='font-semibold'>{user?.username || user?.emailAddresses[0]?.emailAddress}</span> */}
-            </div>
             <div className='flex items-center justify-between pb-4 pt-6'>
-              {!isGenerating && (
+              {!isGenerating && currentImage ? (
                 <>
                   <h1 className='text-xl font-semibold'>{currentImage?.title}</h1>
                   <div className='flex items-center space-x-2'>
-                    {/* <form action={toggleLike.bind(null, currentImage?.id)} name='toggle'>
-                      <input type='hidden' name='imageId' value={currentImage?.id} />
-                      <Button type='submit' variant='secondary' size='icon'>
-                        <Heart className={`h-4 w-4 ${currentImage?.liked ? 'fill-current' : ''}`} />
-                      </Button>
-                    </form> */}
-
                     <LikeButton
                       showLikes={false}
                       imageId={Number(currentImage?.id)}
                       initialLikes={Number(currentImage?.numLikes) || 0}
-                      initialLikedState={currentImage?.liked || false}
+                      initialLikedState={false}
                     />
                     <Button variant='secondary' size='icon' onClick={() => downloadPhoto(currentImage.imageUrl)}>
                       <Download className='h-4 w-4' />
@@ -239,7 +221,7 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
                     </Button>
                   </div>
                 </>
-              )}
+              ) : null}
             </div>
             <CardContent className='p-0'>
               {isGenerating ? (

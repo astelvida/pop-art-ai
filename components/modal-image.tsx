@@ -9,7 +9,6 @@ export function ModalImage({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
   function onClose(e: React.MouseEvent<HTMLButtonElement>) {
-    e.preventDefault()
     router.back()
   }
 
@@ -20,7 +19,12 @@ export function ModalImage({ children }: { children: React.ReactNode }) {
         <DialogContent hideCloseButton={true} className='mx-auto h-full max-w-[1960px] border-none'>
           {children}
           <DialogClose asChild>
-            <Button className='absolute left-4 top-4 z-50' variant='secondary' size='icon' onClick={onClose}>
+            <Button
+              className='absolute left-4 top-4 z-50 data-[state=open]:bg-accent data-[state=open]:text-muted-foreground'
+              variant='secondary'
+              size='icon'
+              onClick={onClose}
+            >
               <X className='h-5 w-5' />
             </Button>
           </DialogClose>

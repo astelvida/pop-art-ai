@@ -23,7 +23,13 @@ interface PromptInputProps {
   setPrompt: (prompt: string) => void
   children?: React.ReactNode
 }
-export function PromptInput({ handleGenerateImage, isGenerating, prompt, setPrompt, children }: PromptInputProps) {
+export default function PromptForm({
+  handleGenerateImage,
+  isGenerating,
+  prompt,
+  setPrompt,
+  children,
+}: PromptInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const { width } = useWindowSize()
   const [promptCategory, setPromptCategory] = useState<keyof typeof prompts>('complex')

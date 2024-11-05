@@ -1,10 +1,13 @@
-import { FullPageImageView } from '@/components/full-page-image-view'
+import ImageViewContainer from '@/components/image-view-container'
 import { ModalImage } from '@/components/modal-image'
+import { Suspense } from 'react'
 
-export default async function PhotoModal({ params: { id: imageId } }: { params: { id: string } }) {
+export default async function ImageModalPage({ params: { id: imageId } }: { params: { id: string } }) {
   return (
     <ModalImage>
-      <FullPageImageView imageId={imageId} />
+      <Suspense fallback={<div>Loading...</div>}>
+        <ImageViewContainer imageId={imageId} />
+      </Suspense>
     </ModalImage>
   )
 }

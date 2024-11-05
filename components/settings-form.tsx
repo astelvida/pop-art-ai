@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { type SettingsSchema } from '@/lib/schemas/inputSchema'
 import { settingsData, type Setting } from '@/lib/data/settings'
 
-export function SettingsLayout({
+export default function SettingsForm({
   handleSettingChange,
   settings,
 }: {

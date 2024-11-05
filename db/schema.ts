@@ -84,3 +84,7 @@ export type AiImageInsert = InferInsertModel<typeof AiImages>
 
 export type Like = InferSelectModel<typeof Likes>
 export type LikeInsert = InferInsertModel<typeof Likes>
+
+export interface AiImageResult extends AiImage {
+  isLikedByUser: boolean
+}

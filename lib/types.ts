@@ -17,3 +17,5 @@ export type SamplePromptTag = 'general' | 'sarcastic' | 'witty' | 'sarcastic_no_
 export type SamplePrompts = {
   [key in SamplePromptTag]: string[]
 }
+
+export type ActiveTab = 'explore' | 'myGenerations'

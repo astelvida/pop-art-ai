@@ -22,26 +22,26 @@ const marker = Permanent_Marker({
   variable: '--font-marker',
 })
 
-const lato = Lato({
-  subsets: ['latin'],
-  weight: ['400', '700'],
-  display: 'swap',
-  variable: '--font-lato',
-})
+// const lato = Lato({
+//   subsets: ['latin'],
+//   weight: ['400', '700'],
+//   display: 'swap',
+//   variable: '--font-lato',
+// })
 
-const rubik = Rubik({
-  subsets: ['latin'],
-  weight: ['400', '700'],
-  display: 'swap',
-  variable: '--font-rubik',
-})
+// const rubik = Rubik({
+//   subsets: ['latin'],
+//   weight: ['400', '700'],
+//   display: 'swap',
+//   variable: '--font-rubik',
+// })
 
-const rubikMono = Rubik_Mono_One({
-  subsets: ['latin'],
-  weight: '400',
-  display: 'swap',
-  variable: '--font-rubik-mono',
-})
+// const rubikMono = Rubik_Mono_One({
+//   subsets: ['latin'],
+//   weight: '400',
+//   display: 'swap',
+//   variable: '--font-rubik-mono',
+// })
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -59,6 +59,7 @@ export const metadata: Metadata = {
   description: 'An app that generated pop art in the style of Andy Warhol and Roy Lichtenstein',
 }
 
+// ${rubik.variable} ${rubikMono.variable} ${lato.variable}
 export default function RootLayout({
   children,
   modal,
@@ -70,7 +71,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang='en' suppressHydrationWarning>
         <body
-          className={`${geistSans.variable} ${geistMono.variable} ${bangers.variable} ${rubik.variable} ${rubikMono.variable} ${marker.variable} ${lato.variable} antialiased`}
+          className={`${geistSans.variable} ${geistMono.variable} ${bangers.variable} ${marker.variable} antialiased`}
         >
           <NextThemesProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
             <div className='flex min-h-screen flex-col'>

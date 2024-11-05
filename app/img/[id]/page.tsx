@@ -1,10 +1,13 @@
 import { CloseButton } from '@/components/buttons/close-button'
-import { FullPageImageView } from '@/components/full-page-image-view'
+import ImageViewContainer from '@/components/image-view-container'
+import { Suspense } from 'react'
 
-export default async function PhotoModal({ params: { id: imageId } }: { params: { id: string } }) {
+export default async function ImageFullPage({ params: { id: imageId } }: { params: { id: string } }) {
   return (
     <main className='fixed inset-0 overflow-hidden'>
-      <FullPageImageView imageId={imageId} />
+      <Suspense fallback={<div>Loading...</div>}>
+        <ImageViewContainer imageId={imageId} />
+      </Suspense>
       <CloseButton />
     </main>
   )

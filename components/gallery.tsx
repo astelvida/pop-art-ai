@@ -8,9 +8,10 @@ import { useUser } from '@clerk/nextjs'
 import { DownloadButton } from './buttons/download-button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useMemo } from 'react'
-import { AiImage } from '@/db/schema'
+import { AiImage, AiImageResult } from '@/db/schema'
 import { use } from 'react'
 import { useOptimistic } from 'react'
+import { ActiveTab } from '@/lib/types'
 
 export function GallerySkeleton() {
   return (
@@ -28,13 +29,26 @@ export function GallerySkeleton() {
   )
 }
 
-export function Gallery({ imagesPromise, activeTab }: { imagesPromise: Promise<AiImage[]>; activeTab: string }) {
+export function Gallery({
+  imagesPromise,
+  activeTab,
+}: {
+  imagesPromise: Promise<AiImageResult[]>
+  activeTab: ActiveTab
+}) {
   const images = use(imagesPromise)
-  const user = useUser()
+  const { user } = useUser()
 
-  const [optimisticImages, updateOptimisticImages] = useOptimistic(images, (state, updatedImage) => {
+  const [optimisticImages, updateOptimisticImages] = useOptimistic(images, (state, updatedImage: AiImageResult) => {
     const index = state.findIndex((img) => img.id === updatedImage.id)
-    return [...state.slice(0, index), updatedImage, ...state.slice(index + 1)]
+
+    return [
+      ...state.slice(0, index),
+      {
+        ...updatedImage,
+      },
+      ...state.slice(index + 1),
+    ]
   })
 
   const filteredImages = useMemo(() => {
@@ -74,7 +88,7 @@ export function Gallery({ imagesPromise, activeTab }: { imagesPromise: Promise<A
                 updateOptimisticImages({
                   ...image,
                   isLikedByUser: !image.isLikedByUser,
-                  numLikes: image.isLikedByUser ? image.numLikes! + 1 : image.numLikes! - 1,
+                  numLikes: image.isLikedByUser ? image.numLikes! - 1 : image.numLikes! + 1,
                 })
                 await toggleLike(image.id)
               }}
@@ -86,7 +100,7 @@ export function Gallery({ imagesPromise, activeTab }: { imagesPromise: Promise<A
               </Button>
             </form>
 
-            {user?.user?.id === image.userId && (
+            {user?.id === image.userId && (
               <form action={deleteAiImage.bind(null, Number(image.id))} name='deleteAiImage'>
                 <input type='hidden' name='imageId' value={image.id} />
                 <Button type='submit' variant='secondary' size='icon'>
