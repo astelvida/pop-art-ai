@@ -16,8 +16,6 @@ export function SearchBox({ query, disabled }: { query?: string | null; disabled
 
   const searchParams = useSearchParams()
   const q = searchParams.get('q')?.toString() ?? ''
-  const pathname = usePathname()
-  const params = useParams()
   const router = useRouter()
 
   const handleSearch = useDebouncedCallback((term: string) => {
@@ -32,7 +30,7 @@ export function SearchBox({ query, disabled }: { query?: string | null; disabled
     startTransition(() => {
       router.push(`?${params.toString()}`, { scroll: false })
     })
-  }, 100)
+  }, 200)
 
   const resetQuery = () => {
     startTransition(() => {
@@ -50,7 +48,6 @@ export function SearchBox({ query, disabled }: { query?: string | null; disabled
         <div className='relative flex items-center space-x-2'>
           <div className='relative flex w-full items-center'>
             <SearchStatus searching={isPending} />
-
             <Input
               disabled={disabled}
               ref={inputRef}

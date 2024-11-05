@@ -22,27 +22,6 @@ const marker = Permanent_Marker({
   variable: '--font-marker',
 })
 
-// const lato = Lato({
-//   subsets: ['latin'],
-//   weight: ['400', '700'],
-//   display: 'swap',
-//   variable: '--font-lato',
-// })
-
-// const rubik = Rubik({
-//   subsets: ['latin'],
-//   weight: ['400', '700'],
-//   display: 'swap',
-//   variable: '--font-rubik',
-// })
-
-// const rubikMono = Rubik_Mono_One({
-//   subsets: ['latin'],
-//   weight: '400',
-//   display: 'swap',
-//   variable: '--font-rubik-mono',
-// })
-
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
   variable: '--font-geist-sans',
@@ -68,8 +47,8 @@ export default function RootLayout({
   modal: React.ReactNode
 }>) {
   return (
-    <ClerkProvider>
-      <html lang='en' suppressHydrationWarning>
+    <html lang='en' suppressHydrationWarning>
+      <ClerkProvider>
         <body
           className={`${geistSans.variable} ${geistMono.variable} ${bangers.variable} ${marker.variable} antialiased`}
         >
@@ -80,10 +59,10 @@ export default function RootLayout({
             </div>
             <div id='modal-root' />
             <Toaster />
+            <LoadTime />
           </NextThemesProvider>
-          <LoadTime />
         </body>
-      </html>
-    </ClerkProvider>
+      </ClerkProvider>
+    </html>
   )
 }

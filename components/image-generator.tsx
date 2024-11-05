@@ -16,12 +16,11 @@ import { Progress } from '@/components/ui/progress'
 import { extractLatestPercentage } from '@/lib/utils'
 import { type AiImage } from '@/db/schema'
 import confetti from 'canvas-confetti'
-import { useToast } from '@/hooks/use-toast'
+import { useToast } from '@/lib/hooks/use-toast'
 import LikeButton from '@/components/buttons/like-button'
 
 export function ImageGenerator({ settings, children }: { settings: SettingsSchema; children?: React.ReactNode }) {
   const [prediction, setPrediction] = useState<Prediction | null>(null)
-  const [error, setError] = useState<string | null>(null)
   const [prompt, setPrompt] = useState(prompts['complex'][8])
   const [isGenerating, setIsGenerating] = useState(false)
   const [currentImage, setCurrentImage] = useState<AiImage | null>(null)
@@ -53,7 +52,6 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
     setIsGenerating(true)
     setShowModal(true)
     setCurrentImage(null)
-    setError(null)
     setProgress(0)
 
     try {
@@ -173,14 +171,7 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
         prompt={prompt}
         setPrompt={setPrompt}
       />
-      <Dialog
-        open={showModal}
-        onOpenChange={(open) => {
-          if (!isGenerating) {
-            setShowModal(open)
-          }
-        }}
-      >
+      <Dialog open={showModal} onOpenChange={(open) => !isGenerating && setShowModal(open)}>
         <DialogContent className='sm:max-w-[450px]'>
           <Card className='w-full border-0 shadow-none'>
             <div className='flex items-center justify-between pb-4 pt-6'>

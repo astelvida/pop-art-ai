@@ -3,12 +3,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { ArrowUp, SettingsIcon, Shuffle } from 'lucide-react'
 import { useEffect, useRef, useState, useCallback } from 'react'
-import useWindowSize from '@/hooks/use-window-size'
+import useWindowSize from '@/lib/hooks/use-window-size'
 import { ArrowTopRightIcon } from '@radix-ui/react-icons'
 import { randomPrompt, randomPrompts, shuffle } from '@/lib/utils'
 import { SamplePromptTag } from '@/lib/types'
 import { useSidebar } from '@/components/ui/sidebar'
-import { useToast } from '@/hooks/use-toast'
+import { useToast } from '@/lib/hooks/use-toast'
 import prompts from '@/lib/data/prompts.json'
 
 interface PromptSuggestionsProps {
@@ -159,7 +159,6 @@ export default function PromptForm({
           </div>
         </div>
       </form>
-      {/* const NoSSR = dynamic(() => import('../components/no-ssr'), { ssr: false }) */}
 
       <div className='flex flex-wrap justify-center gap-2 space-x-2 pb-2'>
         {suggestions.map((suggestion, index) => (

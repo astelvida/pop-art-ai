@@ -1,6 +1,6 @@
 'use server'
 
-import { eq, not, desc, and, sql, getTableColumns } from 'drizzle-orm'
+import { eq, not, desc, and, sql, getTableColumns, like, asc } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import * as schema from '@/db/schema'
 import { db } from '@/db/drizzle'
@@ -108,7 +108,12 @@ export async function createUser() {
   return insertedUser
 }
 
-export async function getImages(limit = 20, offset = 0) {
+type GetImagesProps = {
+  limit?: number
+  offset?: number
+}
+
+export async function getImages(q = '', { limit = 10, offset = 0 }: GetImagesProps = {}) {
   const { userId } = auth()
   if (!userId) {
     return new Error('Unauthorized')
@@ -140,9 +145,10 @@ export async function getImages(limit = 20, offset = 0) {
     })
     .from(AiImages)
     .innerJoin(Users, eq(AiImages.userId, Users.id))
-    .orderBy(desc(AiImages.createdAt))
-  // .limit(limit)
-  // .offset(offset)
+    .where(like(AiImages.title, `%${q}%`))
+    .orderBy(asc(AiImages.createdAt))
+    .limit(limit)
+    .offset(offset)
 
   return images
 }

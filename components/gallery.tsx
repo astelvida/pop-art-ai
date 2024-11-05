@@ -1,17 +1,23 @@
-import { deleteAiImage, toggleLike } from '@/actions/queries'
+'use client'
+
+import { deleteAiImage, getImages, toggleLike } from '@/actions/queries'
 import { Button } from '@/components/ui/button'
 import { Heart, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useUser } from '@clerk/nextjs'
 import { DownloadButton } from './buttons/download-button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useMemo } from 'react'
-import { AiImage, AiImageResult } from '@/db/schema'
-import { use } from 'react'
 import { useOptimistic } from 'react'
-import { ActiveTab } from '@/lib/types'
+import { useUser } from '@clerk/nextjs'
+import { AiImageResult } from '@/db/schema'
 
+type PageProps = {
+  images: AiImageResult[] | undefined
+  params?: Promise<{
+    tab: '' | 'library'
+  }>
+  q?: string
+}
 export function GallerySkeleton() {
   return (
     <div className='columns-1 gap-4 sm:columns-2 xl:columns-3 2xl:columns-4'>
@@ -28,39 +34,23 @@ export function GallerySkeleton() {
   )
 }
 
-export function Gallery({
-  imagesPromise,
-  activeTab,
-}: {
-  imagesPromise: Promise<AiImageResult[]>
-  activeTab: ActiveTab
-}) {
-  const images = use(imagesPromise)
-  const { user } = useUser()
-
-  const [optimisticImages, updateOptimisticImages] = useOptimistic(images, (state, updatedImage: AiImageResult) => {
-    const index = state.findIndex((img) => img.id === updatedImage.id)
-
-    return [
-      ...state.slice(0, index),
-      {
-        ...updatedImage,
-      },
-      ...state.slice(index + 1),
-    ]
-  })
-
-  const filteredImages = useMemo(() => {
-    return activeTab === 'myGenerations' ? optimisticImages.filter((img) => img.userId === user?.id) : optimisticImages
-  }, [activeTab, optimisticImages, user?.id])
+export default function Gallery({ images, params, q }: PageProps) {
+  const user = useUser()
+  const [optimisticImages, updateOptimisticImages] = useOptimistic(
+    images || [],
+    (state, updatedImage: AiImageResult) => {
+      const index = state.findIndex((img) => img.id === updatedImage.id)
+      return [...state.slice(0, index), updatedImage, ...state.slice(index + 1)]
+    },
+  )
 
   return (
     <div className='columns-1 gap-4 pt-8 sm:columns-2 xl:columns-3 2xl:columns-4'>
-      {filteredImages.map((image) => (
+      {optimisticImages.map((image) => (
         <div key={image.id} className='group relative mb-5'>
           <Link
             href={`/img/${image.id}`}
-            className='after:content after:shadow-highlight group relative mb-5 block w-full cursor-zoom-in after:pointer-events-none after:absolute after:inset-0 after:rounded-lg'
+            className='after:content after:shadow-highlight m b-5 group relative block w-full cursor-zoom-in after:pointer-events-none after:absolute after:inset-0 after:rounded-lg'
           >
             <Image
               alt={`Generated image ${image.id} - ${image.title}`}
@@ -71,11 +61,10 @@ export function Gallery({
               height={480}
               quality={50}
               loading='lazy'
-              // priority
-              sizes='(max-width: 640px) 100vw,
-                (max-width: 1280px) 50vw,
-                (max-width: 1536px) 33vw,
-                25vw'
+              sizes='(max-width: 640px) 60vw,
+                (max-width: 1280px) 40vw,
+                (max-width: 1536px) 25vw,
+                20vw'
             />
             <div className='absolute inset-0 flex flex-col justify-end rounded-lg bg-black bg-opacity-50 p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100'>
               <h3 className='mb-1 text-lg font-semibold text-white'>{image.title || 'No title available'}</h3>
