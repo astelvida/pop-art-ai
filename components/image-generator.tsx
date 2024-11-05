@@ -6,11 +6,10 @@ import { saveAiImage } from '@/actions/queries'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
-import { Heart, Download, Copy, Shuffle, Share2, Loader2 } from 'lucide-react'
+import { Download, Copy, Shuffle, Share2, Loader2 } from 'lucide-react'
 import { downloadPhoto, sleep } from '@/lib/utils'
 import { type Prediction } from 'replicate'
 import prompts from '@/lib/data/prompts.json'
-import { useUser } from '@clerk/nextjs'
 import Image from 'next/image'
 import { type SettingsSchema } from '@/lib/schemas/inputSchema'
 import { Progress } from '@/components/ui/progress'
@@ -49,11 +48,6 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
       .then(() => alert('Copied to clipboard!'))
       .catch((err) => console.error('Failed to copy: ', err))
   }, [currentImage?.imageUrl])
-
-  useEffect(() => {
-    console.log(prediction?.status)
-    console.log('prediction', prediction)
-  }, [prediction])
 
   const handleGenerateImage = useCallback(async () => {
     setIsGenerating(true)
@@ -109,7 +103,6 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
       }
     } catch (err) {
       console.error(err)
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred')
     } finally {
       setIsGenerating(false)
     }
@@ -123,12 +116,8 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
         return 'aspect-video'
       case '9:16':
         return 'aspect-[9/16]'
-      case '3:4':
-        return 'aspect-[3/4]'
-      case '4:3':
-        return 'aspect-[4/3]'
       default:
-        return '9:16'
+        return 'aspect-square'
     }
   }
 
@@ -146,10 +135,6 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
     console.log(shareData)
     if (navigator.share) {
       navigator.share(shareData).then(() => toast({ title: 'Shared successfully!' }))
-      // .catch((error) => {
-      //   console.error('Error sharing:', error)
-      //   toast({ title: 'Error sharing', description: 'Please try again later.', variant: 'destructive' })
-      // })
     } else {
       navigator.clipboard
         .writeText(`${shareData.title}\n${shareData.text}\n${shareData.url}`)
@@ -162,14 +147,7 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
 
   const handleRemix = useCallback(() => {
     if (!currentImage) return
-
-    // Set the current image's prompt as the new prompt
     setPrompt(currentImage.prompt)
-
-    // Optionally, you can modify some settings here
-    // For example, slightly change the aspect ratio or other parameters
-
-    // Generate a new image with the remixed prompt
     handleGenerateImage()
     toast({ title: 'Remixing image...', description: 'Creating a new variation based on the current image.' })
   }, [currentImage, handleGenerateImage])
@@ -235,18 +213,7 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
                   <Image
                     src={currentImage.imageUrl}
                     width={400}
-                    height={
-                      400 *
-                      (aspectRatio === '16:9'
-                        ? 9 / 16
-                        : aspectRatio === '9:16'
-                          ? 16 / 9
-                          : aspectRatio === '3:4'
-                            ? 4 / 3
-                            : aspectRatio === '4:3'
-                              ? 3 / 4
-                              : 1)
-                    }
+                    height={400 * (aspectRatio === '16:9' ? 9 / 16 : aspectRatio === '9:16' ? 16 / 9 : 1)}
                     onLoad={() => {
                       confetti({
                         particleCount: 100,

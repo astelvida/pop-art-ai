@@ -46,10 +46,8 @@ export function App({ imagesPromise }: { imagesPromise: Promise<Array<AiImage>> 
           <div className='mb-6 flex-grow text-center'>
             <h1 className='mb-6 font-marker text-6xl font-bold'>Existential Pop Art </h1>
             <h2 className='mx-auto mb-4 max-w-5xl text-lg text-muted-foreground'>
-              Discover dynamic pop art comic book style images created with the Flux/Dev Lora model, inspired by Roy
-              Lichtenstein's signature aesthetic. Each artwork features expressive characters, comic book speech
-              bubbles, and explores themes like love, suffering, patriarchy, and impossible beauty standards. With its
-              satirical, tongue-in-cheek style, these images evoke strong emotions while delivering a dose of irony and
+              Make your own pop art with the Flux/Dev Lora model, inspired by Roy Lichtenstein's signature aesthetic.
+              With its satirical, tongue-in-cheek style, these images evoke strong emotions while delivering a dose of
               humor. <br /> Perfect for those seeking bold visuals with depth and meaning.
             </h2>
           </div>

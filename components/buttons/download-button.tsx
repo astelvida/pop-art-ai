@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button'
 import { DownloadIcon } from 'lucide-react'
 import { downloadPhoto } from '@/lib/utils'
-import { type AiImage } from '@/db/schema'
 
 export const DownloadButton = ({ url, title }: { url: string; title?: string | null }) => {
   // Create a functional component
@@ -21,4 +20,3 @@ export const DownloadButton = ({ url, title }: { url: string; title?: string | n
     </Button>
   )
 }
- 

@@ -15,9 +15,9 @@ export default function SettingsForm({
 }) {
   return (
     <form className='space-y-8 p-4'>
-      {settingsData.map((setting: Setting) => (
-        <TooltipProvider key={setting.name}>
-          <div className='space-y-2'>
+      <TooltipProvider>
+        {settingsData.map((setting: Setting) => (
+          <div className='space-y-2' key={setting.name}>
             <div className='flex justify-between'>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -69,8 +69,8 @@ export default function SettingsForm({
               </Select>
             )}
           </div>
-        </TooltipProvider>
-      ))}
+        ))}
+      </TooltipProvider>
     </form>
   )
 }

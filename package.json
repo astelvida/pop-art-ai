@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:studio": "npx drizzle-kit studio --verbose"
+    "db:studio": "npx drizzle-kit studio --verbose",
+    "db:push": "npx drizzle-kit push"
   },
   "dependencies": {
     "@clerk/nextjs": "^5.7.3",

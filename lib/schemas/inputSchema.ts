@@ -18,10 +18,10 @@ export const inputSchema = z.object({
       'Number of inference steps. More steps can give more detailed images, but take longer. [Title: Num Inference Steps]',
     ),
 
-  num_outputs: z.number().int().min(1).max(4).default(1).describe('Number of images to output. [Title: Num Outputs]'),
+  num_outputs: z.number().int().min(1).max(3).default(1).describe('Number of images to output. [Title: Num Outputs]'),
 
   aspect_ratio: z
-    .enum(['1:1', '16:9', '9:16', '3:4', '4:3' /* '21:9', '3:2', '2:3', '4:5', '5:4', 'custom' */])
+    .enum(['1:1', '16:9', '9:16' /*'3:4', '4:3'  '21:9', '3:2', '2:3', '4:5', '5:4', 'custom' */])
     .default('1:1')
     .describe(
       "Aspect ratio for the generated image in text-to-image mode. The size will always be 1 megapixel, i.e. 1024x1024 if aspect ratio is 1:1. To use arbitrary width and height, set aspect ratio to 'custom'. Note: Ignored in img2img and inpainting modes. [Title: Aspect Ratio]",
@@ -46,6 +46,7 @@ export const inputSchema = z.object({
 
 export type InputSchema = z.infer<typeof inputSchema>
 export type SettingsSchema = Omit<InputSchema, 'prompt'>
+
 // mask: z
 //     .string()
 //     .url()
