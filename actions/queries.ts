@@ -1,21 +1,29 @@
 'use server'
 
-import { eq, not, desc, and, sql } from 'drizzle-orm'
+import { eq, not, desc, and, sql, getTableColumns } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import * as schema from '@/db/schema'
 import { db } from '@/db/drizzle'
 import { auth, currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { generateImageDetails } from './openai'
 import { handleError, AppError } from '@/lib/error-handler'
 import { pp } from '@/lib/pprint'
 import { Users } from '@/db/schema'
-
-const { AiImages, Likes } = schema
+import { generateImageDetails, embedText } from '@/actions/openai'
 
 export const handleClose = async () => {
   redirect('/')
 }
+
+const { AiImages, Likes } = schema
+
+const { embedding: _, ...rest } = getTableColumns(AiImages)
+
+const AiImagesWithoutEmbedding = {
+  ...rest,
+  embedding: sql<number[]>`ARRAY[]::integer[]`,
+}
+
 export type AiImageData = {
   imageUrl: string
   prompt: string
@@ -48,7 +56,7 @@ export async function saveAiImage({ imageUrl, prompt, aspectRatio }: AiImageData
   return insertedAiImage[0]
 }
 
-export async function getAiImage(id: string) {
+export async function getAiImage(id: string | number) {
   const { userId } = auth()
   if (!userId) throw new AppError('Unauthorized', 401)
 
@@ -184,6 +192,21 @@ export async function toggleLike(imageId: number) {
 
     return { success: true, liked: true }
   }
+}
+export async function embedAiImage(imageId: number) {
+  const image = await getAiImage(imageId)
+  const embedding = await embedText(image.title + '\n' + image.description)
+
+  await db.update(AiImages).set({ embedding }).where(eq(AiImages.id, imageId))
+
+  console.log(`Embedded image ${imageId}, ${image.title}, ${image.description}`)
+  return embedding
+}
+
+const imageIds = [81, 84, 85, 86, 88]
+
+for (let i = 0; i < imageIds.length; i++) {
+  embedAiImage(imageIds[i])
 }
 
 // export async function updateNullAiImageNames() {

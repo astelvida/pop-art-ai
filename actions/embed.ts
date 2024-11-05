@@ -11,30 +11,20 @@ const AiImageDetails = z.object({
   title: z.string().optional(),
   caption: z.string().optional(),
   description: z.string().optional(),
+  comicBookScene: z.string().optional(),
+  nextPrompt: z.string().optional(),
+  isTextAccurate: z.boolean().optional(),
 })
 
 const createPrompt = (prompt: string) => `
 Given this image, and this prompt: "pop art comic book image of ${prompt}", extract or generate the following:
 - title,
 - caption that goes with the image,
-- description of the image as if you were a professional art critic.
+- description of the image as if you were a professional art critic, 
 `
-
 // a short comic book scene,
 // the next prompt to generate the next comic book panel
 // Also, determine if the text in the speech bubble is accurate and legible.
-
-export async function embedText(text: string) {
-  const result = await openai.embeddings.create({
-    model: 'text-embedding-3-small',
-    input: text,
-    encoding_format: 'float',
-  })
-
-  console.log(result.data[0].embedding)
-  return result.data[0].embedding
-}
-
 export async function generateImageDetails(imageUrl: string, prompt: string) {
   const completion = await openai.beta.chat.completions.parse({
     model: 'gpt-4o-2024-08-06',
@@ -59,7 +49,6 @@ export async function generateImageDetails(imageUrl: string, prompt: string) {
   })
 
   const result = completion.choices[0].message.parsed
-
   return result
 }
 

@@ -1,4 +1,4 @@
-import { integer, text, boolean, pgTable, serial, varchar, timestamp, index, uuid } from 'drizzle-orm/pg-core'
+import { integer, text, boolean, pgTable, serial, varchar, timestamp, index, uuid, vector } from 'drizzle-orm/pg-core'
 import { InferInsertModel, InferSelectModel, relations, sql } from 'drizzle-orm'
 
 export const Users = pgTable('users', {
@@ -25,6 +25,7 @@ export const AiImages = pgTable(
     caption: text('caption'),
     description: text('description'),
     numLikes: integer('numLikes').default(0),
+    embedding: vector('embedding', { dimensions: 1536 }),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at')
       .notNull()
@@ -32,6 +33,7 @@ export const AiImages = pgTable(
   },
   (table) => ({
     userIdIdx: index('aiImage_userId_idx').on(table.userId),
+    embeddingIdx: index('aiImage_embedding_idx').using('hnsw', table.embedding.op('vector_cosine_ops')),
   }),
 )
 
