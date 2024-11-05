@@ -23,20 +23,8 @@ export function Header() {
         <h2 className='font-rubik text-2xl font-bold'>Pop Art AI </h2>
       </Link>
 
-      {/* <nav className='hidden md:block'>
-        <ul className='flex space-x-4'>
-          <li>
-            <Link href='/gallery' className={`text-lg ${pathname === '/gallery' ? 'font-bold' : ''}`}>
-              Gallery
-            </Link>
-          </li>
-
-        </ul>
-      </nav> */}
-
-      {/* <Suspense fallback={<SearchSkeleton />}>   */}
       <SearchBox />
-      {/* </Suspense> */}
+
       <div className='flex items-center space-x-4'>
         <Link href='https://github.com/astelvida/pop-art-ai' target='_blank' rel='noopener noreferrer'>
           <GitHubLogoIcon className='h-8 w-8' />
