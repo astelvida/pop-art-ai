@@ -2,10 +2,10 @@ import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import './globals.css'
 import { ClerkProvider } from '@clerk/nextjs'
-import { Header } from '@/components/header'
-import { Bangers, Rubik_Mono_One, Rubik, Poppins, Permanent_Marker, Lato, Roboto } from 'next/font/google'
-import { ThemeProvider as NextThemesProvider, ThemeProvider } from 'next-themes'
+import { Bangers, Permanent_Marker } from 'next/font/google'
+import { ThemeProvider as NextThemesProvider } from 'next-themes'
 import { Toaster } from '@/components/ui/toaster'
+import LoadTime from '@/components/load-time'
 
 // If loading a variable font, you don't need to specify the font weight
 const bangers = Bangers({
@@ -82,6 +82,7 @@ export default function RootLayout({
             <div id='modal-root' />
             <Toaster />
           </NextThemesProvider>
+          <LoadTime />
         </body>
       </html>
     </ClerkProvider>

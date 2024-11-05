@@ -9,7 +9,6 @@ import { settingsData } from '@/lib/data/settings'
 import { type SettingsSchema } from '@/lib/schemas/inputSchema'
 import { Header } from '@/components/header'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useUser } from '@clerk/nextjs'
 import { Separator } from '@/components/ui/separator'
 import { type AiImage } from '@/db/schema'
 
