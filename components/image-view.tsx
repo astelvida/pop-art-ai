@@ -2,26 +2,13 @@
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import Image from 'next/image'
-import { Heart, X } from 'lucide-react'
+import { Heart, X, LoaderCircle } from 'lucide-react'
 import { DownloadButton } from '@/components/buttons/download-button'
 import { ExternalLinkButton } from '@/components/buttons/external-link-button'
 import { useState } from 'react'
 import { type AiImage } from '@/db/schema'
 import LikeButton from '@/components/buttons/like-button'
-import { SettingsSchema } from '@/lib/schemas/inputSchema'
 
-const getAspectRatioClass = (ratio: SettingsSchema['aspect_ratio']) => {
-  switch (ratio) {
-    case '1:1':
-      return 'aspect-square'
-    case '16:9':
-      return 'aspect-video'
-    case '9:16':
-      return 'aspect-[9/16]'
-    default:
-      return 'aspect-square'
-  }
-}
 export function ImageView({ image }: { image: AiImage }) {
   const [isOpen, setIsOpen] = useState(true)
   const [imageLoading, setImageLoading] = useState(true)
@@ -44,13 +31,13 @@ export function ImageView({ image }: { image: AiImage }) {
       >
         <div className='relative flex h-full w-full flex-col items-center justify-center md:items-center md:justify-center'>
           {imageLoading && (
-            <Skeleton
-              className={`absolute max-h-[50vh] ${getAspectRatioClass(image.aspectRatio as SettingsSchema['aspect_ratio'])}`}
-            />
+            <div className='absolute snap-center self-center'>
+              <LoaderCircle className='h-12 w-12 animate-spin' />
+            </div>
           )}
           <Image
             className='max-h-[50vh] object-contain md:h-[80%] md:max-h-[100vh] md:w-[80%]'
-            src={image.imageUrl}
+            src={image.imageUrl + `?timestamp=${Date.now()}`}
             alt={image.title || 'AI generated image'}
             priority
             width={500}
