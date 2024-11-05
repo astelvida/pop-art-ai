@@ -20,7 +20,13 @@ const initialSettingsState = settingsData.reduce<SettingsSchema>((acc, setting) 
   return acc
 }, {} as SettingsSchema)
 
-export function App({ imagesPromise }: { imagesPromise: Promise<Array<AiImage>> }) {
+export function App({
+  imagesPromise,
+  children,
+}: {
+  imagesPromise: Promise<Array<AiImage>>
+  children: React.ReactNode
+}) {
   const [settings, setSettings] = useState<SettingsSchema>(initialSettingsState)
   const [activeTab, setActiveTab] = useState<ActiveTab>('explore')
 
@@ -42,7 +48,11 @@ export function App({ imagesPromise }: { imagesPromise: Promise<Array<AiImage>> 
       {/* MAIN CONTENT */}
       <SidebarInset className='min-h-screen'>
         <main className='container mx-auto flex min-h-screen flex-col space-y-4 p-4'>
-          <Header />
+          {children}
+
+          {/* <Suspense fallback={<SearchSkeleton />}>
+            <Search /> 
+          </Suspense> */}
           <div className='mb-6 flex-grow text-center'>
             <h1 className='mb-6 font-marker text-6xl font-bold'>Existential Pop Art </h1>
             <h2 className='mx-auto mb-4 max-w-5xl text-lg text-muted-foreground'>

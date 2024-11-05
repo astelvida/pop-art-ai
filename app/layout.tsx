@@ -6,7 +6,7 @@ import { Bangers, Permanent_Marker } from 'next/font/google'
 import { ThemeProvider as NextThemesProvider } from 'next-themes'
 import { Toaster } from '@/components/ui/toaster'
 import LoadTime from '@/components/load-time'
-
+import { Header } from '@/components/header'
 // If loading a variable font, you don't need to specify the font weight
 const bangers = Bangers({
   subsets: ['latin'],
@@ -75,7 +75,6 @@ export default function RootLayout({
         >
           <NextThemesProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
             <div className='flex min-h-screen flex-col'>
-              {/* <Header /> */}
               {children}
               {modal}
             </div>

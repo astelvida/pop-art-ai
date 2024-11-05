@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { Suspense, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -7,6 +7,7 @@ import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
 import { GitHubLogoIcon } from '@radix-ui/react-icons'
 import { Menu, X } from 'lucide-react'
+import { SearchBox } from './search-box'
 
 export function Header() {
   const pathname = usePathname()
@@ -33,6 +34,9 @@ export function Header() {
         </ul>
       </nav> */}
 
+      {/* <Suspense fallback={<SearchSkeleton />}>   */}
+      <SearchBox />
+      {/* </Suspense> */}
       <div className='flex items-center space-x-4'>
         <Link href='https://github.com/astelvida/pop-art-ai' target='_blank' rel='noopener noreferrer'>
           <GitHubLogoIcon className='h-8 w-8' />
