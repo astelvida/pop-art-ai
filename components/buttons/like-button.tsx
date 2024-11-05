@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { toggleLike } from '../../actions/actions'
+import { toggleLike } from '@/actions/queries'
 import { Heart } from 'lucide-react'
 
 export default function LikeButton({

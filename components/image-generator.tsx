@@ -28,7 +28,6 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
   const [currentImage, setCurrentImage] = useState<AiImage | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [progress, setProgress] = useState(0)
-  const { user } = useUser()
   const { toast } = useToast()
 
   useEffect(() => {

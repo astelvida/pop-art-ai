@@ -1,5 +1,4 @@
-import { deleteAiImage } from '@/actions/queries'
-import { toggleLike } from '@/actions/actions'
+import { deleteAiImage, toggleLike } from '@/actions/queries'
 import { Button } from '@/components/ui/button'
 import { Heart, Trash2 } from 'lucide-react'
 import Link from 'next/link'
@@ -12,6 +11,8 @@ import { AiImage, AiImageResult } from '@/db/schema'
 import { use } from 'react'
 import { useOptimistic } from 'react'
 import { ActiveTab } from '@/lib/types'
+import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
+import { useState, useEffect } from 'react'
 
 export function GallerySkeleton() {
   return (
@@ -29,6 +30,79 @@ export function GallerySkeleton() {
   )
 }
 
+function GalleryImage({ image }: { image: AiImageResult }) {
+  const { targetRef, isIntersecting } = useIntersectionObserver()
+  const [shouldLoad, setShouldLoad] = useState(false)
+  const { user } = useUser()
+
+  useEffect(() => {
+    if (isIntersecting) {
+      setShouldLoad(true)
+    }
+  }, [isIntersecting])
+
+  return (
+    <div ref={targetRef} className='group relative mb-5'>
+      <Link
+        href={`/img/${image.id}`}
+        className='after:content after:shadow-highlight group relative mb-5 block w-full cursor-zoom-in after:pointer-events-none after:absolute after:inset-0 after:rounded-lg'
+      >
+        {shouldLoad ? (
+          <Image
+            alt={`Generated image ${image.id} - ${image.title}`}
+            className='transform rounded-lg brightness-90 transition will-change-auto group-hover:brightness-110'
+            src={image.imageUrl}
+            width={720}
+            height={480}
+            loading='lazy'
+            sizes='(max-width: 640px) 100vw,
+              (max-width: 1280px) 50vw,
+              (max-width: 1536px) 33vw,
+              25vw'
+          />
+        ) : (
+          <div className='aspect-[3/2] w-full rounded-lg bg-muted' />
+        )}
+        <div className='absolute inset-0 flex flex-col justify-end rounded-lg bg-black bg-opacity-50 p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100'>
+          <h3 className='mb-1 text-lg font-semibold text-white'>{image.title || 'No title available'}</h3>
+          <p className='text-sm text-white'>
+            {image.caption || image.description?.substring(0, 100) || 'No description available'}
+          </p>
+        </div>
+      </Link>
+      <div className='absolute right-2 top-2 flex space-x-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100'>
+        <p className='rounded-md bg-muted px-2 py-1 text-sm'>{image.numLikes} likes</p>
+        <form
+          action={async () => {
+            updateOptimisticImages({
+              ...image,
+              isLikedByUser: !image.isLikedByUser,
+              numLikes: image.isLikedByUser ? image.numLikes! - 1 : image.numLikes! + 1,
+            })
+            await toggleLike(image.id)
+          }}
+          name='toggleLike'
+        >
+          {/* <input type='hidden' name='imageId' value={image.id} /> */}
+          <Button type='submit' variant='secondary' size='icon'>
+            <Heart className={`h-4 w-4 ${image.isLikedByUser ? 'fill-current' : ''}`} />
+          </Button>
+        </form>
+
+        {user?.id === image.userId && (
+          <form action={deleteAiImage.bind(null, Number(image.id))} name='deleteAiImage'>
+            <input type='hidden' name='imageId' value={image.id} />
+            <Button type='submit' variant='secondary' size='icon'>
+              <Trash2 className='h-4 w-4' />
+            </Button>
+          </form>
+        )}
+        <DownloadButton url={image.imageUrl} title={image.title} />
+      </div>
+    </div>
+  )
+}
+
 export function Gallery({
   imagesPromise,
   activeTab,
@@ -36,19 +110,11 @@ export function Gallery({
   imagesPromise: Promise<AiImageResult[]>
   activeTab: ActiveTab
 }) {
-  const images = use(imagesPromise)
   const { user } = useUser()
-
+  const images = use(imagesPromise)
   const [optimisticImages, updateOptimisticImages] = useOptimistic(images, (state, updatedImage: AiImageResult) => {
     const index = state.findIndex((img) => img.id === updatedImage.id)
-
-    return [
-      ...state.slice(0, index),
-      {
-        ...updatedImage,
-      },
-      ...state.slice(index + 1),
-    ]
+    return [...state.slice(0, index), { ...updatedImage }, ...state.slice(index + 1)]
   })
 
   const filteredImages = useMemo(() => {
@@ -58,59 +124,7 @@ export function Gallery({
   return (
     <div className='columns-1 gap-4 pt-8 sm:columns-2 xl:columns-3 2xl:columns-4'>
       {filteredImages.map((image) => (
-        <div key={image.id} className='group relative mb-5'>
-          <Link
-            href={`/img/${image.id}`}
-            className='after:content after:shadow-highlight group relative mb-5 block w-full cursor-zoom-in after:pointer-events-none after:absolute after:inset-0 after:rounded-lg'
-          >
-            <Image
-              alt={`Generated image ${image.id} - ${image.title}`}
-              className='transform rounded-lg brightness-90 transition will-change-auto group-hover:brightness-110'
-              src={image.imageUrl}
-              width={720}
-              height={480}
-              sizes='(max-width: 640px) 100vw,
-                (max-width: 1280px) 50vw,
-                (max-width: 1536px) 33vw,
-                25vw'
-            />
-            <div className='absolute inset-0 flex flex-col justify-end rounded-lg bg-black bg-opacity-50 p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100'>
-              <h3 className='mb-1 text-lg font-semibold text-white'>{image.title || 'No title available'}</h3>
-              <p className='text-sm text-white'>
-                {image.caption || image.description?.substring(0, 100) || 'No description available'}
-              </p>
-            </div>
-          </Link>
-          <div className='absolute right-2 top-2 flex space-x-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100'>
-            <p className='rounded-md bg-muted px-2 py-1 text-sm'>{image.numLikes} likes</p>
-            <form
-              action={async () => {
-                updateOptimisticImages({
-                  ...image,
-                  isLikedByUser: !image.isLikedByUser,
-                  numLikes: image.isLikedByUser ? image.numLikes! - 1 : image.numLikes! + 1,
-                })
-                await toggleLike(image.id)
-              }}
-              name='toggleLike'
-            >
-              {/* <input type='hidden' name='imageId' value={image.id} /> */}
-              <Button type='submit' variant='secondary' size='icon'>
-                <Heart className={`h-4 w-4 ${image.isLikedByUser ? 'fill-current' : ''}`} />
-              </Button>
-            </form>
-
-            {user?.id === image.userId && (
-              <form action={deleteAiImage.bind(null, Number(image.id))} name='deleteAiImage'>
-                <input type='hidden' name='imageId' value={image.id} />
-                <Button type='submit' variant='secondary' size='icon'>
-                  <Trash2 className='h-4 w-4' />
-                </Button>
-              </form>
-            )}
-            <DownloadButton url={image.imageUrl} title={image.title} />
-          </div>
-        </div>
+        <GalleryImage key={image.id} image={image} />
       ))}
     </div>
   )

@@ -16,6 +16,9 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // experimental: {
+  //   ppr: true,
+  // },
 }
 
 const configSentry = withSentryConfig(nextConfig, {

@@ -4,11 +4,12 @@ import { eq, not, desc, and, sql } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import * as schema from '@/db/schema'
 import { db } from '@/db/drizzle'
-import { auth } from '@clerk/nextjs/server'
+import { auth, currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { generateImageDetails } from './openai'
 import { handleError, AppError } from '@/lib/error-handler'
 import { pp } from '@/lib/pprint'
+import { Users } from '@/db/schema'
 
 const { AiImages, Likes } = schema
 
@@ -42,19 +43,9 @@ export async function saveAiImage({ imageUrl, prompt, aspectRatio }: AiImageData
     .returning()
   // pp(insertedAiImage, 'INSERTED AI IMAGE')
   revalidatePath('/')
-  revalidatePath('/gallery')
   revalidatePath(`/img/${insertedAiImage[0].id}`)
 
   return insertedAiImage[0]
-}
-
-export const getPublicAiImages = async () => {
-  try {
-    const aiImages = await db.select().from(AiImages).orderBy(desc(AiImages.createdAt))
-    return aiImages
-  } catch (error) {
-    return handleError(error)
-  }
 }
 
 export async function getAiImage(id: string) {
@@ -85,80 +76,114 @@ export async function deleteAiImage(id: number) {
   revalidatePath('/')
 }
 
-export async function toggleFavoriteAiImage(formData: FormData) {
-  const id = formData.get('imageId')
-  // const id = formData.get('imageId')
-  //
-  try {
-    const { userId } = auth()
-    if (!userId) throw new AppError('User not authorized', 401)
+export async function createUser() {
+  const { userId } = auth()
+  if (!userId) return new Error('User not found')
 
-    const [updatedImage] = await db
+  const myUser = await currentUser()
+  if (!myUser || !userId) return new Error('User not found')
+
+  const { firstName, lastName, id, emailAddresses } = myUser
+
+  const userName = firstName || lastName ? `${firstName} ${lastName}` : null
+
+  const [insertedUser] = await db
+    .insert(Users)
+    .values({
+      id,
+      name: userName,
+      email: emailAddresses[0].emailAddress,
+    })
+    .returning()
+
+  pp(insertedUser, 'insertedUser')
+  return insertedUser
+}
+
+export async function getImages(limit = 20, offset = 0) {
+  const { userId } = auth()
+  if (!userId) {
+    return new Error('Unauthorized')
+  }
+
+  const user = await db.select().from(Users).where(eq(Users.id, userId)).limit(1)
+
+  if (!user.length) {
+    await createUser()
+  }
+
+  const images = await db
+    .select({
+      id: AiImages.id,
+      imageUrl: AiImages.imageUrl,
+      aspectRatio: AiImages.aspectRatio,
+      prompt: AiImages.prompt,
+      title: AiImages.title,
+      caption: AiImages.caption,
+      description: AiImages.description,
+      numLikes: AiImages.numLikes,
+      createdAt: AiImages.createdAt,
+      userId: Users.id,
+      isLikedByUser: sql<boolean>`EXISTS (
+        SELECT 1 FROM ${Likes}
+        WHERE ${Likes.aiImageId} = ${AiImages.id}
+        AND ${Likes.userId} = ${userId}
+      )`.as('isLikedByUser'),
+    })
+    .from(AiImages)
+    .innerJoin(Users, eq(AiImages.userId, Users.id))
+    .orderBy(desc(AiImages.createdAt))
+  // .limit(limit)
+  // .offset(offset)
+
+  return images
+}
+
+export async function toggleLike(imageId: number) {
+  const { userId } = auth()
+  if (!userId) {
+    throw new Error('Unauthorized')
+  }
+
+  // Check if the user has already liked the image
+  const existingLike = await db
+    .select()
+    .from(Likes)
+    .where(and(eq(Likes.userId, userId), eq(Likes.aiImageId, imageId)))
+    .limit(1)
+
+  if (existingLike.length > 0) {
+    // Unlike: Remove the existing like
+    await db.delete(Likes).where(and(eq(Likes.userId, userId), eq(Likes.aiImageId, imageId)))
+
+    // Decrement the like count
+    await db
       .update(AiImages)
-      .set({ liked: not(AiImages.liked) })
-      .where(eq(AiImages.id, Number(id)))
-      .returning()
+      .set({ numLikes: sql`${AiImages.numLikes} - 1` })
+      .where(eq(AiImages.id, imageId))
 
-    if (updatedImage.liked) {
-      await incrementLikes(Number(id), userId)
-    } else {
-      await decrementLikes(Number(id), userId)
-    }
-    console.log('LIKED UPDATED')
-  } catch (error) {
-    return handleError(error)
+    revalidatePath('/')
+    revalidatePath(`/img/${imageId}`)
+
+    return { success: true, liked: false }
+  } else {
+    // Like: Create a new like
+    await db.insert(Likes).values({
+      userId,
+      aiImageId: imageId,
+    })
+
+    // Increment the like count
+    await db
+      .update(AiImages)
+      .set({ numLikes: sql`${AiImages.numLikes} + 1` })
+      .where(eq(AiImages.id, imageId))
+
+    revalidatePath('/')
+    revalidatePath(`/img/${imageId}`)
+
+    return { success: true, liked: true }
   }
-
-  revalidatePath('/')
-}
-
-export async function getAiImageById(id: number) {
-  try {
-    const { userId } = auth()
-    if (!userId) throw new AppError('User not authorized', 401)
-
-    const image = await db
-      .select()
-      .from(AiImages)
-      .where(and(eq(AiImages.id, id), eq(AiImages.userId, userId)))
-      .limit(1)
-
-    if (!image.length) throw new AppError('Image not found', 404)
-
-    return image[0]
-  } catch (error) {
-    return handleError(error)
-  }
-}
-
-export async function incrementLikes(imageId: number, userId: string) {
-  const [updatedImage] = await db
-    .update(AiImages)
-    .set({ numLikes: sql`${AiImages.numLikes} + 1` })
-    .where(eq(AiImages.id, imageId))
-    .returning()
-
-  await db.insert(schema.Likes).values({
-    userId,
-    aiImageId: imageId,
-  })
-
-  revalidatePath('/')
-  return updatedImage
-}
-
-export async function decrementLikes(imageId: number, userId: string) {
-  const [updatedImage] = await db
-    .update(AiImages)
-    .set({ numLikes: sql`${AiImages.numLikes} - 1` })
-    .where(eq(AiImages.id, imageId))
-    .returning()
-
-  await db.delete(schema.Likes).where(and(eq(Likes.userId, userId), eq(Likes.aiImageId, imageId)))
-
-  revalidatePath('/')
-
-  return updatedImage
 }
 
 // export async function updateNullAiImageNames() {
