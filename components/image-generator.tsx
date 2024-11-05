@@ -45,7 +45,7 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
     if (!currentImage) return
     navigator.clipboard
       .writeText(currentImage.imageUrl)
-      .then(() => alert('Copied to clipboard!'))
+      .then(() => toast({ title: 'Copied to clipboard!' }))
       .catch((err) => console.error('Failed to copy: ', err))
   }, [currentImage?.imageUrl])
 
@@ -92,7 +92,7 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
         setPrediction(predictionResult)
 
         const newAiImage = await saveAiImage({
-          imageUrl: predictionResult.vercelUrl,
+          imageUrl: predictionResult.hostedUrl,
           prompt: predictionResult.input.prompt,
           aspectRatio: predictionResult.input.aspect_ratio,
         })
@@ -134,7 +134,13 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
 
     console.log(shareData)
     if (navigator.share) {
-      navigator.share(shareData).then(() => toast({ title: 'Shared successfully!' }))
+      navigator
+        .share(shareData)
+        .then(() => toast({ title: 'Shared successfully!' }))
+        .catch((error) => {
+          console.error(error)
+          toast({ title: 'Failed to share', description: error.message, variant: 'destructive' })
+        })
     } else {
       navigator.clipboard
         .writeText(`${shareData.title}\n${shareData.text}\n${shareData.url}`)
