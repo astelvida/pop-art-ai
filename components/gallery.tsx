@@ -6,12 +6,44 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useUser } from '@clerk/nextjs'
 import { DownloadButton } from './buttons/download-button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useMemo } from 'react'
+import { AiImage } from '@/db/schema'
+import { use } from 'react'
+import { useOptimistic } from 'react'
 
-export function Gallery({ images }: { images: AiImage[] }) {
+export function GallerySkeleton() {
+  return (
+    <div className='columns-1 gap-4 sm:columns-2 xl:columns-3 2xl:columns-4'>
+      {[...Array(12)].map((_, index) => (
+        <div key={index} className='mb-5'>
+          <Skeleton className='h-64 w-full rounded-lg' />
+          <div className='mt-2'>
+            <Skeleton className='h-4 w-3/4' />
+            <Skeleton className='mt-1 h-3 w-1/2' />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export function Gallery({ imagesPromise, activeTab }: { imagesPromise: Promise<AiImage[]>; activeTab: string }) {
+  const images = use(imagesPromise)
   const user = useUser()
+
+  const [optimisticImages, updateOptimisticImages] = useOptimistic(images, (state, updatedImage) => {
+    const index = state.findIndex((img) => img.id === updatedImage.id)
+    return [...state.slice(0, index), updatedImage, ...state.slice(index + 1)]
+  })
+
+  const filteredImages = useMemo(() => {
+    return activeTab === 'myGenerations' ? optimisticImages.filter((img) => img.userId === user?.id) : optimisticImages
+  }, [activeTab, optimisticImages, user?.id])
+
   return (
     <div className='columns-1 gap-4 pt-8 sm:columns-2 xl:columns-3 2xl:columns-4'>
-      {images.map((image) => (
+      {filteredImages.map((image) => (
         <div key={image.id} className='group relative mb-5'>
           <Link
             href={`/img/${image.id}`}
@@ -20,9 +52,6 @@ export function Gallery({ images }: { images: AiImage[] }) {
             <Image
               alt={`Generated image ${image.id} - ${image.title}`}
               className='transform rounded-lg brightness-90 transition will-change-auto group-hover:brightness-110'
-              style={{ transform: 'translate3d(0, 0, 0)' }}
-              // placeholder={image.blurDataUrl ? 'blur' : 'empty'}
-              // blurDataURL={image.blurDataURL || undefined}
               src={image.imageUrl}
               width={720}
               height={480}
@@ -40,17 +69,22 @@ export function Gallery({ images }: { images: AiImage[] }) {
           </Link>
           <div className='absolute right-2 top-2 flex space-x-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100'>
             <p className='rounded-md bg-muted px-2 py-1 text-sm'>{image.numLikes} likes</p>
-            <form action={toggleLike.bind(null, image.id)} name='toggleLike'>
+            <form
+              action={async () => {
+                updateOptimisticImages({
+                  ...image,
+                  isLikedByUser: !image.isLikedByUser,
+                  numLikes: image.isLikedByUser ? image.numLikes! + 1 : image.numLikes! - 1,
+                })
+                await toggleLike(image.id)
+              }}
+              name='toggleLike'
+            >
               {/* <input type='hidden' name='imageId' value={image.id} /> */}
               <Button type='submit' variant='secondary' size='icon'>
                 <Heart className={`h-4 w-4 ${image.isLikedByUser ? 'fill-current' : ''}`} />
               </Button>
             </form>
-            {/* <LikeButton 
-              imageId={image.id} 
-              initialLikes={image.numLikes || 0} 
-              initialLikedState={image.isLikedByUser || false} 
-            />     */}
 
             {user?.user?.id === image.userId && (
               <form action={deleteAiImage.bind(null, Number(image.id))} name='deleteAiImage'>

@@ -7,6 +7,7 @@ import { ExternalLinkButton } from '@/components/buttons/external-link-button'
 import { useState } from 'react'
 import { type AiImage } from '@/db/schema'
 import LikeButton from '@/components/buttons/like-button'
+
 export function ImageView({ image }: { image: AiImage }) {
   const [isOpen, setIsOpen] = useState(true)
 

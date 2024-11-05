@@ -3,7 +3,7 @@ import { getImages } from '@/actions/actions'
 // export const dynamic = 'force-dynamic'
 
 export default async function Page() {
-  const images = await getImages()
+  const imagesPromise = getImages()
 
-  return <App images={images} />
+  return <App imagesPromise={imagesPromise} />
 }

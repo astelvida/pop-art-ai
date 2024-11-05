@@ -1,9 +1,8 @@
 'use client'
 
 import { ImageGenerator } from '@/components/image-generator'
-import { Gallery } from '@/components/gallery'
-import { Suspense, useState, useMemo } from 'react'
-import { GallerySkeleton } from '@/components/gallery-skeleton'
+import { Gallery, GallerySkeleton } from '@/components/gallery'
+import { Suspense, useState, useMemo, use } from 'react'
 import { Sidebar, SidebarHeader, SidebarContent, SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { SettingsLayout } from '@/components/settings-layout'
 import { settingsData } from '@/lib/data/settings'
@@ -14,25 +13,20 @@ import { useUser } from '@clerk/nextjs'
 import { Separator } from '@/components/ui/separator'
 import { type AiImage } from '@/db/schema'
 
-// export const dynamic = 'force-dynamic'
+// export const dynamic = 'force-dynamic' // TODO: remove this
 
 const initialSettingsState = settingsData.reduce<SettingsSchema>((acc, setting) => {
   acc[setting.name as keyof SettingsSchema] = setting.default as SettingsSchema[keyof SettingsSchema]
   return acc
 }, {} as SettingsSchema)
 
-export function App({ images }: { images: Array<AiImage> }) {
+export function App({ imagesPromise }: { imagesPromise: Promise<Array<AiImage>> }) {
   const [settings, setSettings] = useState<SettingsSchema>(initialSettingsState)
   const [activeTab, setActiveTab] = useState('explore')
-  const user = useUser()
 
   const handleSettingChange = (name: keyof SettingsSchema, value: SettingsSchema[keyof SettingsSchema]) => {
     setSettings((prev) => ({ ...prev, [name]: value }))
   }
-
-  const filteredImages = useMemo(() => {
-    return activeTab === 'myGenerations' ? images.filter((img) => img.userId === user.user?.id) : images
-  }, [activeTab, images, user.user?.id])
 
   return (
     <SidebarProvider defaultOpen={false}>
@@ -83,7 +77,7 @@ export function App({ images }: { images: Array<AiImage> }) {
             </Tabs>
           </div>
           <Suspense fallback={<GallerySkeleton />}>
-            <Gallery images={filteredImages} />
+            <Gallery imagesPromise={imagesPromise} activeTab={activeTab} />
           </Suspense>
         </main>
       </SidebarInset>
