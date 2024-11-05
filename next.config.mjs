@@ -1,6 +1,9 @@
 import { withSentryConfig } from '@sentry/nextjs'
 /** @type {import('next').NextConfig} */
 
+
+console.log('NODE_ENV', process.env.NODE_ENV, 'NEXT_PUBLIC_NODE_ENV', process.env.NEXT_PUBLIC_NODE_ENV)
+
 const nextConfig = {
   images: {
     remotePatterns: [
@@ -21,6 +24,7 @@ const nextConfig = {
   // },
 }
 
+console.log('NODE_ENV', process.env.NODE_ENV, 'NEXT_PUBLIC_NODE_ENV', process.env.NEXT_PUBLIC_NODE_ENV)
 const configSentry = process.env.NODE_ENV === 'development' 
   ? nextConfig 
   : withSentryConfig(nextConfig, {
@@ -31,8 +35,8 @@ const configSentry = process.env.NODE_ENV === 'development'
       reactComponentAnnotation: {
         enabled: true,
       },
-      hideSourceMaps: true,
-      disableLogger: true,
+      hideSourceMaps: false,
+      disableLogger: false,
       automaticVercelMonitors: true,
     })
 

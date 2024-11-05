@@ -7,6 +7,7 @@ import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
 import { GitHubLogoIcon } from '@radix-ui/react-icons'
 import { Menu, X } from 'lucide-react'
+import { ThemeToggle } from './theme-toggle'
 
 export function Header({ children }: { children?: React.ReactNode }) {
   const pathname = usePathname()
@@ -23,15 +24,16 @@ export function Header({ children }: { children?: React.ReactNode }) {
       </Link>
 
       <div className='flex items-center space-x-4'>
-        <Link href='https://github.com/astelvida/pop-art-ai' target='_blank' rel='noopener noreferrer'>
-          <GitHubLogoIcon className='h-8 w-8' />
-        </Link>
         <SignedIn>
           <UserButton />
         </SignedIn>
         <SignedOut>
           <SignInButton />
         </SignedOut>
+        <Link href='https://github.com/astelvida/pop-art-ai' target='_blank' rel='noopener noreferrer'>
+          <GitHubLogoIcon className='h-8 w-8' />
+        </Link>
+        <ThemeToggle />
         <div className='md:hidden'>
           <Button variant='ghost' size='icon' onClick={toggleMenu} aria-label='Toggle menu'>
             {isMenuOpen ? <X className='h-6 w-6' /> : <Menu className='h-6 w-6' />}

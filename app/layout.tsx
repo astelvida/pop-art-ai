@@ -3,10 +3,10 @@ import localFont from 'next/font/local'
 import './globals.css'
 import { ClerkProvider } from '@clerk/nextjs'
 import { Bangers, Permanent_Marker } from 'next/font/google'
-import { ThemeProvider as NextThemesProvider } from 'next-themes'
 import { Toaster } from '@/components/ui/toaster'
 import LoadTime from '@/components/load-time'
 import { Header } from '@/components/header'
+import { ThemeProvider } from '@/components/theme-provider'
 // If loading a variable font, you don't need to specify the font weight
 const bangers = Bangers({
   subsets: ['latin'],
@@ -48,21 +48,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en' suppressHydrationWarning>
-      <ClerkProvider>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} ${bangers.variable} ${marker.variable} antialiased`}
-        >
-          <NextThemesProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${bangers.variable} ${marker.variable} antialiased`}
+      >
+        <ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
+          <ClerkProvider>
             <div className='flex min-h-screen flex-col'>
               {children}
               {modal}
             </div>
             <div id='modal-root' />
             <Toaster />
-            <LoadTime />
-          </NextThemesProvider>
-        </body>
-      </ClerkProvider>
+          </ClerkProvider>
+        </ThemeProvider>
+      </body>
+      <LoadTime />
     </html>
   )
 }

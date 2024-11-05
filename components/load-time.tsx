@@ -2,11 +2,16 @@
 
 import React, { useEffect, useState } from 'react'
 
+let bool = true
 export default function LoadTimeTracker() {
   const [loadTime, setLoadTime] = useState<number | null>(null)
 
   useEffect(() => {
+    console.log('RUN!')
     const handleLoad = () => {
+      bool ? console.log('FIRST RENDER') : null
+      console.log('handleLoad', performance.getEntriesByType, performance.getEntriesByType('navigation'))
+      bool = false
       if (performance.getEntriesByType) {
         const [navigationEntry] = performance.getEntriesByType('navigation')
 
@@ -20,6 +25,7 @@ export default function LoadTimeTracker() {
     window.addEventListener('load', handleLoad)
 
     return () => {
+      console.log('UNMOUNT!')
       window.removeEventListener('load', handleLoad)
     }
   }, [])
