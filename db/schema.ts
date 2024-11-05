@@ -25,6 +25,7 @@ export const AiImages = pgTable(
     caption: text('caption'),
     description: text('description'),
     numLikes: integer('numLikes').default(0),
+    // embedding: sql<number[]>`vector`,
     embedding: vector('embedding', { dimensions: 1536 }),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at')

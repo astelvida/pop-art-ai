@@ -194,20 +194,29 @@ export async function toggleLike(imageId: number) {
   }
 }
 export async function embedAiImage(imageId: number) {
-  const image = await getAiImage(imageId)
+  const [image] = await db
+    .select()
+    .from(AiImages)
+    .where(eq(AiImages.id, Number(imageId)))
+    .limit(1)
+  if (!image) {
+    throw new Error('Image not found')
+  }
+
   const embedding = await embedText(image.title + '\n' + image.description)
 
-  await db.update(AiImages).set({ embedding }).where(eq(AiImages.id, imageId))
+  console.log('EMBEDDING', embedding)
+  await db.update(AiImages).set({ embedding: embedding }).where(eq(AiImages.id, imageId))
 
   console.log(`Embedded image ${imageId}, ${image.title}, ${image.description}`)
   return embedding
 }
 
-const imageIds = [81, 84, 85, 86, 88]
+// const imageIds = [85, 100, 89, 90, 91]
 
-for (let i = 0; i < imageIds.length; i++) {
-  embedAiImage(imageIds[i])
-}
+// for (let i = 0; i < imageIds.length; i++) {
+//   embedAiImage(imageIds[i])
+// }
 
 // export async function updateNullAiImageNames() {
 //   try {
