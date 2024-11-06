@@ -40,13 +40,7 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
     return () => window.removeEventListener('beforeunload', preventClose)
   }, [isGenerating])
 
-  const handleCopy = useCallback(() => {
-    if (!currentImage) return
-    navigator.clipboard
-      .writeText(currentImage.imageUrl)
-      .then(() => toast({ title: 'Copied to clipboard!' }))
-      .catch((err) => console.error('Failed to copy: ', err))
-  }, [currentImage?.imageUrl])
+
 
   const handleGenerateImage = useCallback(async () => {
     setIsGenerating(true)
@@ -57,42 +51,37 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
     try {
       const response = await fetch('/api/predictions', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, ...settings }),
       })
 
-      let predictionResult = await response.json()
-      if (response.status !== 201) {
-        throw new Error(predictionResult.detail || 'An error occurred during image generation')
-      }
+      let result = await response.json()
+      if (response.status !== 201) 
+        throw new Error(result.detail || 'An error occurred during image generation')
+      
 
-      while (predictionResult.status !== 'succeeded' && predictionResult.status !== 'failed') {
+      while (result.status !== 'succeeded' && result.status !== 'failed') {
         await sleep(1000)
-        const response = await fetch('/api/predictions/' + predictionResult.id, { cache: 'no-store' })
-        predictionResult = await response.json()
-        if (response.status !== 200) {
-          throw new Error(predictionResult.detail || 'An error occurred while checking prediction status')
-        }
+        const response = await fetch('/api/predictions/' + result.id, { cache: 'no-store' })
+        result = await response.json()
+
+        if (response.status !== 200) throw new Error(result.detail || 'An error occurred while checking prediction status')
+      
         // Update progress based on prediction status
-        if (predictionResult.status === 'processing') {
-          const percentage = extractLatestPercentage(predictionResult.logs)
-          if (percentage !== null) {
-            setProgress(percentage)
-          }
+        if (result.status === 'processing') {
+          const percentage = extractLatestPercentage(result.logs)
+          if (percentage !== null) setProgress(percentage)
         }
       }
 
-      if (predictionResult.status === 'succeeded') {
+      if (result.status === 'succeeded') {
         setProgress(100)
-        console.log('Final prediction', predictionResult)
-        setPrediction(predictionResult)
+        setPrediction(result)
 
         const newAiImage = await saveAiImage({
-          imageUrl: predictionResult.hostedUrl,
-          prompt: predictionResult.input.prompt,
-          aspectRatio: predictionResult.input.aspect_ratio,
+          imageUrl: result.hostedUrl,
+          prompt: result.input.prompt,
+          aspectRatio: result.input.aspect_ratio,
         })
 
         setCurrentImage(newAiImage)
@@ -121,31 +110,42 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
 
   const aspectRatio = settings.aspect_ratio
 
+  const handleCopy = useCallback(() => {
+    if (!currentImage) return
+    navigator.clipboard
+      .writeText(currentImage.imageUrl)
+      .then(() => toast({ title: 'Copied to clipboard!' }))
+      .catch((err) => {
+        console.error(err)
+        toast({ title: 'Failed to share: ' + err.name, description: err.message, variant: 'destructive' })
+      })
+  }, [currentImage?.imageUrl])
+
   const handleShare = useCallback(() => {
     if (!currentImage) return
 
     const shareData = {
-      title: 'Check out this AI-generated image!',
-      text: `Generated with the prompt: "${currentImage.prompt}"`,
+      title: currentImage.title,
+      text: `Prompt: "${currentImage.prompt}"`,
       url: currentImage.imageUrl,
     }
 
-    console.log(shareData)
     if (navigator.share) {
       navigator
-        .share(shareData)
+      .share(shareData)
         .then(() => toast({ title: 'Shared successfully!' }))
-        .catch((error) => {
-          console.error(error)
-          toast({ title: 'Failed to share', description: error.message, variant: 'destructive' })
+        .catch((err) => {
+          console.error(err)
+          toast({ title: 'Failed to share: ' + err.name, description: err.message, variant: 'destructive' })
         })
-    } else {
+    } else {  
       navigator.clipboard
         .writeText(`${shareData.title}\n${shareData.text}\n${shareData.url}`)
         .then(() => toast({ title: 'Share info copied to clipboard!' }))
-        .catch(() =>
-          toast({ title: 'Failed to copy share info', description: 'Please try again.', variant: 'destructive' }),
-        )
+        .catch((err) => {
+          console.error(err)
+          toast({ title: 'Failed to copy share info: ' + err.name, description: err.message, variant: 'destructive' })
+        })
     }
   }, [currentImage])
 

@@ -60,7 +60,7 @@ export default function HomePage({
         <main className='container mx-auto flex min-h-screen flex-col space-y-4 p-4'>
           <Header />
 
-          <div className='space-y-8'>
+          <div className='space-y-4'>
             <h1 className='font-marker text-6xl font-bold'>Existential Pop Art</h1>
 
             <ImageGenerator settings={settings} />

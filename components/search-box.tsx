@@ -90,7 +90,7 @@ export function SearchBox({ query, disabled }: { query?: string | null; disabled
         )}
       </div>
     </div>
-  )
+  ) 
 }
 
 export function SearchSkeleton() {

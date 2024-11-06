@@ -195,7 +195,7 @@ export async function toggleLike(imageId: number) {
 
     revalidatePath('/')
     revalidatePath(`/img/${imageId}`)
-
+ 
     return { success: true, liked: true }
   }
 }
