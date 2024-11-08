@@ -18,15 +18,29 @@ import { type AiImage } from '@/db/schema'
 import confetti from 'canvas-confetti'
 import { useToast } from '@/lib/hooks/use-toast'
 import LikeButton from '@/components/buttons/like-button'
+import SettingsForm from '@/components/settings-form'
+import { settingsData, type Setting } from '@/lib/data/settings'    
 
-export function ImageGenerator({ settings, children }: { settings: SettingsSchema; children?: React.ReactNode }) {
+
+const initialSettingsState = settingsData.reduce<SettingsSchema>((acc, setting) => {
+  acc[setting.name as keyof SettingsSchema] = setting.default as SettingsSchema[keyof SettingsSchema]
+  return acc
+}, {} as SettingsSchema)
+
+export function ImageGenerator({  children }: { children?: React.ReactNode }) {
   const [prediction, setPrediction] = useState<Prediction | null>(null)
-  const [prompt, setPrompt] = useState(prompts['complex'][8])
+  const [prompt, setPrompt] = useState(prompts['fresh_meat'][0])
   const [isGenerating, setIsGenerating] = useState(false)
   const [currentImage, setCurrentImage] = useState<AiImage | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [progress, setProgress] = useState(0)
   const { toast } = useToast()
+  const [settings, setSettings] = useState<SettingsSchema>(initialSettingsState)
+
+  const handleSettingChange = (name: keyof SettingsSchema, value: SettingsSchema[keyof SettingsSchema]) => {
+    setSettings((prev) => ({ ...prev, [name]: value }))
+  }
+
 
   useEffect(() => {
     const preventClose = (e: BeforeUnloadEvent) => {
@@ -170,7 +184,12 @@ export function ImageGenerator({ settings, children }: { settings: SettingsSchem
         isGenerating={isGenerating}
         prompt={prompt}
         setPrompt={setPrompt}
-      />
+        settings={settings}
+        handleSettingChange={handleSettingChange}
+      >
+        
+        <SettingsForm handleSettingChange={handleSettingChange} settings={settings} />    
+      </PromptForm>
       <Dialog open={showModal} onOpenChange={(open) => !isGenerating && setShowModal(open)}>
         <DialogContent className='sm:max-w-[450px]'>
           <Card className='w-full border-0 shadow-none'>

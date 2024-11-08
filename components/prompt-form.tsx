@@ -10,6 +10,16 @@ import { SamplePromptTag } from '@/lib/types'
 import { useSidebar } from '@/components/ui/sidebar'
 import { useToast } from '@/lib/hooks/use-toast'
 import prompts from '@/lib/data/prompts.json'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import SettingsForm from '@/components/settings-form'
+import { settingsData } from '@/lib/data/settings'
+import { type SettingsSchema } from '@/lib/schemas/inputSchema'
 
 interface PromptSuggestionsProps {
   setPrompt: (suggestion: string) => void
@@ -21,6 +31,8 @@ interface PromptInputProps {
   isGenerating: boolean
   prompt: string
   setPrompt: (prompt: string) => void
+  settings: SettingsSchema
+  handleSettingChange: (settingKey: keyof SettingsSchema, value: any) => void
   children?: React.ReactNode
 }
 export default function PromptForm({
@@ -28,12 +40,13 @@ export default function PromptForm({
   isGenerating,
   prompt,
   setPrompt,
+  settings,
+  handleSettingChange,
   children,
 }: PromptInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const { width } = useWindowSize()
-  const [promptCategory, setPromptCategory] = useState<keyof typeof prompts>('complex')
-  const { toggleSidebar } = useSidebar()
+  const [promptCategory, setPromptCategory] = useState<keyof typeof prompts>('fresh_meat')
   const { toast } = useToast()
   const [suggestions, setSuggestions] = useState<string[]>([])
 
@@ -106,19 +119,52 @@ export default function PromptForm({
               }
             }}
           />
-          <Button
-            // variant='secondary'
-            // size='icon'
-            className='absolute bottom-3 left-3 rounded-full [&_svg]:size-6'
-            onClick={(e) => {
-              e.preventDefault()
-              toggleSidebar()
-            }}
-          >
-            <SettingsIcon className='h-6 w-6' />
-            Settings
-            <span className='sr-only'>Open settings</span>
-          </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                className='absolute bottom-3 left-3 rounded-full [&_svg]:size-6'
+              >
+                <SettingsIcon className='h-6 w-6' />
+                Settings
+                <span className='sr-only'>Open settings</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <h4 className="font-medium leading-none">Prompt Settings</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Customize your prompt generation settings
+                  </p>
+                </div>
+                <SettingsForm 
+                  handleSettingChange={handleSettingChange} 
+                  settings={settings}
+                />
+                <div className="grid gap-2">
+                  <div className="grid grid-cols-3 items-center gap-4">
+                    <Label htmlFor="category">Category</Label>
+                    <Select 
+                      value={promptCategory} 
+                      onValueChange={(value) => setPromptCategory(value as keyof typeof prompts)}
+                      className="col-span-2"
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.keys(prompts).map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
           <Button
             type='button'
             variant='ghost'

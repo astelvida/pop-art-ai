@@ -3,31 +3,14 @@ import OpenAI from 'openai'
 import { zodResponseFormat } from 'openai/helpers/zod'
 import { z } from 'zod'
 import { TRIGGER_WORD } from '@/lib/data/constants'
+import { measureExecutionTime } from '@/lib/utils'
+import { Completions } from 'openai/resources/completions.mjs'
 /* eslint-disable */
 /* prettier-ignore-file */
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
-
-/**
- * Measures the execution time of an asynchronous function
- * @param fn The async function to measure
- * @param args Arguments to pass to the function
- * @returns Object containing the function result and execution time in milliseconds
- */
-async function measureExecutionTime<T>(
-  fn: (...args: any[]) => Promise<T>,
-  ...args: any[]
-): Promise<{ result: T; executionTime: number }> {
-  const start = performance.now()
-  const result = await fn(...args)
-  const end = performance.now()
-  const executionTime = end - start
-
-  console.log(`Execution time: ${executionTime.toFixed(2)}ms`)
-  return { result, executionTime }
-}
 
 /*
 * 
@@ -117,28 +100,27 @@ export async function generateImageDetails(imageUrl: string, prompt: string) {
   const { result } = await measureExecutionTime(async () => {
     const completion = await openai.beta.chat.completions.parse({
       model: 'gpt-4o-2024-08-06',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image_url',
-              image_url: { url: imageUrl },
-            },
-            {
-              type: 'text',
-              text: createPrompt(prompt),
-            },
-          ],
-        },
-      ],
+      messages: [{
+        role: 'user',
+        content: [{
+          type: 'image_url',
+          image_url: { url: imageUrl },
+        },{
+          type: 'text',
+          text: createPrompt(prompt),
+        }],
+      }],
       response_format: zodResponseFormat(AiImageDetails, 'ai_image_details'),
     })
+
+    console.dir(completion)
     return completion.choices[0].message.parsed
   })
 
+  pp(result, 'image details')
   return result
 }
+
 
 /*
 * 
@@ -149,24 +131,24 @@ PROMPT GENERATORS
 /**
  * Builds a prompt for generating multiple AI images
  * @param options Configuration object containing:
- *   - numberOfPrompts: Number of prompts to generate
+ *   - count: Number of prompts to generate
  *   - style: Optional style specification
  *   - theme: Optional theme specification
  *   - triggerWord: Required trigger word for the model
  * @returns Formatted prompt string
  */
 export const promptBuilder = ({
-  numberOfPrompts = 5,
+  count = 5,
   style = '',
   theme = '',
   triggerWord,
 }: {
-  numberOfPrompts: number
+  count: number
   style?: string
   theme?: string
   triggerWord: string
 }) => `
-Generate ${numberOfPrompts} images using Flux/Dev Lora model finetuned with Roy Lichtenstein pop art artwork in Replica.
+Generate ${count} images using Flux/Dev Lora model finetuned with Roy Lichtenstein pop art artwork in Replica.
 All prompts must include the trigger word "${triggerWord}"'.
 
 The following features are important:
@@ -198,12 +180,18 @@ Maintain any text in quotes.
 Do not ask questions or add any preamble.
 `
 
+
 /**
  * Generates multiple creative prompts for AI image generation
  * Uses GPT-4 to create varied prompts based on specified themes
  * @returns String containing multiple generated prompts
  */
-export async function generatePrompts() {
+const defaultPromptOptions = {
+  count: 5,
+  theme: "society's beauty standards and drugs of choice",
+  triggerWord: TRIGGER_WORD,
+}
+export async function generatePrompts(options = defaultPromptOptions) {
   const { result } = await measureExecutionTime(async () => {
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
@@ -222,11 +210,7 @@ export async function generatePrompts() {
           content: [
             {
               type: 'text',
-              text: promptBuilder({
-                numberOfPrompts: 5,
-                theme: "society's beauty standards and drugs of choice",
-                triggerWord: TRIGGER_WORD,
-              }),
+              text: promptBuilder(options),
             },
           ],
         },
@@ -234,9 +218,10 @@ export async function generatePrompts() {
     })
     return completion.choices[0].message.content
   })
-
+  pp(result, 'prompts')
   return result
 }
+
 
 /**
  * Creates an embedding vector for given text using OpenAI's embedding model
@@ -281,6 +266,12 @@ export async function testImageCompletion(imageUrl: string, prompt: string) {
   console.log(result)
   return result
 }
+
+
+// generatePrompts()   
+// generateImageDetails('https://i.imgur.com/52xjYbU.png', 'a woman crying').then(pp)
+
+
 
 // const themeDescription = 'Cheating on your partner'
 // const withTheme = (theme: string) => `

@@ -12,10 +12,10 @@ export interface ImageGenerationOptions {
 }
 
 // Sample Prompt Tags
-export type SamplePromptTag = 'general' | 'sarcastic' | 'witty' | 'sarcastic_no_speech_bubbles' | 'complex'
+export type SamplePromptTag = 'general' | 'sarcastic' | 'witty' | 'sarcastic_no_speech_bubbles' | 'complex' | 'fresh_meat' 
 
 export type SamplePrompts = {
   [key in SamplePromptTag]: string[]
 }
 
-export type ActiveTab = 'explore' | 'myGenerations'
+export type ActiveTab = 'explore' | 'library' | 'settings' | 'search'

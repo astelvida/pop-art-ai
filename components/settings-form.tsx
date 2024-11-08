@@ -8,13 +8,13 @@ import { settingsData, type Setting } from '@/lib/data/settings'
 
 export default function SettingsForm({
   handleSettingChange,
-  settings,
+  settings,     
 }: {
-  handleSettingChange: (settingKey: keyof SettingsSchema, value: string | number) => void
+  handleSettingChange: (settingKey: keyof SettingsSchema, value: any) => void
   settings: SettingsSchema
 }) {
   return (
-    <form className='space-y-8 p-4'>
+    <div className='space-y-4'>
       <TooltipProvider>
         {settingsData.map((setting: Setting) => (
           <div className='space-y-2' key={setting.name}>
@@ -71,6 +71,6 @@ export default function SettingsForm({
           </div>
         ))}
       </TooltipProvider>
-    </form>
+    </div>
   )
 }

@@ -1,52 +1,25 @@
-'use client'
-
-import { deleteAiImage, getImages, toggleLike } from '@/actions/queries'
-import { Button } from '@/components/ui/button'
-import { Heart, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { DownloadButton } from './buttons/download-button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useOptimistic } from 'react'
-import { useUser } from '@clerk/nextjs'
 import { AiImageResult } from '@/db/schema'
+import DeleteButton from './buttons/delete-button'
+import { LikeButton } from './LikeButton'
+import { getImages } from '@/actions/queries'
 
 type PageProps = {
-  images: AiImageResult[] | undefined
   params?: Promise<{
     tab: '' | 'library'
   }>
   q?: string
 }
-export function GallerySkeleton() {
-  return (
-    <div className='columns-1 gap-4 sm:columns-2 xl:columns-3 2xl:columns-4'>
-      {[...Array(12)].map((_, index) => (
-        <div key={index} className='mb-5'>
-          <Skeleton className='h-64 w-full rounded-lg' />
-          <div className='mt-2'>
-            <Skeleton className='h-4 w-3/4' />
-            <Skeleton className='mt-1 h-3 w-1/2' />
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
 
-export default function Gallery({ images, params, q }: PageProps) {
-  const user = useUser()
-  const [optimisticImages, updateOptimisticImages] = useOptimistic(
-    images || [],
-    (state, updatedImage: AiImageResult) => {
-      const index = state.findIndex((img) => img.id === updatedImage.id)
-      return [...state.slice(0, index), updatedImage, ...state.slice(index + 1)]
-    },
-  )
 
+export default async function Gallery({ params, q }: PageProps) {
+  const images = await getImages(q)
   return (
     <div className='columns-1 gap-4 pt-8 sm:columns-2 xl:columns-3 2xl:columns-4'>
-      {optimisticImages.map((image) => (
+      {images?.map((image) => (
         <div key={image.id} className='group relative mb-5'>
           <Link
             href={`/img/${image.id}`}
@@ -75,36 +48,28 @@ export default function Gallery({ images, params, q }: PageProps) {
           </Link>
           <div className='absolute right-2 top-2 flex space-x-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100'>
             <p className='rounded-md bg-muted px-2 py-1 text-sm'>{image.numLikes} likes</p>
-            <form
-              action={async () => {
-                updateOptimisticImages({
-                  ...image,
-                  isLikedByUser: !image.isLikedByUser,
-                  numLikes: image.isLikedByUser ? image.numLikes! - 1 : image.numLikes! + 1,
-                })
-                await toggleLike(image.id)
-              }}
-              name='toggleLike'
-            >
-              <Button type='submit' variant='secondary' size='icon'>
-                <Heart className={`h-4 w-4 ${image.isLikedByUser ? 'fill-current' : ''}`} />
-              </Button>
-            </form>
-
-            {user?.id === image.userId && (
-              <form
-                action={async (formData: FormData) => {
-                  await deleteAiImage(Number(image.id))
-                }}
-                name='deleteAiImage'
-              >
-                <input type='hidden' name='imageId' value={image.id} />
-                <Button type='submit' variant='secondary' size='icon'>
-                  <Trash2 className='h-4 w-4' />
-                </Button>
-              </form>
-            )}
+            <LikeButton imageId={image.id} initialLiked={image.isLikedByUser} initialLikeCount={image.numLikes} />    
+            <DeleteButton imageId={image.id} />
             <DownloadButton url={image.imageUrl} title={image.title} />
+          </div>
+          </div>
+      ))}
+    </div>
+  )
+}
+
+
+
+
+export function GallerySkeleton() {
+  return (
+    <div className='columns-1 gap-4 sm:columns-2 xl:columns-3 2xl:columns-4'>
+      {[...Array(12)].map((_, index) => (
+        <div key={index} className='mb-5'>
+          <Skeleton className='h-64 w-full rounded-lg' />
+          <div className='mt-2'>
+            <Skeleton className='h-4 w-3/4' />
+            <Skeleton className='mt-1 h-3 w-1/2' />
           </div>
         </div>
       ))}

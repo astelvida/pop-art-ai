@@ -1,4 +1,3 @@
-// if (process.env.NODE_ENV !== "production") {
 'server-only'
 
 import { inspect } from 'util'

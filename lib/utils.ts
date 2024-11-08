@@ -60,12 +60,12 @@ export function shuffle<T>(array: T[]): T[] {
   return array
 }
 
-export function randomPrompt(key: SamplePromptTag = 'complex') {
+export function randomPrompt(key: SamplePromptTag = 'fresh_meat') {
   const randomPrompt = promptsData[key][Math.floor(Math.random() * promptsData[key].length)]
   return randomPrompt
 }
 
-export function randomPrompts(key: SamplePromptTag = 'complex', num: number = 5): string[] {
+export function randomPrompts(key: SamplePromptTag = 'fresh_meat', num: number = 5): string[] {
   const availablePrompts = promptsData[key]
   if (!availablePrompts || availablePrompts.length === 0) {
     console.warn(`No prompts available for key: ${key}`)
@@ -132,3 +132,25 @@ export function downloadPhoto(url: string, filename?: string | null) {
  * @param array The array to be shuffled
  * @returns The same array, shuffled in place
  */
+
+
+
+
+/**
+ * Measures the execution time of an asynchronous function
+ * @param fn The async function to measure
+ * @param args Arguments to pass to the function
+ * @returns Object containing the function result and execution time in milliseconds
+ */
+export async function measureExecutionTime<T>(
+  fn: (...args: any[]) => Promise<T>,
+  ...args: any[]
+): Promise<{ result: T; executionTime: number }> {
+  const start = performance.now()
+  const result = await fn(...args)
+  const end = performance.now()
+  const executionTime = end - start
+
+  console.log(`Execution time: ${executionTime.toFixed(2)}ms`)
+  return { result, executionTime }
+}

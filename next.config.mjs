@@ -1,8 +1,5 @@
-import { withSentryConfig } from '@sentry/nextjs'
 /** @type {import('next').NextConfig} */
 
-
-console.log('NODE_ENV', process.env.NODE_ENV, 'NEXT_PUBLIC_NODE_ENV', process.env.NEXT_PUBLIC_NODE_ENV)
 
 const nextConfig = {
   images: {
@@ -24,20 +21,19 @@ const nextConfig = {
   // },
 }
 
-console.log('NODE_ENV', process.env.NODE_ENV, 'NEXT_PUBLIC_NODE_ENV', process.env.NEXT_PUBLIC_NODE_ENV)
-const configSentry = process.env.NODE_ENV === 'development' 
-  ? nextConfig 
-  : withSentryConfig(nextConfig, {
-      org: 'sevdaaa', 
-      project: 'pop-art-ai',
-      silent: !process.env.CI,
-      widenClientFileUpload: true,
-      reactComponentAnnotation: {
-        enabled: true,
-      },
-      hideSourceMaps: false,
-      disableLogger: false,
-      automaticVercelMonitors: true,
-    })
+// const configSentry = process.env.NODE_ENV === 'development' 
+//   ? nextConfig 
+//   : withSentryConfig(nextConfig, {
+//       org: 'sevdaaa', 
+//       project: 'pop-art-ai',
+//       silent: !process.env.CI,
+//       widenClientFileUpload: true,
+//       reactComponentAnnotation: {
+//         enabled: true,
+//       },
+//       hideSourceMaps: true,
+//       disableLogger: false,
+//       automaticVercelMonitors: true,
+//     })
 
-export default configSentry 
+export default nextConfig 
