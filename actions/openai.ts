@@ -20,75 +20,11 @@ IMAGE DETAILS
 
 /* prettier-ignore-start */
 const AiImageDetails = z.object({
-  title: z.string().optional().describe('Title of the image, like a typical artwork title'),
-  caption: z.string().optional().describe('Caption that we will use as metadata for the image'),
-  description: z
-    .string()
-    .optional()
-    .describe(
-      'Description a professional art critic would write. Be creative and interpret what the artist was trying to convey.'
-    ),
-  text: z
-    .string()
-    .optional()
-    .describe(
-      'The written text inside the bubble speech or multiple speech bubbles if needed. Look for ANY TEXT in the image. Write always the correct text, the one in the prompt.'
-    ),
-  enhancedPrompt: z
-    .string()
-    .optional()
-    .describe(
-      'An enhanced prompt that will make this artwork better. Focus on the following elements that sometimes need improvement:'
-    ),
-  rating: z.any().optional().describe('On a scale from 1 to 5, how good is the image?'),
-  theme: z
-    .string()
-    .optional()
-    .describe(
-      'Theme, category or main idea of the image. Write three words that describe the image, separated by commas.'
-    ),
-})
+  title: z.string().describe('Title of the image, like a typical artwork title'),
+  caption: z.string().describe('Caption that we will use as metadata for the image'),
+  description: z.string().describe('Description of the image from the perspective of a professional art critic'),
+})  
 /* prettier-ignore-end */
-
-/**
- * Creates a prompt for the AI model to analyze an image
- * @param prompt The user's original prompt
- * @returns Formatted prompt string with instructions for the AI
- */
-const createPrompt = (prompt: string) => {
-  let triggerWordPrompt = (
-    prompt.includes(TRIGGER_WORD) ? prompt : `${TRIGGER_WORD} image of ${prompt}`
-  ).trim()
-
-  return `
-You are an contemporary pop art comic book artist and art critic. Roy Lichtenstein or Bansky would be proud of your work and your sharp eye and ocassionally sharp tongue.
-You are also an amazing Prompt Engineer working with a finetuned version of Flux/Dev Lora model, trained with Roy Lichtenstein's most famous pop art artwork.  
-
-Given the image from the image_url in the previous message in this thread and the the associated text prompt used to generate the image:
-
-\`\`\`
-${triggerWordPrompt}
-\`\`\`
-
-As a great art critic and art describer and prompt writer, you need to write the following:
-  - title of the image, like a typical artwork title
-  - caption that wed will use as metadata for the image
-  - description a professional art critic would write. Be creative and interpret what the artist was trying to convey.
-  - theme, category or main idea of the image. Write three words that describe the image, separated by commas. 
-  - the written text inside the bubble speech or multiple speech bubbles if needed. Look for ANY TEXT in the image. Write always the correct text, the one in the prompt.
-
-Then write an enhanced prompt of the current prompt that you think will get better results and nmake the artwork more impactful.
-Focus on the following elements that sometimes needÍ improvement:
-  - MAKE SURE THE TEXT IN THE IMAGE IS ACCURATE, LEGIBLE AND CONSISTENT WITH THE PROMPT. Check the speech-bubble text in the image and the text in the prompt. 
-  - correct and emphasize the importance of accurate text. The text is in speech bubbes, but can also appear in other parts og the image.
-  - the style is not really similar to Lichtenstein's style, there should be at least 3 elements from his style. Remind the artist what Roy Lichtenstein would do in this situation.
-  - visual elements don't really mirror the prompt, write a clearer, better, more detailed prompt.
-  - the image is artwork, it should make you feel something. A sense of drama, subtle humour/satire while still feeling a bit uneasy. Make the viewer think. Remind the artist of this.
-
-Finally, on a scale from 1 to 5, please rate the image.
-  - 1 means the image is not good at all, it was boring and unitersting or poorly excuted, and 5 means it is perfect, you felt the emotion and thought about it.  The rating is given by his colleagues, other artists. It's relative to this specific artistic style.
-`
-}
 
 /**
  * Generates detailed analysis of an AI-generated image
@@ -97,7 +33,14 @@ Finally, on a scale from 1 to 5, please rate the image.
  * @returns Structured object containing image details (title, caption, description, etc.)
  */
 export async function generateImageDetails(imageUrl: string, prompt: string) {
-  const { result } = await measureExecutionTime(async () => {
+
+  const promptText = `
+You are a talented art critic. You are given an image and the following prompt which was used to generate the image:
+
+Prompt: "${prompt}".
+
+Extract the title, caption and description of the image from the perspective of a professional art critic.
+`
     const completion = await openai.beta.chat.completions.parse({
       model: 'gpt-4o-2024-08-06',
       messages: [{
@@ -107,19 +50,19 @@ export async function generateImageDetails(imageUrl: string, prompt: string) {
           image_url: { url: imageUrl },
         },{
           type: 'text',
-          text: createPrompt(prompt),
+          text: promptText,
         }],
       }],
       response_format: zodResponseFormat(AiImageDetails, 'ai_image_details'),
     })
 
-    console.dir(completion)
+    pp(completion.choices[0].message.parsed, 'image details') 
     return completion.choices[0].message.parsed
-  })
-
-  pp(result, 'image details')
-  return result
 }
+
+
+
+
 
 
 /*
@@ -148,7 +91,7 @@ export const promptBuilder = ({
   theme?: string
   triggerWord: string
 }) => `
-Generate ${count} images using Flux/Dev Lora model finetuned with Roy Lichtenstein pop art artwork in Replica.
+Generate ${count} prompts using Flux/Dev Lora model finetuned with Roy Lichtenstein pop art artwork in Replica.
 All prompts must include the trigger word "${triggerWord}"'.
 
 The following features are important:
@@ -179,7 +122,6 @@ Maintain the style of Stable Diffusion prompts, keeping the original concept int
 Maintain any text in quotes.
 Do not ask questions or add any preamble.
 `
-
 
 /**
  * Generates multiple creative prompts for AI image generation
