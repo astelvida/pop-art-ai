@@ -31,7 +31,7 @@ export type AiImageData = {
 }
 
 export async function saveAiImage({ imageUrl, prompt, aspectRatio }: AiImageData) {
-  const { userId } = auth()
+  const { userId } = await auth()
   if (!userId) {
     return new Error('Unauthorized')
   }
@@ -54,7 +54,7 @@ export async function saveAiImage({ imageUrl, prompt, aspectRatio }: AiImageData
   .returning()
 
 
-  fs.writeFileSync('imageDetails.json', JSON.stringify(imageDetails, null, 2))
+  // fs.writeFileSync('imageDetails.json', JSON.stringify(imageDetails, null, 2))
 
   const text = `${title}\n${caption}\n${description}`
   embedText(text)
@@ -66,7 +66,7 @@ export async function saveAiImage({ imageUrl, prompt, aspectRatio }: AiImageData
 }
 
 export async function getAiImage(id: string | number) {
-  const { userId } = auth()
+  const { userId } = await auth()
   if (!userId) return new Error('Unauthorized')
     
   const [image] = await db
@@ -83,7 +83,7 @@ export async function getAiImage(id: string | number) {
 }
 
 export async function deleteAiImage(id: string) {
-  const { userId } = auth()
+  const { userId } = await auth()
   if (!userId) return new Error('Unauthorized')
 
   try {
@@ -100,7 +100,7 @@ export async function deleteAiImage(id: string) {
 }
 
 export async function createUser() {
-  const { userId } = auth()
+  const { userId } = await auth()
   if (!userId) return new Error('User not found')
 
   const myUser = await currentUser()
@@ -129,7 +129,11 @@ type GetImagesProps = {
 }
 
 export async function getImages(q = '', { limit = 10, offset = 0 }: GetImagesProps = {}) {
-  const { userId } = auth()
+  const authUser = await auth()  
+  console.log(authUser, 'authUser')
+
+  const userId = authUser.userId
+
   if (!userId) {
     return new Error('Unauthorized')
   }
@@ -170,7 +174,7 @@ export async function getImages(q = '', { limit = 10, offset = 0 }: GetImagesPro
 }
 
 export async function toggleLike(imageId: number) {
-  const { userId } = auth()
+  const { userId } = await auth()
   if (!userId) {
     throw new Error('Unauthorized')
   }

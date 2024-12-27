@@ -35,11 +35,9 @@ export async function updateUrls() {
 
     const updated = await db.update(AiImages).set({ imageUrl: newUrl }).where(eq(AiImages.id, url.id)).returning()
 
-    console.log(updated[0])
     updatedUrls.push(updated[0].imageUrl)
   }
 
-  console.log(updatedUrls)
   return updatedUrls
 }
 

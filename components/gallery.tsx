@@ -17,6 +17,8 @@ type PageProps = {
 
 export default async function Gallery({ params, q }: PageProps) {
   const images = await getImages(q)
+
+  
   return (
     <div className='columns-1 gap-4 pt-8 sm:columns-2 xl:columns-3 2xl:columns-4'>
       {images?.map((image) => (

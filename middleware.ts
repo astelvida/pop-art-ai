@@ -1,15 +1,18 @@
-import { auth, clerkMiddleware } from "@clerk/nextjs/server";
-
-export default clerkMiddleware(async (auth) => {
-  const authUser = await auth()
-  if (!authUser) auth().protect();
-});
-
-// export const config = {
-//   matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
-// };
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 
+const isProtectedRoute = createRouteMatcher(['/(.*)'])
+
+
+export default clerkMiddleware((auth, request) => {
+  console.log(request.url, 'request.url')
+  const {redirectToSignIn, userId, protect} = auth()
+  if (!userId) {
+    console.log('protecting')
+    // protect()
+    return redirectToSignIn()
+  } 
+})
 
 
 export const config = {
