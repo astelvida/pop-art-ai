@@ -8,20 +8,18 @@ import { LikeButton } from './LikeButton'
 import { getImages } from '@/actions/queries'
 
 type PageProps = {
-  params?: Promise<{
-    tab: '' | 'library'
-  }>
+  tab?: 'library' | 'favorites' | '' 
   q?: string
 }
 
 
-export default async function Gallery({ params, q }: PageProps) {
+export default async function Gallery({ tab = '', q = ''}: PageProps) {
   const images = await getImages(q)
 
   
   return (
     <div className='columns-1 gap-4 pt-8 sm:columns-2 xl:columns-3 2xl:columns-4'>
-      {images?.map((image) => (
+      {images?.length > 0 && images?.map((image) => (
         <div key={image.id} className='group relative mb-5'>
           <Link
             href={`/img/${image.id}`}

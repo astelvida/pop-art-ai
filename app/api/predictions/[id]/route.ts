@@ -12,7 +12,8 @@ const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 })
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const prediction = await replicate.predictions.get(params.id)
 
   if (prediction.status === 'succeeded') {

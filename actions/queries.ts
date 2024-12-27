@@ -135,7 +135,7 @@ export async function getImages(q = '', { limit = 10, offset = 0 }: GetImagesPro
   const userId = authUser.userId
 
   if (!userId) {
-    return new Error('Unauthorized')
+    return []
   }
 
   // const user = await db.select().from(Users).where(eq(Users.id, userId)).limit(1)

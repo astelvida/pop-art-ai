@@ -5,7 +5,6 @@ import { ClerkProvider } from '@clerk/nextjs'
 import { Bangers, Permanent_Marker } from 'next/font/google'
 import { Toaster } from '@/components/ui/toaster'
 import LoadTime from '@/components/load-time'
-import { Header } from '@/components/header'
 import { ThemeProvider } from '@/components/theme-provider'
 // If loading a variable font, you don't need to specify the font weight
 const bangers = Bangers({
@@ -51,18 +50,18 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${bangers.variable} ${marker.variable} antialiased`}
       >
-        <ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
+        {/* <ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange> */}
           <ClerkProvider>
             <div className='flex min-h-screen flex-col'>
               {children}
               {modal}
             </div>
             <div id='modal-root' />
-            <Toaster />
+            {/* <Toaster /> */}
           </ClerkProvider>
-        </ThemeProvider>
+        {/* </ThemeProvider> */}
+        {/* <LoadTime /> */}
       </body>
-      <LoadTime />
     </html>
   )
 }

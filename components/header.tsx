@@ -12,7 +12,9 @@ import { ThemeToggle } from './theme-toggle'
 export function Header({ children }: { children?: React.ReactNode }) {
   const pathname = usePathname()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const toggleMenu = () => {
+
+  const toggleMenu = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
     setIsMenuOpen(!isMenuOpen)
   }
 

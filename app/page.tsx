@@ -1,5 +1,5 @@
 import Gallery, { GallerySkeleton } from '@/components/gallery'
-import { Suspense, useState, useEffect } from 'react'
+import { Suspense  } from 'react'
 import { Sidebar, SidebarHeader, SidebarContent, SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 
 import { Separator } from '@/components/ui/separator'
@@ -10,16 +10,20 @@ import { ImageGenerator } from '@/components/image-generator'
 export const dynamic = 'force-dynamic' // TODO: remove this
 
 
-export default function HomePage({
-  searchParams,
-  params,
-  children,
-}: {
-  searchParams?: { q?: string }
-  params?: { tab: '' | 'library' }
-  children?: React.ReactNode
-}) {
-  const { q = '' } = searchParams ?? {}
+type PageProps = {
+  searchParams: Promise<{ q?: string }>
+  params: Promise<{ tab: '' | 'library' }>
+}
+
+export default async function HomePage( 
+  {
+    searchParams,
+    params  
+  }: PageProps
+) {   
+
+  // const { q } = await searchParams
+  // const { tab } = await params
 
   return (
     <SidebarProvider defaultOpen={false}>
@@ -35,20 +39,20 @@ export default function HomePage({
       {/* MAIN CONTENT */}
       <SidebarInset className='min-h-screen'>
         <main className='container mx-auto flex min-h-screen flex-col space-y-4 p-4'>
-          <Header />
+          {/* <Header /> */}
 
           <div className='space-y-4'>
             <h1 className='font-marker text-6xl font-bold'>Existential Pop Art</h1>
 
-            <ImageGenerator />
+            {/* <ImageGenerator /> */}
 
             {/* <SearchBox /> */}
 
-            <Separator />
+            {/* <Separator /> */}
 
-            <Suspense fallback={<GallerySkeleton />}>
-              <Gallery  q={q} params={params} />
-            </Suspense>
+            {/* <Suspense fallback={<GallerySkeleton />}>
+              <Gallery />
+            </Suspense> */}
           </div>
         </main>
       </SidebarInset>
