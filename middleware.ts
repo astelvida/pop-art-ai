@@ -1,12 +1,15 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { auth, clerkMiddleware } from "@clerk/nextjs/server";
 
-export default clerkMiddleware((auth) => {
-  if (!auth().userId) auth().protect();
+export default clerkMiddleware(async (auth) => {
+  const authUser = await auth()
+  if (!authUser) auth().protect();
 });
 
 // export const config = {
 //   matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
 // };
+
+
 
 
 export const config = {

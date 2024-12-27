@@ -1,11 +1,13 @@
-{
+import { shuffle } from "lodash"
+
+export const PROMPTS = {
   "fresh_meat": [
     "A striking pop art comic book scene features a glamorous woman with exaggerated facial features, her expression a blend of despair and defiance, capturing the turmoil of society's relentless beauty standards. Her hair, a vibrant cascade of candy-colored strands, contrasts sharply with the stark graphic lin  es that dissect the vibrant color field. In a cleverly designed speech bubble, emblazoned with a bold, comic-style font in electric blue, it proclaims, 'Why isn't beauty enough?' The background is a dizzying blend of abstract shapes and colors, evoking the chaotic nature of modern beauty standards, while a series of pill bottles artfully interspersed among the vibrant elements comment on the all-too-common reliance on substances to meet these unattainable ideals, creating an ironic juxtaposition between allure and sadness.",
     "Within a dynamic pop art comic book composition, a woman stands alone, her exaggerated wide eyes encapsulating the anxiety felt under the weight of societal expectations. With her mouth agape, she gasps, 'Is this what happiness looks like?'—the speech bubble bursting forth in a playful yet unsettling hot pink font that captures the viewer's attention. The background, a swirling vortex of monochromatic tones, symbolizes the overwhelming pressure and noise of the outside world, while the figure is adorned with opulent yet hollow symbols of wealth, like diamond-studded sunglasses and a designer handbag. This satirical take on wealth and beauty criticism reveals the empty pursuit hidden behind society's glamorous façade, a hallmark of Lichtenstein's style.",
     "The pop art comic book illustration features a heartbroken woman, her stylized tears cascading down like comic book raindrops, as she gazes at her shattered reflection in a cracked mirror. Her expression radiates both despair and longing, captured beautifully with bold, expressive lines. Above her, a speech bubble dramatically states, 'Why can't I just be me?' rendered in a cacophony of vibrant yellows and blacks that holds the chaotic essence of the comic style. In the background, a cityscape filled with towering, gleaming skyscrapers symbolizes the unreachable ideals and superficial nature of fame, while heavy shadows loom, representing the oppressive patriarchy she seeks to escape. This piece combines high-brow humor with stark criticism, showcasing the internal struggles of individuals against societal norms.",
     "Capturing a moment of profound irony, this pop art comic book piece depicts a confidently smiling woman holding a cocktail adorned with colorful pills, her glistening lipstick oozing a cheeky charm. The powerful visual expression of her eyes embodies a facade of serenity that contrasts with the chaotic world surrounding her, filled with screaming advertisements promoting unrealistic beauty. A vibrant green and orange speech bubble bursts with the question, 'What's a little dopamine on the side?' in a punchy, stylized font indicative of classic comic book aesthetics. The background, drenched in splashes of color and drama, accentuates the absurdity of glossing over deep-rooted issues of addiction and superficiality, all while embracing Lichtenstein's tongue-in-cheek sensibility.",
     "This captivating pop art comic book tableau centers on a distinguished woman, elegantly seated amidst an assemblage of discarded beauty products and empty champagne bottles, with an expression suffused with irony that questions the price of perfection. Her speech bubble exclaims, 'Cheers to the emptiness!' in an exaggerated, retro font colored in shades of shimmering gold. The setting is crafted with swirls of pastel shades, reflecting an atmosphere that mixes glamor with an unsettling sense of hollowness, as pastel-hued clouds swirl menacingly overhead. Each element in the background acts as a stark reminder of the societal standards that ensnare women, echoing themes of critique towards the pursuit of unrealistic beauty, while the artistic execution echoes the playful yet poignant artistry reminiscent of Lichtenstein's golden era."
-  ],
+  ],  
   "general": [
     "a woman crying silently in a crowded room, feeling invisible. The scene is in pop art style with dark undertones, reflecting sadness and isolation. Speech Bubble: 'Can anyone see me?'",
     "a man staring at his shattered reflection in a broken mirror, his face twisted in anger and despair. The pop art style emphasizes his frustration. There is a well-defined speech bubble with the exact text, 'This isn't who I am!'",
@@ -94,3 +96,35 @@
     "portrayal of a woman seated at an extravagant vanity table overflowing with an avalanche of beauty products—lipsticks, perfumes, creams, and makeup items—that spill onto the floor and pile up around her, nearly burying her. Each product is labeled with humorous, exaggerated brand names like 'Eternal Youth Serum' and 'Perfection Powder.' She wears a luxurious silk robe with vibrant floral patterns, her hair wrapped in a towel adorned with a designer logo. Her face shows exasperation and exhaustion, one hand dramatically placed on her forehead, the other reaching out towards an out-of-reach glowing bottle labeled 'Last One.' A wall-sized mirror behind her reflects not only her image but also a younger version of herself, adding a layer of introspection. A small, indifferent pet turtle crawls across the vanity, unnoticed. A speech bubble in comic book font reads: 'Just one more, and I'll be perfect!' The image satirizes consumerism and beauty standards, employing humor and irony through vibrant colors, bold lines, classic pop art techniques like Ben-Day dots, and cluttered yet detailed composition. Trigger word: 'pop art comic book'."
   ]
 }
+
+
+
+export type Category = keyof typeof PROMPTS;
+
+interface SamplesProps {
+  setPrompt: (prompt: string) => void;
+  category?: Category;
+}
+
+type PromptObject = {
+  id: string;
+  prompt: string;
+  category: Category;
+};
+
+type CategoryPrompts = [Category, string[]];
+
+export const samplePrompts: PromptObject[] = [];
+
+Object.entries(PROMPTS).forEach((pair) => {
+  const [category, prompts] = pair as CategoryPrompts;
+  samplePrompts.push(
+    ...prompts.map((prompt, index) => ({
+      id: `${category}-${index}`,
+      prompt: prompt.trim(),
+      category,
+    }))
+  );
+});
+
+export const shuffledSamplePrompts = shuffle(samplePrompts);

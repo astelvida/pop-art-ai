@@ -9,7 +9,7 @@ import { randomPrompt, randomPrompts, shuffle } from '@/lib/utils'
 import { SamplePromptTag } from '@/lib/types'
 import { useSidebar } from '@/components/ui/sidebar'
 import { useToast } from '@/lib/hooks/use-toast'
-import prompts from '@/lib/data/prompts.json'
+import { PROMPTS as prompts } from '@/lib/data/prompts'  
 import {
   Popover,
   PopoverContent,

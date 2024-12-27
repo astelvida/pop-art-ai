@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import promptsData from '@/lib/data/prompts.json'
+import { PROMPTS as promptsData } from '@/lib/data/prompts'  
 import { customAlphabet } from 'nanoid'
 // This function has been moved to server-utils.ts
 export function cn(...inputs: ClassValue[]) {

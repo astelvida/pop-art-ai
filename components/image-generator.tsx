@@ -9,7 +9,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Download, Copy, Shuffle, Share2, Loader2 } from 'lucide-react'
 import { downloadPhoto, sleep } from '@/lib/utils'
 import { type Prediction } from 'replicate'
-import prompts from '@/lib/data/prompts.json'
+import { PROMPTS as prompts } from '@/lib/data/prompts'
 import Image from 'next/image'
 import { type SettingsSchema } from '@/lib/schemas/inputSchema'
 import { Progress } from '@/components/ui/progress'
@@ -271,3 +271,11 @@ export function ImageGenerator({  children }: { children?: React.ReactNode }) {
     </>
   )
 }
+
+
+
+
+
+
+
+ 
