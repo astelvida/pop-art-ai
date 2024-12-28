@@ -9,24 +9,33 @@ export function cn(...inputs: ClassValue[]) {
 
 import { SamplePrompts, SamplePromptTag } from '@/lib/types'
 
+export function getPercentageFromLine(line: string) {
+  const match = line.trim().match(/^(\d+)%/);
+  console.log(match)
+  return match ? match[1] : null;
+}
+
+export function extractLastIterationNumber(logs: string) {
+    // Match digits before 'it' at the start of the last line
+    const pattern = /^(\d+)it/m;
+    const lines = logs.trim().split('\n');
+    const lastLine = lines[lines.length - 1];
+    const match = lastLine.match(pattern);
+    console.log('match', match?.[1])
+    return match ? parseInt(match[1]) : null;
+}
+
+
 export function extractLatestPercentage(logs: string) {
   // Split the logs into individual lines
-  const lines = logs.split('\n')
-  let lastPercentage = null
+  const lastLine = logs.trim().split("\n").pop()?.trim()
+  console.log('lastLine', lastLine)
+  const lastPercentage = getPercentageFromLine(lastLine || "")
 
-  // Regular expression to match the percentage at the beginning of a line
-  const percentageRegex = /^\s*(\d+)%\|/
-
-  // Iterate over each line to find the latest percentage
-  for (const line of lines) {
-    const match = line.match(percentageRegex)
-    if (match) {
-      lastPercentage = parseInt(match[1], 10)
-    }
-  }
-
-  return lastPercentage
+  console.log('lastPercentage', lastPercentage)
+  return lastPercentage;
 }
+
 
 // 7-character random string
 export const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 7)
@@ -66,20 +75,10 @@ export function randomPrompt(key: SamplePromptTag = 'fresh_meat') {
 }
 
 export function randomPrompts(key: SamplePromptTag = 'fresh_meat', num: number = 5): string[] {
-  const availablePrompts = promptsData[key]
-  if (!availablePrompts || availablePrompts.length === 0) {
-    console.warn(`No prompts available for key: ${key}`)
-    return []
-  }
-
-  const randoms = []
-  for (let i = 0; i < num; i++) {
-    randoms.push(availablePrompts[Math.floor(Math.random() * availablePrompts.length)])
-  }
-  return randoms
-
-  // const shuffled = [...availablePrompts].sort(() => 0.5 - Math.random())
-  // return shuffled.slice(0, num)
+  const shuffled = promptsData[key].slice().sort(() => 0.5 - Math.random());
+  // Get sub-array of first n elements after shuffled
+  let selected = shuffled.slice(0, num)
+  return selected
 }
 
 export const randomInt = (max: number = 100000) => Math.floor(Math.random() * max)
@@ -111,7 +110,7 @@ function forceDownload(blobUrl: string, filename: string) {
 export function downloadPhoto(url: string, filename?: string | null) {
   if (!filename) {
     const urlParts = url.split(/[\\\/]/)
-    filename = urlParts[urlParts.length - 1] || ''
+    filename = urlParts[urlParts.length - 1] || 'popart-image'
   }
 
   return fetch(url, {

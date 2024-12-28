@@ -10,11 +10,21 @@ export type MaybeURL = string | URL
 export type URLWithOverrides = { url: MaybeURL; name?: string; customId?: string }
 
 export async function getFileFromUrl(prediction: Prediction) {
-  const file = await fetch(prediction.output[0])
-    .then((res) => res.blob())
-    .then((blob) => new File([blob], `${prediction.id}.${prediction.input.output_format}`))
-  const response = await utapi.uploadFiles(file)
-  return response?.data?.appUrl
+  try { 
+    const file = await fetch(prediction.output[0])
+      .then((res) => res.blob())
+      .then((blob) => new File([blob], `${prediction.id}.${prediction.input.output_format}`))
+
+    const { data, error } = await utapi.uploadFiles(file)
+
+    console.log('data', data)
+
+    if (error) throw error
+    return data.appUrl
+  } catch (error) {
+    console.error('Error getting file from url', error)
+    throw error
+  }
 }
 
 // Script to update the imageUrls in the database - migrating from vercel storage to uploadthing

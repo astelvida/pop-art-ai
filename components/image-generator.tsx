@@ -1,25 +1,24 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import PromptForm from '@/components/prompt-form'
 import { saveAiImage } from '@/actions/queries'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle  } from '@/components/ui/dialog'
 import { Download, Copy, Shuffle, Share2, Loader2 } from 'lucide-react'
-import { downloadPhoto, sleep } from '@/lib/utils'
+import { cn, downloadPhoto, extractLastIterationNumber, sleep } from '@/lib/utils'
 import { type Prediction } from 'replicate'
 import { PROMPTS as prompts } from '@/lib/data/prompts'
 import Image from 'next/image'
 import { type SettingsSchema } from '@/lib/schemas/inputSchema'
 import { Progress } from '@/components/ui/progress'
-import { extractLatestPercentage } from '@/lib/utils'
 import { type AiImage } from '@/db/schema'
-import confetti from 'canvas-confetti'
-import { useToast } from '@/lib/hooks/use-toast'
+import confetti from 'canvas-confetti'  
 import LikeButton from '@/components/buttons/like-button'
 import SettingsForm from '@/components/settings-form'
-import { settingsData, type Setting } from '@/lib/data/settings'    
+import { settingsData, type Setting } from '@/lib/data/settings'      
+import { toast } from "sonner"
 
 
 const initialSettingsState = settingsData.reduce<SettingsSchema>((acc, setting) => {
@@ -30,36 +29,23 @@ const initialSettingsState = settingsData.reduce<SettingsSchema>((acc, setting) 
 export function ImageGenerator({  children }: { children?: React.ReactNode }) {
   const [prediction, setPrediction] = useState<Prediction | null>(null)
   const [prompt, setPrompt] = useState(prompts['fresh_meat'][0])
+  const [settings, setSettings] = useState<SettingsSchema>(initialSettingsState)
   const [isGenerating, setIsGenerating] = useState(false)
   const [currentImage, setCurrentImage] = useState<AiImage | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [progress, setProgress] = useState(0)
-  const { toast } = useToast()
-  const [settings, setSettings] = useState<SettingsSchema>(initialSettingsState)
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
 
+  
   const handleSettingChange = (name: keyof SettingsSchema, value: SettingsSchema[keyof SettingsSchema]) => {
     setSettings((prev) => ({ ...prev, [name]: value }))
   }
-
-
-  useEffect(() => {
-    const preventClose = (e: BeforeUnloadEvent) => {
-      if (isGenerating) {
-        e.preventDefault()
-        e.returnValue = ''
-      }
-    }
-
-    window.addEventListener('beforeunload', preventClose)
-    return () => window.removeEventListener('beforeunload', preventClose)
-  }, [isGenerating])
-
-
 
   const handleGenerateImage = useCallback(async () => {
     setIsGenerating(true)
     setShowModal(true)
     setCurrentImage(null)
+    setImageUrl(null)
     setProgress(0)
 
     try {
@@ -69,106 +55,99 @@ export function ImageGenerator({  children }: { children?: React.ReactNode }) {
         body: JSON.stringify({ prompt, ...settings }),
       })
 
-      let result = await response.json()
-      if (response.status !== 201) 
-        throw new Error(result.detail || 'An error occurred during image generation')
-      
+      let _prediction = await response.json()
 
-      while (result.status !== 'succeeded' && result.status !== 'failed') {
+      if (response.status !== 201) {
+        throw new Error('An error occurred during image generation')
+      }
+
+      while (_prediction.status !== 'succeeded' && _prediction.status !== 'failed') {
         await sleep(1000)
-        const response = await fetch('/api/predictions/' + result.id, { cache: 'no-store' })
-        result = await response.json()
-
-        if (response.status !== 200) throw new Error(result.detail || 'An error occurred while checking prediction status')
-      
+        const response = await fetch('/api/predictions/' + _prediction.id)
+        _prediction = await response.json()
+        if (response.status !== 200) throw new Error(_prediction.detail || 'An error occurred while checking prediction status')
         // Update progress based on prediction status
-        if (result.status === 'processing') {
-          const percentage = extractLatestPercentage(result.logs)
-          if (percentage !== null) setProgress(percentage)
+        if (_prediction.status === 'processing') {
+          const lastIterationNumber = extractLastIterationNumber(_prediction.logs)
+          if (lastIterationNumber !== null && typeof lastIterationNumber === 'number') {  
+            const percentage = Math.floor(lastIterationNumber / Number(settings.num_inference_steps) * 100) || 0
+            if (percentage !== null) setProgress(percentage)
+          }
         }
       }
 
-      if (result.status === 'succeeded') {
+      if (_prediction.status === 'succeeded') {
         setProgress(100)
-        setPrediction(result)
+        setImageUrl(_prediction.output[0])
+        setPrediction(_prediction)
 
         const newAiImage = await saveAiImage({
-          imageUrl: result.hostedUrl,
-          prompt: result.input.prompt,
-          aspectRatio: result.input.aspect_ratio,
+          imageUrl: _prediction.hostedUrl,
+          prompt: _prediction.input.prompt,
+          aspectRatio: _prediction.input.aspect_ratio,
         })
-
         setCurrentImage(newAiImage)
       } else {
-        throw new Error('Image generation failed')
+        throw new Error('Image generation DID NOT SUCCEED')
       }
     } catch (err) {
-      console.error(err)
+      console.error("Error during image generation", err)
+      toast.error(err instanceof Error ? err.message : 'An error occurred during image generation')  
     } finally {
       setIsGenerating(false)
     }
   }, [prompt, settings])
 
-  const getAspectRatioClass = (ratio: SettingsSchema['aspect_ratio']) => {
-    switch (ratio) {
-      case '1:1':
-        return 'aspect-square'
-      case '16:9':
-        return 'aspect-video'
-      case '9:16':
-        return 'aspect-[9/16]'
-      default:
-        return 'aspect-square'
-    }
-  }
-
-  const aspectRatio = settings.aspect_ratio
 
   const handleCopy = useCallback(() => {
-    if (!currentImage) return
+    if (!imageUrl) return
     navigator.clipboard
-      .writeText(currentImage.imageUrl)
-      .then(() => toast({ title: 'Copied to clipboard!' }))
+      .writeText(imageUrl)
+      .then(() => toast.success('Copied to clipboard!'))
       .catch((err) => {
         console.error(err)
-        toast({ title: 'Failed to share: ' + err.name, description: err.message, variant: 'destructive' })
+        toast.error('Failed to copy: ' + err.name, { description: err.message })
       })
-  }, [currentImage?.imageUrl])
+  }, [imageUrl])
 
   const handleShare = useCallback(() => {
-    if (!currentImage) return
-
     const shareData = {
-      title: currentImage.title,
-      text: `Prompt: "${currentImage.prompt}"`,
-      url: currentImage.imageUrl,
+      title: prompt,
+      text: `Prompt: "${prompt}"`,
+      url: imageUrl,
     }
 
     if (navigator.share) {
       navigator
       .share(shareData)
-        .then(() => toast({ title: 'Shared successfully!' }))
+        .then(() => toast.success('Shared successfully!'))
         .catch((err) => {
           console.error(err)
-          toast({ title: 'Failed to share: ' + err.name, description: err.message, variant: 'destructive' })
+          toast.error('Failed to share: ' + err.name, { description: err.message })
         })
     } else {  
       navigator.clipboard
         .writeText(`${shareData.title}\n${shareData.text}\n${shareData.url}`)
-        .then(() => toast({ title: 'Share info copied to clipboard!' }))
+        .then(() => toast.success('Share info copied to clipboard!'))
         .catch((err) => {
           console.error(err)
-          toast({ title: 'Failed to copy share info: ' + err.name, description: err.message, variant: 'destructive' })
+          toast.error('Failed to copy share info: ' + err.name, { description: err.message })
         })
     }
-  }, [currentImage])
+  }, [imageUrl])
 
-  const handleRemix = useCallback(() => {
-    if (!currentImage) return
-    setPrompt(currentImage.prompt)
-    handleGenerateImage()
-    toast({ title: 'Remixing image...', description: 'Creating a new variation based on the current image.' })
-  }, [currentImage, handleGenerateImage])
+
+  useEffect(() => {
+    const preventClose = (e: BeforeUnloadEvent) => {
+      if (isGenerating) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', preventClose)
+    return () => window.removeEventListener('beforeunload', preventClose)
+  }, [isGenerating])
+
 
   // Update the useEffect hook that handles the modal
   useEffect(() => {
@@ -176,6 +155,15 @@ export function ImageGenerator({  children }: { children?: React.ReactNode }) {
       setShowModal(true)
     }
   }, [isGenerating, currentImage])
+
+
+
+  const { aspect_ratio } = settings
+  const imageHeight = useMemo(() => 400 * (aspect_ratio === '16:9' ? 9 / 16 : aspect_ratio === '9:16' ? 16 / 9 : 1), [aspect_ratio])
+  const classNames = `aspect-${aspect_ratio === '16:9' ? 'video' : aspect_ratio === '9:16' ? '[9/16]' : 'square'}`
+
+  console.log(imageHeight)
+  console.log(classNames)
 
   return (
     <>
@@ -194,21 +182,21 @@ export function ImageGenerator({  children }: { children?: React.ReactNode }) {
         <DialogContent className='sm:max-w-[450px]'>
           <Card className='w-full border-0 shadow-none'>
             <div className='flex items-center justify-between pb-4 pt-6'>
+              <DialogTitle className='text-center italic'>{!isGenerating && currentImage ? currentImage.title : '...'}</DialogTitle>      
               {!isGenerating && currentImage ? (
                 <>
-                  <h1 className='text-xl font-semibold'>{currentImage?.title}</h1>
                   <div className='flex items-center space-x-2'>
                     <LikeButton
                       showLikes={false}
                       imageId={Number(currentImage?.id)}
-                      initialLikes={Number(currentImage?.numLikes) || 0}
+                      initialLikes={0}
                       initialLikedState={false}
                     />
-                    <Button variant='secondary' size='icon' onClick={() => downloadPhoto(currentImage.imageUrl)}>
+                    <Button variant='secondary' size='icon' disabled={!imageUrl} onClick={() => downloadPhoto(imageUrl)}>
                       <Download className='h-4 w-4' />
                       <span className='sr-only'>Download</span>
                     </Button>
-                    <Button variant='secondary' size='icon' onClick={handleCopy}>
+                    <Button variant='secondary' size='icon' disabled={!imageUrl} onClick={handleCopy}>
                       <Copy className='h-4 w-4' />
                       <span className='sr-only'>Copy</span>
                     </Button>
@@ -219,17 +207,17 @@ export function ImageGenerator({  children }: { children?: React.ReactNode }) {
             <CardContent className='p-0'>
               {isGenerating ? (
                 <div
-                  className={`w-full max-w-[400px] ${getAspectRatioClass(aspectRatio)} flex flex-col items-center justify-center rounded-md bg-muted`}
+                  className={cn(`w-full max-w-[400px] flex flex-col items-center justify-center rounded-md bg-muted`, classNames)}
                 >
                   <Loader2 className='h-8 w-8 animate-spin text-primary' />
                   <p className='text-sm text-muted-foreground'>Generating image...</p>
                 </div>
-              ) : currentImage && currentImage.imageUrl ? (
-                <div className={`relative w-full max-w-[400px] ${getAspectRatioClass(aspectRatio)}`}>
+              ) : imageUrl ? (
+                <div className={cn(`relative w-full max-w-[400px]`, classNames)}> 
                   <Image
-                    src={currentImage.imageUrl}
+                    src={imageUrl}
                     width={400}
-                    height={400 * (aspectRatio === '16:9' ? 9 / 16 : aspectRatio === '9:16' ? 16 / 9 : 1)}
+                    height={imageHeight}
                     onLoad={() => {
                       confetti({
                         particleCount: 100,
@@ -252,7 +240,7 @@ export function ImageGenerator({  children }: { children?: React.ReactNode }) {
               ) : (
                 <div className='flex flex-col justify-center space-y-2'>
                   <div className='flex justify-between space-x-2'>
-                    <Button variant='outline' className='mr-2 w-full' onClick={handleRemix}>
+                    <Button variant='outline' className='mr-2 w-full' onClick={handleGenerateImage}>
                       <Shuffle className='mr-2 h-4 w-4' /> Remix
                     </Button>
                     <Button variant='outline' className='ml-2 w-full' onClick={handleShare}>

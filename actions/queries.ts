@@ -38,7 +38,6 @@ export async function saveAiImage({ imageUrl, prompt, aspectRatio }: AiImageData
   // Generate image details can be an update function to
   const imageDetails = await generateImageDetails(imageUrl, prompt)
   const { title, caption, description } = imageDetails || {}
-
   
   const [insertedAiImage] = await db
   .insert(AiImages)

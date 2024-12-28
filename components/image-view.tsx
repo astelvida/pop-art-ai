@@ -42,7 +42,7 @@ export function ImageView({ image }: { image: AiImage }) {
             width={500}
             height={imageHeight}
             sizes='50vw'
-            onLoadingComplete={() => setImageLoading(false)}
+            onLoad={() => setImageLoading(false)}
           />
           <div className='mt-6 hidden md:flex'>
             <Button variant='outline' className='w-full p-6 font-bangers text-xl' onClick={() => setIsOpen(!isOpen)}>

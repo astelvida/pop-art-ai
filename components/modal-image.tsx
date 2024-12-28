@@ -1,6 +1,6 @@
 'use client'
 
-import { Dialog, DialogContent, DialogClose, DialogPortal, DialogOverlay } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogClose, DialogPortal, DialogOverlay, DialogTitle } from '@/components/ui/dialog'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
@@ -17,6 +17,7 @@ export function ModalImage({ children }: { children: React.ReactNode }) {
       <DialogPortal container={document.getElementById('modal-root')}>
         <DialogOverlay />
         <DialogContent hideCloseButton={true} className='mx-auto h-full max-w-[1960px] border-none'>
+          <DialogTitle className='text-center italic' aria-hidden={true}>IMAGE DETAILS</DialogTitle>      
           {children}
           <DialogClose asChild>
             <Button

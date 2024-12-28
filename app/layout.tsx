@@ -1,11 +1,13 @@
 import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import './globals.css'
-import { ClerkProvider } from '@clerk/nextjs'
+import { ClerkProvider, SignedIn, SignedOut, SignIn } from '@clerk/nextjs'    
 import { Bangers, Permanent_Marker } from 'next/font/google'
 import { Toaster } from '@/components/ui/toaster'
-import LoadTime from '@/components/load-time'
 import { ThemeProvider } from '@/components/theme-provider'
+import { Suspense } from 'react'
+import { Toaster as SonnerToaster } from "sonner";
+
 // If loading a variable font, you don't need to specify the font weight
 const bangers = Bangers({
   subsets: ['latin'],
@@ -50,17 +52,17 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${bangers.variable} ${marker.variable} antialiased`}
       >
-        {/* <ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange> */}
-          <ClerkProvider>
-            <div className='flex min-h-screen flex-col'>
-              {children}
-              {modal}
-            </div>
-            <div id='modal-root' />
-            {/* <Toaster /> */}
-          </ClerkProvider>
-        {/* </ThemeProvider> */}
-        {/* <LoadTime /> */}
+        <ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
+            <ClerkProvider>
+              <div className='flex min-h-screen flex-col'>
+                <Toaster />
+                <SonnerToaster position="top-center" richColors />
+                {children}
+                {modal}
+              </div>
+              <div id='modal-root' />
+            </ClerkProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

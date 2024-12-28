@@ -8,7 +8,6 @@ import { ArrowTopRightIcon } from '@radix-ui/react-icons'
 import { randomPrompt, randomPrompts, shuffle } from '@/lib/utils'
 import { SamplePromptTag } from '@/lib/types'
 import { useSidebar } from '@/components/ui/sidebar'
-import { useToast } from '@/lib/hooks/use-toast'
 import { PROMPTS as prompts } from '@/lib/data/prompts'  
 import {
   Popover,
@@ -20,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import SettingsForm from '@/components/settings-form'
 import { settingsData } from '@/lib/data/settings'
 import { type SettingsSchema } from '@/lib/schemas/inputSchema'
+import { toast } from 'sonner'
 
 interface PromptSuggestionsProps {
   setPrompt: (suggestion: string) => void
@@ -45,28 +45,10 @@ export default function PromptForm({
   children,
 }: PromptInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const { width } = useWindowSize()
   const [promptCategory, setPromptCategory] = useState<keyof typeof prompts>('fresh_meat')
-  const { toast } = useToast()
   const [suggestions, setSuggestions] = useState<string[]>([])
 
   // Use useCallback to memoize the function
-  const generateSuggestions = useCallback(() => {
-    const newSuggestions = randomPrompts(promptCategory as SamplePromptTag)
-    setSuggestions(newSuggestions)
-  }, [promptCategory])
-
-  // Use useEffect to generate suggestions on mount and when promptCategory changes
-  useEffect(() => {
-    generateSuggestions()
-  }, [generateSuggestions])
-
-  useEffect(() => {
-    if (textareaRef.current) {
-      adjustHeight()
-    }
-  }, [prompt])
-
   const adjustHeight = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto'
@@ -74,24 +56,21 @@ export default function PromptForm({
     }
   }
 
-  const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setPrompt(e.target.value)
-    adjustHeight()
-  }
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (prompt.trim()) {
       handleGenerateImage()
-    }
-    if (width && width > 768) {
-      textareaRef.current?.focus()
     }
   }
 
   const truncateSuggestion = (suggestion: string, maxLength: number) => {
     return suggestion.length > maxLength ? suggestion.slice(0, maxLength - 3) + '...' : suggestion
   }
+  // Use useEffect to generate suggestions on mount and when promptCategory changes
+  useEffect(() => {
+    setSuggestions(randomPrompts(promptCategory))    
+    adjustHeight()
+  }, [promptCategory])
 
   return (
     <>
@@ -103,16 +82,15 @@ export default function PromptForm({
               prompt.length > 0 ? '' : 'Write a pop art comic book scene or start with some of the suggestions below'
             }
             value={prompt}
-            onChange={handlePromptChange}
+            onChange={(e) => setPrompt(e.target.value)}
             className='min-h-[24px] resize-none overflow-hidden rounded-xl border-none bg-muted px-4 pb-16 pr-16 pt-4 text-base focus-visible:ring-0 focus-visible:ring-offset-0'
             rows={3}
+            // defaultValue={settings.prompt}
             onKeyDown={(event) => {
               if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault()
                 if (isGenerating) {
-                  toast({
-                    title: 'Please wait for the model to finish its response!',
-                  })
+                  toast.info('Please wait for the model to finish its response!')
                 } else {
                   handleSubmit(event)
                 }
@@ -209,7 +187,7 @@ export default function PromptForm({
       <div className='flex flex-wrap justify-center gap-2 space-x-2 pb-2'>
         {suggestions.map((suggestion, index) => (
           <Button
-            key={index}
+            key={suggestion}
             variant='outline'
             className='flex-shrink-0 rounded-full'
             onClick={(e) => {

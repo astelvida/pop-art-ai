@@ -27,10 +27,19 @@ export function Header({ children }: { children?: React.ReactNode }) {
 
       <div className='flex items-center space-x-4'>
         <SignedIn>
-          <UserButton />
+          <UserButton 
+            afterSignOutUrl='/' 
+            appearance={{
+              elements: {
+                userButtonAvatarBox: 'size-6',
+              },
+            }}
+          />
         </SignedIn>
         <SignedOut>
-          <SignInButton />
+          <SignInButton>
+            <Button>Sign In</Button>
+          </SignInButton>
         </SignedOut>
         <Link href='https://github.com/astelvida/pop-art-ai' target='_blank' rel='noopener noreferrer'>
           <GitHubLogoIcon className='h-8 w-8' />
