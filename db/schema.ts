@@ -1,11 +1,24 @@
-import { integer, text, boolean, pgTable, serial, varchar, timestamp, index, uuid, vector } from 'drizzle-orm/pg-core'
+import {
+  integer,
+  text,
+  boolean,
+  pgTable,
+  serial,
+  varchar,
+  timestamp,
+  index,
+  uuid,
+  vector,
+} from 'drizzle-orm/pg-core'
 import { InferInsertModel, InferSelectModel, relations, sql } from 'drizzle-orm'
 
 export const Users = pgTable('users', {
   id: varchar('id', { length: 255 }).primaryKey(),
   name: varchar('name', { length: 255 }),
   email: varchar('email', { length: 255 }).notNull().unique(),
+  avatarUrl: varchar('avatarUrl', { length: 2083 }),
   credits: integer('credits').default(10),
+  stripeCustomerId: varchar('stripeCustomerId', { length: 255 }).unique(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at')
     .notNull()
@@ -16,18 +29,19 @@ export const AiImages = pgTable(
   'aiImages',
   {
     id: serial('id').primaryKey(),
-    userId: varchar('userId', { length: 255 })
-      .notNull()
-      .references(() => Users.id),
-    imageUrl: varchar('imageUrl', { length: 2083 }).notNull().unique(), // Max URL length
-    aspectRatio: varchar('aspectRatio', { length: 255 }).notNull(),
     prompt: text('prompt').notNull(),
+    aspectRatio: varchar('aspectRatio', { length: 255 }).notNull(),
+    imageUrl: varchar('imageUrl', { length: 2083 }).notNull().unique(), // Max URL length
     title: text('title'),
     caption: text('caption'),
     description: text('description'),
+
     numLikes: integer('numLikes').default(0),
     // embedding: sql<number[]>`vector`,
     embedding: vector('embedding', { dimensions: 1536 }),
+    userId: varchar('userId', { length: 255 })
+      .notNull()
+      .references(() => Users.id),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at')
       .notNull()
@@ -35,8 +49,11 @@ export const AiImages = pgTable(
   },
   (table) => ({
     userIdIdx: index('aiImage_userId_idx').on(table.userId),
-    embeddingIdx: index('aiImage_embedding_idx').using('hnsw', table.embedding.op('vector_cosine_ops')),
-  }),
+    embeddingIdx: index('aiImage_embedding_idx').using(
+      'hnsw',
+      table.embedding.op('vector_cosine_ops')
+    ),
+  })
 )
 
 export const Likes = pgTable(
@@ -53,8 +70,20 @@ export const Likes = pgTable(
   },
   (table) => ({
     userIdAiImageIdIdx: index('likes_userId_aiImageId_idx').on(table.userId, table.aiImageId),
-  }),
+  })
 )
+
+export const Payments = pgTable('payments', {
+  id: serial('id').primaryKey(),
+  userId: varchar('userId', { length: 255 })
+    .notNull()
+    .references(() => Users.id),
+  amount: integer('amount').notNull(), // Amount in cents
+  credits: integer('credits').notNull(), // Number of credits purchased
+  status: varchar('status', { length: 50 }).notNull(), // 'succeeded', 'pending', 'failed'
+  stripePaymentId: varchar('stripePaymentId', { length: 255 }).unique(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+})
 
 export const usersRelations = relations(Users, ({ many }) => ({
   aiImages: many(AiImages),
@@ -80,6 +109,13 @@ export const likesRelations = relations(Likes, ({ one }) => ({
   }),
 }))
 
+export const paymentsRelations = relations(Payments, ({ one }) => ({
+  user: one(Users, {
+    fields: [Payments.userId],
+    references: [Users.id],
+  }),
+}))
+
 export type User = InferSelectModel<typeof Users>
 export type UserInsert = InferInsertModel<typeof Users>
 
@@ -88,6 +124,9 @@ export type AiImageInsert = InferInsertModel<typeof AiImages>
 
 export type Like = InferSelectModel<typeof Likes>
 export type LikeInsert = InferInsertModel<typeof Likes>
+
+export type Payment = InferSelectModel<typeof Payments>
+export type PaymentInsert = InferInsertModel<typeof Payments>
 
 export interface AiImageResult extends AiImage {
   isLikedByUser: boolean

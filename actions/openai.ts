@@ -176,8 +176,6 @@ export async function embedText(text: string) {
     input: text,
     encoding_format: 'float',
   })
-
-  console.log(result.data[0].embedding)
   return result.data[0].embedding
 }
 

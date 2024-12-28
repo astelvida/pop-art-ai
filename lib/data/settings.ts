@@ -1,9 +1,11 @@
+import { type SettingsSchema } from '@/lib/schemas/inputSchema'
+
 export type Setting = {
-  name: string
+  name: keyof SettingsSchema
   type: 'text' | 'number' | 'select'
   label: string
   description: string
-  default: string | number
+  default: SettingsSchema[keyof SettingsSchema]
   options?: string[]
   min?: number
   max?: number
@@ -11,18 +13,12 @@ export type Setting = {
 }
 
 export const settingsData: Setting[] = [
-  // {
-  //   name: 'prompt',
-  //   type: 'text',
-  //   label: 'Prompt',
-  //   description: 'Prompt for generated image. If you include the `trigger_word` used in the training process you are more likely to activate the trained object, style, or concept in the resulting image.',
-  //   default: '',
-  // },
   {
     name: 'num_inference_steps',
     type: 'number',
     label: 'Num Inference Steps',
-    description: 'Number of inference steps. More steps can give more detailed images, but take longer.',
+    description:
+      'Number of inference steps. More steps can give more detailed images, but take longer.',
     default: 28,
     min: 1,
     max: 50,
@@ -45,7 +41,7 @@ export const settingsData: Setting[] = [
     description:
       "Aspect ratio for the generated image in text-to-image mode. The size will always be 1 megapixel, i.e. 1024x1024 if aspect ratio is 1:1. To use arbitrary width and height, set aspect ratio to 'custom'. Note: Ignored in img2img and inpainting modes.",
     default: '1:1',
-    options: ['1:1', '16:9', '9:16' /* '3:4', '4:3'  '21:9', '3:2', '2:3', '4:5', '5:4', 'custom' */],
+    options: ['1:1', '16:9', '9:16'],
   },
   {
     name: 'output_format',

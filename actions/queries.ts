@@ -7,15 +7,15 @@ import { db } from '@/db/drizzle'
 import { auth, currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { pp } from '@/lib/pprint'
-import { Users } from '@/db/schema'
 import { generateImageDetails, embedText } from '@/actions/openai'
 import fs from 'fs'
+import { cache } from 'react'
 
 export const handleClose = async () => {
   redirect('/')
 }
 
-const { AiImages, Likes } = schema
+const { AiImages, Likes, Users } = schema
 
 const { embedding: _, ...rest } = getTableColumns(AiImages)
 
@@ -30,53 +30,101 @@ export type AiImageData = {
   aspectRatio: '1:1' | '16:9' | '9:16'
 }
 
+// First function to create basic image record with custom ID
+export async function createAiImage(id: number, { imageUrl, prompt, aspectRatio }: AiImageData) {
+  const { userId } = await auth()
+  if (!userId) {
+    return new Error('Unauthorized')
+  }
+
+  const [insertedAiImage] = await db
+    .insert(AiImages)
+    .values({
+      id,
+      userId,
+      imageUrl,
+      aspectRatio,
+      prompt,
+    })
+    .returning()
+
+  revalidatePath('/')
+  revalidatePath(`/img/${insertedAiImage.id}`)
+  return insertedAiImage
+}
+
+// Second function to update with AI-generated details
+export async function updateAiImageDetails(imageId: number) {
+  const image = await getAiImage(imageId)
+  if (!image || image instanceof Error) {
+    return new Error('Image not found')
+  }
+
+  const imageDetails = await generateImageDetails(image.imageUrl, image.prompt)
+  const { title, caption, description } = imageDetails || {}
+
+  const [updatedImage] = await db
+    .update(AiImages)
+    .set({
+      title,
+      caption,
+      description,
+    })
+    .where(eq(AiImages.id, imageId))
+    .returning()
+
+  const text = `${title}\n${caption}\n${description}`
+  await embedText(text)
+
+  revalidatePath('/')
+  revalidatePath(`/img/${imageId}`)
+
+  return updatedImage
+}
+
+// You can keep the original saveAiImage as a convenience function that combines both:
 export async function saveAiImage({ imageUrl, prompt, aspectRatio }: AiImageData) {
   const { userId } = await auth()
   if (!userId) {
     return new Error('Unauthorized')
   }
-  // Generate image details can be an update function to
+
   const imageDetails = await generateImageDetails(imageUrl, prompt)
   const { title, caption, description } = imageDetails || {}
-  
+
   const [insertedAiImage] = await db
-  .insert(AiImages)
-  .values({
-    userId,
-    imageUrl,
-    aspectRatio,
-    prompt,
-    title,
-    caption,
-    description,
-  })
-  .returning()
-
-
-  // fs.writeFileSync('imageDetails.json', JSON.stringify(imageDetails, null, 2))
+    .insert(AiImages)
+    .values({
+      userId,
+      imageUrl,
+      aspectRatio,
+      prompt,
+      title,
+      caption,
+      description,
+    })
+    .returning()
 
   const text = `${title}\n${caption}\n${description}`
   embedText(text)
-  // pp(insertedAiImage, 'INSERTED AI IMAGE')
+
   revalidatePath('/')
   revalidatePath(`/img/${insertedAiImage.id}`)
 
   return insertedAiImage
 }
 
-export async function getAiImage(id: string | number) {
+export async function getAiImage(imageId: string | number) {
   const { userId } = await auth()
   if (!userId) return new Error('Unauthorized')
-    
+
   const [image] = await db
     .select()
     .from(AiImages)
-    .where(eq(AiImages.id, Number(id)))
-    
-  if (!image) {
-    redirect('/')
-    return null
-  }
+    .where(eq(AiImages.id, Number(imageId)))
+    .limit(1)
+
+  pp(image, 'image')
 
   return image
 }
@@ -86,35 +134,31 @@ export async function deleteAiImage(id: string) {
   if (!userId) return new Error('Unauthorized')
 
   try {
-    await db
-      .delete(AiImages)
-    .where(and(eq(AiImages.id, Number(id)), eq(AiImages.userId, userId)))
+    await db.delete(AiImages).where(and(eq(AiImages.id, Number(id)), eq(AiImages.userId, userId)))
 
     revalidatePath('/')
-    return { message: "Deleted Image." };
-
+    return { message: 'Deleted Image.' }
   } catch (error) {
-    return { message: "Database Error: Failed to Delete Image." };
+    return { message: 'Database Error: Failed to Delete Image.' }
   }
 }
 
 export async function createUser() {
-  const { userId } = await auth()
-  if (!userId) return new Error('User not found')
+  const user = await currentUser()
+  if (!user) return new Error('User not found')
 
-  const myUser = await currentUser()
-  if (!myUser || !userId) return new Error('User not found')
+  const { id, firstName, lastName, imageUrl, emailAddresses, primaryEmailAddressId } = user
 
-  const { firstName, lastName, id, emailAddresses } = myUser
-
-  const userName = firstName || lastName ? `${firstName} ${lastName}` : null
+  const fullName = firstName || lastName ? `${firstName} ${lastName}` : null
+  const email = emailAddresses.find((email) => email.id === primaryEmailAddressId)?.emailAddress
 
   const [insertedUser] = await db
     .insert(Users)
     .values({
       id,
-      name: userName,
-      email: emailAddresses[0].emailAddress,
+      name: fullName,
+      email: email,
+      avatarUrl: imageUrl,
     })
     .returning()
 
@@ -128,7 +172,7 @@ type GetImagesProps = {
 }
 
 export async function getImages(q = '', { limit = 10, offset = 0 }: GetImagesProps = {}) {
-  const authUser = await auth()  
+  const authUser = await auth()
   console.log(authUser, 'authUser')
 
   const userId = authUser.userId
@@ -165,12 +209,14 @@ export async function getImages(q = '', { limit = 10, offset = 0 }: GetImagesPro
     .innerJoin(Users, eq(AiImages.userId, Users.id))
     // .where(like(AiImages.title, `%${q}%`))
     .orderBy(desc(AiImages.createdAt))
-    // .limit(limit)
-    // .offset(offset)
+  // .limit(limit)
+  // .offset(offset)
 
-    
   return images
 }
+
+
+
 
 export async function toggleLike(imageId: number) {
   const { userId } = await auth()
@@ -214,53 +260,54 @@ export async function toggleLike(imageId: number) {
 
     revalidatePath('/')
     revalidatePath(`/img/${imageId}`)
- 
+
     return { success: true, liked: true }
   }
 }
 
-
 // images: schema.AiImageResult
 export async function embedImage(image: schema.AiImageResult) {
+  const { id, title, caption, description } = image
 
-    const {id, title, caption, description} = image
-    
-    const text = `${title}\n${caption}\n${description}`
-  
-    const embedding = await embedText(text)
+  const text = `${title}\n${caption}\n${description}`
 
-    await db.update(AiImages).set({ embedding }).where(eq(AiImages.id, image.id))
+  const embedding = await embedText(text)
 
-    console.log(`Embedded image ${image.id}`) 
+  await db.update(AiImages).set({ embedding }).where(eq(AiImages.id, image.id))
+
+  console.log(`Embedded image ${image.id}`)
 }
 // images: schema.AiImageResult
 export async function embedAiImages() {
-
   const imageIds = await db
-    .select({id: AiImages.id, title: AiImages.title, caption: AiImages.caption, description: AiImages.description})
+    .select({
+      id: AiImages.id,
+      title: AiImages.title,
+      caption: AiImages.caption,
+      description: AiImages.description,
+    })
     .from(AiImages)
     .where(not(exists(AiImages.embedding)))
   console.log(imageIds)
 
-  for (const image of imageIds) { 
-    const {id, title, caption, description} = image
-    
+  for (const image of imageIds) {
+    const { id, title, caption, description } = image
+
     const text = `${title}\n${caption}\n${description}`
-  
+
     const embedding = await embedText(text)
 
     await db.update(AiImages).set({ embedding }).where(eq(AiImages.id, image.id))
 
-    console.log(`Embedded image ${image.id}`) 
-  } 
+    console.log(`Embedded image ${image.id}`)
+  }
 
   console.log(`EMBEDDINGS updated ${imageIds.length} images`)
 
   return imageIds
 }
 
-
-// embedAiImages() 
+// embedAiImages()
 
 // const imageIds = [85, 100, 89, 90, 91]
 
@@ -286,3 +333,8 @@ export async function embedAiImages() {
 //     return handleError(error)
 //   }
 // }
+
+export const getAiImageCount = cache(async (): Promise<number> => {
+  const [count] = await db.select({ count: sql<number>`count(*)` }).from(AiImages)
+  return count.count
+})

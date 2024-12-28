@@ -23,7 +23,7 @@ export default async function Gallery({ tab = '', q = ''}: PageProps) {
         <div key={image.id} className='group relative mb-5'>
           <Link
             href={`/img/${image.id}`}
-            className='after:content after:shadow-highlight m b-5 group relative block w-full cursor-zoom-in after:pointer-events-none after:absolute after:inset-0 after:rounded-lg'
+            className='after:content after:shadow-highlight m b-5 group relative block w-full after:pointer-events-none after:absolute after:inset-0 after:rounded-lg'
           >
             <Image
               alt={`Generated image ${image.id} - ${image.title}`}

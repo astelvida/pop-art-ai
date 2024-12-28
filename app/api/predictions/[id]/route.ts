@@ -1,6 +1,5 @@
-import Replicate from 'replicate'
 import { NextResponse } from 'next/server'
-import { getFileFromUrl } from '@/lib/upload-file'
+import Replicate, { Prediction } from 'replicate'
 
 const replciateUrl = 'https://replicate.delivery/yhqm/8PbXPik8rNIUMNE8GWAkoteREu4SO9Ta1qU1dIyROVppe6tTA/out-0.webp'
 const predictionId = 'yhqm'
@@ -16,11 +15,15 @@ const replicate = new Replicate({
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const prediction = await replicate.predictions.get(id)
+  const prediction: Prediction = await replicate.predictions.get(id)
 
   if (prediction.status === 'succeeded') {
-    prediction.hostedUrl = await getFileFromUrl(prediction)
-    console.log('GET prediction', prediction.hostedUrl)
+  
+    console.log('GET prediction SUCCEEDED\n', prediction.output)
+
+    console.log('GET prediction OUTPUT\n', prediction.output[0])
+
+    console.log('GET prediction OUTPUT TYPE\n', typeof prediction.output[0], prediction.output[0] instanceof)
   }
 
 
