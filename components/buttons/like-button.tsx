@@ -1,39 +1,66 @@
 'use client'
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
 import { toggleLike } from '@/actions/queries'
+import { Button } from '@/components/ui/button'
+import { useToast } from '@/hooks/use-toast'
 import { Heart } from 'lucide-react'
+import { useState } from 'react'
 
-export default function LikeButton({
-  imageId,
-  initialLikes,
-  initialLikedState,
-  showLikes = true,
-}: {
+interface LikeButtonProps {
   imageId: number
-  initialLikes: number
-  initialLikedState: boolean
-  showLikes?: boolean
-}) {
-  const [likes, setLikes] = useState(initialLikes)
-  const [isLiked, setIsLiked] = useState(initialLikedState)
+  initialLiked: boolean
+  initialLikeCount: number
+}
+
+export default function LikeButton({ imageId, initialLiked, initialLikeCount }: LikeButtonProps) {
+  const [isLiked, setIsLiked] = useState(initialLiked)
+  const [likeCount, setLikeCount] = useState(initialLikeCount)
   const [isLoading, setIsLoading] = useState(false)
+  const { toast } = useToast()
 
   const handleToggleLike = async () => {
     setIsLoading(true)
-    const result = await toggleLike(imageId)
-    setIsLoading(false)
-    if (result.success) {
-      setIsLiked(result.liked)
-      setLikes((prev) => (result.liked ? prev + 1 : prev - 1))
+    // Optimistic update
+    setIsLiked(!isLiked)
+    setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1))
+
+    try {
+      const response = await toggleLike(imageId)
+
+      if (!response.success) {
+        // Revert optimistic update if failed
+        setIsLiked(isLiked)
+        setLikeCount(likeCount)
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: response.error || 'Failed to toggle like',
+        })
+      }
+    } catch (error) {
+      // Revert optimistic update if failed
+      setIsLiked(isLiked)
+      setLikeCount(likeCount)
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to toggle like',
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
   return (
-    <Button onClick={handleToggleLike} disabled={isLoading} variant='secondary' size='icon'>
-      <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
-      {showLikes && likes}
+    <Button
+      variant="ghost"
+      size="sm"
+      disabled={isLoading}
+      onClick={handleToggleLike}
+      className="gap-2"
+    >
+      <Heart className={`h-4 w-4 ${isLiked ? 'fill-current text-red-500' : ''}`} />
+      <span>{likeCount}</span>
     </Button>
   )
 }

@@ -231,11 +231,11 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
                   <>
                     <div className="flex items-center space-x-2">
                       <LikeButton
-                        showLikes={false}
                         imageId={Number(currentImage?.id)}
-                        initialLikes={0}
-                        initialLikedState={false}
+                        initialLiked={false}
+                        initialLikeCount={0}
                       />
+
                       <Button
                         variant="secondary"
                         size="icon"

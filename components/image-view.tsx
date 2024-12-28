@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { X, LoaderCircle } from 'lucide-react'
 import { DownloadButton } from '@/components/buttons/download-button'
 import { ExternalLinkButton } from '@/components/buttons/external-link-button'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { type AiImage } from '@/db/schema'
 import LikeButton from '@/components/buttons/like-button'
 import { ImageDetails } from './image-details'
@@ -60,21 +60,26 @@ export function ImageView({ image }: { image: AiImage }) {
             <DownloadButton url={imageUrl} title={title} />
             <LikeButton
               imageId={id}
-              initialLikes={numLikes || 0}
-              initialLikedState={liked || false}
-              showLikes={false}
+              initialLiked={liked || false}
+              initialLikeCount={numLikes || 0}
             />
           </div>
         </div>
       </div>
 
-      <ImageDetails
-        title={title}
-        caption={caption}
-        description={description}
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
-      />
+      <Suspense
+        fallback={
+          <div className="flex h-full items-center justify-center">Loading Image Details...</div>
+        }
+      >
+        <ImageDetails
+          title={title}
+          caption={caption}
+          description={description}
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+        />
+      </Suspense>
     </div>
   )
 }

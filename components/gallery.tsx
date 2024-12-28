@@ -3,9 +3,8 @@ import Image from 'next/image'
 import { DownloadButton } from './buttons/download-button'
 import { Skeleton } from '@/components/ui/skeleton'
 import DeleteButton from './buttons/delete-button'
-import { LikeButton } from './LikeButton'
+import LikeButton from './buttons/like-button'
 import { getImages } from '@/actions/queries'
-import { type AiImage } from '@/db/schema'
 
 type PageProps = {
   tab?: 'explore' | 'favorites' | 'library'
@@ -51,11 +50,13 @@ export default async function Gallery({ tab = 'explore', q = '' }: PageProps) {
             </Link>
             <div className="absolute right-2 top-2 flex space-x-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
               <p className="rounded-md bg-muted px-2 py-1 text-sm">{image.numLikes} likes</p>
+
               <LikeButton
                 imageId={image.id}
                 initialLiked={image.isLikedByUser}
-                initialLikeCount={image.numLikes}
+                initialLikeCount={image.numLikes || 0}
               />
+
               <DeleteButton imageId={image.id} />
               <DownloadButton url={image.imageUrl} title={image.title} />
             </div>
