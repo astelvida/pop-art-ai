@@ -1,12 +1,5 @@
-'use client'
 import { Button } from '@/components/ui/button'
-import Image from 'next/image'
-import { X, LoaderCircle } from 'lucide-react'
-import { DownloadButton } from '@/components/buttons/download-button'
-import { ExternalLinkButton } from '@/components/buttons/external-link-button'
-import { useState } from 'react'
-import { type AiImage } from '@/db/schema'
-import LikeButton from '@/components/buttons/like-button'
+import { X } from 'lucide-react'
 
 export function ImageDetails({
   title,

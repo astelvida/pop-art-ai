@@ -1,3 +1,5 @@
+'use server'
+
 import { UTApi } from 'uploadthing/server'
 import { type Prediction } from 'replicate'
 import { db } from '@/db/drizzle'
@@ -10,7 +12,7 @@ export type MaybeURL = string | URL
 export type URLWithOverrides = { url: MaybeURL; name?: string; customId?: string }
 
 export async function getFileFromUrl(prediction: Prediction) {
-  try { 
+  try {
     const file = await fetch(prediction.output[0])
       .then((res) => res.blob())
       .then((blob) => new File([blob], `${prediction.id}.${prediction.input.output_format}`))
@@ -43,7 +45,11 @@ export async function updateUrls() {
     const newUrl = response?.data?.appUrl
     console.log(newUrl)
 
-    const updated = await db.update(AiImages).set({ imageUrl: newUrl }).where(eq(AiImages.id, url.id)).returning()
+    const updated = await db
+      .update(AiImages)
+      .set({ imageUrl: newUrl })
+      .where(eq(AiImages.id, url.id))
+      .returning()
 
     updatedUrls.push(updated[0].imageUrl)
   }

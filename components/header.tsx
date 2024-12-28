@@ -1,14 +1,12 @@
 'use client'
-import React, { Suspense, useState } from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
 import { GitHubLogoIcon } from '@radix-ui/react-icons'
 import { Menu, X } from 'lucide-react'
 import { ThemeToggle } from './theme-toggle'
-import Header2 from './header2'
 
 export function Header({ children }: { children?: React.ReactNode }) {
   const pathname = usePathname()
@@ -18,8 +16,6 @@ export function Header({ children }: { children?: React.ReactNode }) {
     e.preventDefault()
     setIsMenuOpen(!isMenuOpen)
   }
-
-  // return <Header2 />
 
   return (
     <header className="flex items-center justify-between bg-background">

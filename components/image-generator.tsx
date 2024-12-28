@@ -5,7 +5,7 @@ import PromptForm from '@/components/prompt-form'
 import { saveAiImage } from '@/actions/queries'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Download, Copy, Shuffle, Share2, Loader2 } from 'lucide-react'
 import { cn, downloadPhoto, extractLastIterationNumber, sleep } from '@/lib/utils'
 import { type Prediction } from 'replicate'
@@ -19,8 +19,8 @@ import LikeButton from '@/components/buttons/like-button'
 import SettingsForm from '@/components/settings-form'
 import { settingsData } from '@/lib/data/settings'
 import { toast } from 'sonner'
-import { ImageDetails } from './image-details'
 import { CreditDisplay } from './credit-display'
+import { getFileFromUrl } from '@/lib/upload-file'
 
 const initialSettingsState = settingsData.reduce<SettingsSchema>((acc, setting) => {
   if (typeof setting.default !== 'undefined') {
@@ -98,14 +98,18 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
 
       if (prediction.status === 'succeeded') {
         setProgress(100)
-        setImageUrl(prediction.output[0])
+
+        const newImageUrl = await getFileFromUrl(prediction)
+        setImageUrl(newImageUrl)
+
         setPrediction(prediction)
 
         const newAiImage = await saveAiImage({
-          imageUrl: prediction.hostedUrl,
+          imageUrl: newImageUrl,
           prompt: prediction.input.prompt,
           aspectRatio: prediction.input.aspect_ratio,
         })
+
         if (newAiImage instanceof Error) {
           throw newAiImage
         }

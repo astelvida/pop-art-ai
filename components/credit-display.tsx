@@ -23,6 +23,7 @@ export function CreditDisplay({ credits }: CreditDisplayProps) {
   const handlePurchaseCredits = async (tier: string) => {
     try {
       setIsLoading(tier)
+      console.log('tier', tier)
       const response = await fetch('/api/credits/checkout', {
         method: 'POST',
         headers: {
@@ -63,7 +64,7 @@ export function CreditDisplay({ credits }: CreditDisplayProps) {
               </div>
               <Button
                 onClick={() => handlePurchaseCredits(tier)}
-                disabled={!!isLoading}
+                disabled={isLoading === tier}
                 variant="default"
               >
                 {isLoading === tier ? 'Loading...' : 'Purchase'}

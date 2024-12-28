@@ -10,6 +10,7 @@ import { pp } from '@/lib/pprint'
 import { generateImageDetails, embedText } from '@/actions/openai'
 import fs from 'fs'
 import { cache } from 'react'
+import { getFileFromUrl } from '@/lib/upload-file'
 
 export const handleClose = async () => {
   redirect('/')
@@ -90,6 +91,7 @@ export async function saveAiImage({ imageUrl, prompt, aspectRatio }: AiImageData
   }
 
   const imageDetails = await generateImageDetails(imageUrl, prompt)
+
   const { title, caption, description } = imageDetails || {}
 
   const [insertedAiImage] = await db
@@ -214,9 +216,6 @@ export async function getImages(q = '', { limit = 10, offset = 0 }: GetImagesPro
 
   return images
 }
-
-
-
 
 export async function toggleLike(imageId: number) {
   const { userId } = await auth()

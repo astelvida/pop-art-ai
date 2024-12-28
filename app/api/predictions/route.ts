@@ -47,26 +47,23 @@ export async function POST(req: Request) {
     .where(eq(Users.id, userId))
     .limit(1)
 
-  const currentCredits = user?.credits ?? 0
-  if (!user || currentCredits < CREDITS_PER_GENERATION) {
-    return new Response(
-      JSON.stringify({
-        error: 'Insufficient credits',
-        message: 'Please purchase more credits to continue generating images.',
-        currentCredits,
-        requiredCredits: CREDITS_PER_GENERATION,
-      }),
-      { status: 402 }
-    )
-  }
+  //  UNCOMMENT FOR NOW TO TEST
+  // const currentCredits = user?.credits ?? 0
+  // if (!user || currentCredits < CREDITS_PER_GENERATION) {
+  //   return new Response(
+  //     JSON.stringify({
+  //       error: 'Insufficient credits',
+  //       message: 'Please purchase more credits to continue generating images.',
+  //       currentCredits,
+  //       requiredCredits: CREDITS_PER_GENERATION - currentCredits,
+  //     }),
+  //     { status: 402 }
+  //   )
+  // }
 
   const { prompt, ...settingsData } = await req.json()
 
-  prompt.search('pop art comic book')
-
   const input = { ...settingsData, prompt: enhancePrompt(prompt) }
-
-  console.log('input', input)
 
   try {
     const prediction = await replicate.predictions.create({
