@@ -6,13 +6,14 @@ import DeleteButton from './buttons/delete-button'
 import { LikeButton } from './LikeButton'
 import { getImages } from '@/actions/queries'
 import { type AiImage } from '@/db/schema'
+
 type PageProps = {
-  tab?: 'library' | 'favorites' | ''
+  tab?: 'explore' | 'favorites' | 'library'
   q?: string
 }
 
-export default async function Gallery({ tab = '', q = '' }: PageProps) {
-  const images = await getImages(q)
+export default async function Gallery({ tab = 'explore', q = '' }: PageProps) {
+  const images = await getImages({ tab, q })
 
   return (
     <div className="columns-1 gap-4 pt-8 sm:columns-2 xl:columns-3 2xl:columns-4">

@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import { PROMPTS as promptsData } from '@/lib/data/prompts'  
+import { REGROUPED_PROMPTS as promptsData } from '@/lib/data/prompts'
 import { customAlphabet } from 'nanoid'
 // This function has been moved to server-utils.ts
 export function cn(...inputs: ClassValue[]) {
@@ -10,35 +10,36 @@ export function cn(...inputs: ClassValue[]) {
 import { SamplePrompts, SamplePromptTag } from '@/lib/types'
 
 export function getPercentageFromLine(line: string) {
-  const match = line.trim().match(/^(\d+)%/);
+  const match = line.trim().match(/^(\d+)%/)
   console.log(match)
-  return match ? match[1] : null;
+  return match ? match[1] : null
 }
 
 export function extractLastIterationNumber(logs: string) {
-    // Match digits before 'it' at the start of the last line
-    const pattern = /^(\d+)it/m;
-    const lines = logs.trim().split('\n');
-    const lastLine = lines[lines.length - 1];
-    const match = lastLine.match(pattern);
-    console.log('match', match?.[1])
-    return match ? parseInt(match[1]) : null;
+  // Match digits before 'it' at the start of the last line
+  const pattern = /^(\d+)it/m
+  const lines = logs.trim().split('\n')
+  const lastLine = lines[lines.length - 1]
+  const match = lastLine.match(pattern)
+  console.log('match', match?.[1])
+  return match ? parseInt(match[1]) : null
 }
-
 
 export function extractLatestPercentage(logs: string) {
   // Split the logs into individual lines
-  const lastLine = logs.trim().split("\n").pop()?.trim()
+  const lastLine = logs.trim().split('\n').pop()?.trim()
   console.log('lastLine', lastLine)
-  const lastPercentage = getPercentageFromLine(lastLine || "")
+  const lastPercentage = getPercentageFromLine(lastLine || '')
 
   console.log('lastPercentage', lastPercentage)
-  return lastPercentage;
+  return lastPercentage
 }
 
-
 // 7-character random string
-export const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 7)
+export const nanoid = customAlphabet(
+  '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
+  7
+)
 
 export function nFormatter(num: number, digits?: number) {
   if (!num) return '0'
@@ -75,7 +76,7 @@ export function randomPrompt(key: SamplePromptTag = 'fresh_meat') {
 }
 
 export function randomPrompts(key: SamplePromptTag = 'fresh_meat', num: number = 5): string[] {
-  const shuffled = promptsData[key].slice().sort(() => 0.5 - Math.random());
+  const shuffled = promptsData[key].slice().sort(() => 0.5 - Math.random())
   // Get sub-array of first n elements after shuffled
   let selected = shuffled.slice(0, num)
   return selected
@@ -131,9 +132,6 @@ export function downloadPhoto(url: string, filename?: string | null) {
  * @param array The array to be shuffled
  * @returns The same array, shuffled in place
  */
-
-
-
 
 /**
  * Measures the execution time of an asynchronous function

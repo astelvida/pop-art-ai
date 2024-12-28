@@ -1,6 +1,6 @@
 'use server'
 
-import { eq, not, desc, and, sql, getTableColumns, like, asc, exists } from 'drizzle-orm'
+import { eq, not, desc, and, sql, getTableColumns, like, isNotNull, exists } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import * as schema from '@/db/schema'
 import { db } from '@/db/drizzle'
@@ -171,24 +171,16 @@ export async function createUser() {
 type GetImagesProps = {
   limit?: number
   offset?: number
+  q?: string
+  tab?: 'explore' | 'favorites' | 'library'
 }
 
-export async function getImages(q = '', { limit = 10, offset = 0 }: GetImagesProps = {}) {
-  const authUser = await auth()
-  console.log(authUser, 'authUser')
+export async function getImages({ q, tab, limit = 10, offset = 0 }: GetImagesProps = {}) {
+  const { userId } = await auth()
 
-  const userId = authUser.userId
+  if (!userId) throw new Error('User ID not found')
 
-  if (!userId) {
-    return []
-  }
-
-  // const user = await db.select().from(Users).where(eq(Users.id, userId)).limit(1)
-
-  // if (!user.length) {
-  //   await createUser()
-  // }
-
+  console.log('userId', 'TAB', tab)
   const images = await db
     .select({
       id: AiImages.id,
@@ -199,8 +191,8 @@ export async function getImages(q = '', { limit = 10, offset = 0 }: GetImagesPro
       caption: AiImages.caption,
       description: AiImages.description,
       numLikes: AiImages.numLikes,
+      userId: AiImages.userId,
       createdAt: AiImages.createdAt,
-      userId: Users.id,
       isLikedByUser: sql<boolean>`EXISTS (
         SELECT 1 FROM ${Likes}
         WHERE ${Likes.aiImageId} = ${AiImages.id}
@@ -208,13 +200,29 @@ export async function getImages(q = '', { limit = 10, offset = 0 }: GetImagesPro
       )`.as('isLikedByUser'),
     })
     .from(AiImages)
+    .where(tab === 'library' ? eq(AiImages.userId, userId) : isNotNull(AiImages.userId))
+
     .innerJoin(Users, eq(AiImages.userId, Users.id))
-    // .where(like(AiImages.title, `%${q}%`))
     .orderBy(desc(AiImages.createdAt))
+  // .where(like(AiImages.title, `%${q}%`))
   // .limit(limit)
   // .offset(offset)
 
-  return images
+  let filteredImages
+  if (tab === 'favorites') {
+    filteredImages = images.filter((image) => image.isLikedByUser)
+  } else {
+    filteredImages = images
+  }
+
+  console.log(`Tab: >>> ${tab} images.length: >>> ${filteredImages.length}`)
+
+  console.log(
+    'images.map((image) => image.id)',
+    filteredImages.map((image) => image.id)
+  )
+
+  return filteredImages
 }
 
 export async function toggleLike(imageId: number) {
@@ -306,34 +314,33 @@ export async function embedAiImages() {
   return imageIds
 }
 
-// embedAiImages()
-
-// const imageIds = [85, 100, 89, 90, 91]
-
-// for (let i = 0; i < imageIds.length; i++) {
-//   embedAiImage(imageIds[i])
-// }
-
-// export async function updateNullAiImageNames() {
-//   try {
-//     const { userId } = auth()
-//     if (!userId) throw new AppError('User not authorized', 401)
-
-//     const result = await db
-//       .update(AiImages)
-//       .set({ name: 'pop_art_image.jpg' })
-//       .where(isNull(AiImages.name))
-//       .returning({ updatedId: AiImages.id })
-
-//     console.log(`Updated ${result.length} images with null names`)
-//     revalidatePath('/')
-//     return result
-//   } catch (error) {
-//     return handleError(error)
-//   }
-// }
-
 export const getAiImageCount = cache(async (): Promise<number> => {
   const [count] = await db.select({ count: sql<number>`count(*)` }).from(AiImages)
   return count.count
 })
+
+export async function getImagesWithLikeStatus() {
+  const { userId } = await auth()
+  if (!userId) throw new Error('User ID not found')
+
+  const images = await db.query.AiImages.findMany({
+    columns: {
+      id: true,
+      embedding: false,
+      prompt: true,
+      imageUrl: true,
+      numLikes: true,
+    },
+    with: {
+      likes: {
+        where: (likes, { eq }) => eq(likes.userId, userId),
+      },
+    },
+  })
+
+  const imagesWithLikeStatus = images.map(({ likes, ...image }) => ({
+    ...image,
+    isLiked: likes.length > 0,
+  }))
+  return imagesWithLikeStatus
+}
