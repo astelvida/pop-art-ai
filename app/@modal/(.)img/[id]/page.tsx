@@ -3,7 +3,7 @@ import { ModalImage } from '@/components/modal-image'
 import { Suspense } from 'react'
 
 export default async function ImageModalPage({ params }: { params: { id: string } }) {
-  const { id } = params
+  const { id } = await params
   return (
     <ModalImage>
       <Suspense fallback={<div>Loading...</div>}>

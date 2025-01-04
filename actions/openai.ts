@@ -4,7 +4,6 @@ import { zodResponseFormat } from 'openai/helpers/zod'
 import { z } from 'zod'
 import { TRIGGER_WORD } from '@/lib/data/constants'
 import { measureExecutionTime } from '@/lib/utils'
-import { Completions } from 'openai/resources/completions.mjs'
 /* eslint-disable */
 /* prettier-ignore-file */
 
@@ -22,8 +21,10 @@ IMAGE DETAILS
 const AiImageDetails = z.object({
   title: z.string().describe('Title of the image, like a typical artwork title'),
   caption: z.string().describe('Caption that we will use as metadata for the image'),
-  description: z.string().describe('Description of the image from the perspective of a professional art critic'),
-})  
+  description: z
+    .string()
+    .describe('Description of the image from the perspective of a professional art critic'),
+})
 /* prettier-ignore-end */
 
 /**
@@ -33,7 +34,6 @@ const AiImageDetails = z.object({
  * @returns Structured object containing image details (title, caption, description, etc.)
  */
 export async function generateImageDetails(imageUrl: string, prompt: string) {
-
   const promptText = `
 You are a talented art critic. You are given an image and the following prompt which was used to generate the image:
 
@@ -41,29 +41,29 @@ Prompt: "${prompt}".
 
 Extract the title, caption and description of the image from the perspective of a professional art critic.
 `
-    const completion = await openai.beta.chat.completions.parse({
-      model: 'gpt-4o-2024-08-06',
-      messages: [{
+  const completion = await openai.beta.chat.completions.parse({
+    model: 'gpt-4o-2024-08-06',
+    messages: [
+      {
         role: 'user',
-        content: [{
-          type: 'image_url',
-          image_url: { url: imageUrl },
-        },{
-          type: 'text',
-          text: promptText,
-        }],
-      }],
-      response_format: zodResponseFormat(AiImageDetails, 'ai_image_details'),
-    })
+        content: [
+          {
+            type: 'image_url',
+            image_url: { url: imageUrl },
+          },
+          {
+            type: 'text',
+            text: promptText,
+          },
+        ],
+      },
+    ],
+    response_format: zodResponseFormat(AiImageDetails, 'ai_image_details'),
+  })
 
-    pp(completion.choices[0].message.parsed, 'image details') 
-    return completion.choices[0].message.parsed
+  pp(completion.choices[0].message.parsed, 'image details')
+  return completion.choices[0].message.parsed
 }
-
-
-
-
-
 
 /*
 * 
@@ -164,7 +164,6 @@ export async function generatePrompts(options = defaultPromptOptions) {
   return result
 }
 
-
 /**
  * Creates an embedding vector for given text using OpenAI's embedding model
  * @param text Text to create embedding for
@@ -207,11 +206,8 @@ export async function testImageCompletion(imageUrl: string, prompt: string) {
   return result
 }
 
-
-// generatePrompts()   
+// generatePrompts()
 // generateImageDetails('https://i.imgur.com/52xjYbU.png', 'a woman crying').then(pp)
-
-
 
 // const themeDescription = 'Cheating on your partner'
 // const withTheme = (theme: string) => `

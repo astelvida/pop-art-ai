@@ -1,29 +1,20 @@
 'use server'
 
-import { eq, not, desc, and, sql, getTableColumns, like, isNotNull, exists } from 'drizzle-orm'
+import { eq, desc, and, sql, isNotNull } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import * as schema from '@/db/schema'
 import { db } from '@/db/drizzle'
 import { auth, currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { pp } from '@/lib/pprint'
-import { generateImageDetails, embedText } from '@/actions/openai'
-import fs from 'fs'
+import { generateImageDetails } from '@/actions/openai'
 import { cache } from 'react'
-import { getFileFromUrl } from '@/lib/upload-file'
 
 export const handleClose = async () => {
   redirect('/')
 }
 
 const { AiImages, Likes, Users } = schema
-
-const { embedding: _, ...rest } = getTableColumns(AiImages)
-
-const AiImagesWithoutEmbedding = {
-  ...rest,
-  embedding: sql<number[]>`ARRAY[]::integer[]`,
-}
 
 export type AiImageData = {
   imageUrl: string
@@ -74,8 +65,8 @@ export async function updateAiImageDetails(imageId: number) {
     .where(eq(AiImages.id, imageId))
     .returning()
 
-  const text = `${title}\n${caption}\n${description}`
-  await embedText(text)
+  // const text = `${title}\n${caption}\n${description}`
+  // await embedText(text)
 
   revalidatePath('/')
   revalidatePath(`/img/${imageId}`)
@@ -91,7 +82,6 @@ export async function saveAiImage({ imageUrl, prompt, aspectRatio }: AiImageData
   }
 
   const imageDetails = await generateImageDetails(imageUrl, prompt)
-
   const { title, caption, description } = imageDetails || {}
 
   const [insertedAiImage] = await db
@@ -107,8 +97,8 @@ export async function saveAiImage({ imageUrl, prompt, aspectRatio }: AiImageData
     })
     .returning()
 
-  const text = `${title}\n${caption}\n${description}`
-  embedText(text)
+  // const text = `${title}\n${caption}\n${description}`
+  // embedText(text)
 
   revalidatePath('/')
   revalidatePath(`/img/${insertedAiImage.id}`)
@@ -116,7 +106,7 @@ export async function saveAiImage({ imageUrl, prompt, aspectRatio }: AiImageData
   return insertedAiImage
 }
 
-export async function getAiImage(imageId: string | number) {
+export const getAiImage = cache(async (imageId: string | number) => {
   const { userId } = await auth()
   if (!userId) return new Error('Unauthorized')
 
@@ -126,10 +116,8 @@ export async function getAiImage(imageId: string | number) {
     .where(eq(AiImages.id, Number(imageId)))
     .limit(1)
 
-  pp(image, 'image')
-
   return image
-}
+})
 
 export async function deleteAiImage(id: string) {
   const { userId } = await auth()
@@ -173,57 +161,51 @@ type GetImagesProps = {
   offset?: number
   q?: string
   tab?: 'explore' | 'favorites' | 'library'
+  userId?: string
 }
 
-export async function getImages({ q, tab, limit = 10, offset = 0 }: GetImagesProps = {}) {
-  const { userId } = await auth()
+export const getImages = cache(
+  async ({ userId, tab, limit = 10, offset = 0 }: GetImagesProps = {}) => {
+    if (!userId) throw new Error('User ID not found')
 
-  if (!userId) throw new Error('User ID not found')
-
-  console.log('userId', 'TAB', tab)
-  const images = await db
-    .select({
-      id: AiImages.id,
-      imageUrl: AiImages.imageUrl,
-      aspectRatio: AiImages.aspectRatio,
-      prompt: AiImages.prompt,
-      title: AiImages.title,
-      caption: AiImages.caption,
-      description: AiImages.description,
-      numLikes: AiImages.numLikes,
-      userId: AiImages.userId,
-      createdAt: AiImages.createdAt,
-      isLikedByUser: sql<boolean>`EXISTS (
+    const images = await db
+      .select({
+        id: AiImages.id,
+        imageUrl: AiImages.imageUrl,
+        aspectRatio: AiImages.aspectRatio,
+        prompt: AiImages.prompt,
+        title: AiImages.title,
+        caption: AiImages.caption,
+        description: AiImages.description,
+        numLikes: AiImages.numLikes,
+        userId: AiImages.userId,
+        createdAt: AiImages.createdAt,
+        isLikedByUser: sql<boolean>`EXISTS (
         SELECT 1 FROM ${Likes}
         WHERE ${Likes.aiImageId} = ${AiImages.id}
         AND ${Likes.userId} = ${userId}
       )`.as('isLikedByUser'),
-    })
-    .from(AiImages)
-    .where(tab === 'library' ? eq(AiImages.userId, userId) : isNotNull(AiImages.userId))
+      })
+      .from(AiImages)
+      .where(tab === 'library' ? eq(AiImages.userId, userId) : isNotNull(AiImages.userId))
+      .innerJoin(Users, eq(AiImages.userId, Users.id))
+      .orderBy(desc(AiImages.createdAt))
+    // .where(like(AiImages.title, `%${q}%`))
+    // .limit(limit)
+    // .offset(offset)
 
-    .innerJoin(Users, eq(AiImages.userId, Users.id))
-    .orderBy(desc(AiImages.createdAt))
-  // .where(like(AiImages.title, `%${q}%`))
-  // .limit(limit)
-  // .offset(offset)
+    let filteredImages
+    if (tab === 'favorites') {
+      filteredImages = images.filter((image) => image.isLikedByUser)
+    } else {
+      filteredImages = images
+    }
 
-  let filteredImages
-  if (tab === 'favorites') {
-    filteredImages = images.filter((image) => image.isLikedByUser)
-  } else {
-    filteredImages = images
+    console.log(`Tab: >>> ${tab} images.length: >>> ${filteredImages.length}`)
+
+    return filteredImages
   }
-
-  console.log(`Tab: >>> ${tab} images.length: >>> ${filteredImages.length}`)
-
-  console.log(
-    'images.map((image) => image.id)',
-    filteredImages.map((image) => image.id)
-  )
-
-  return filteredImages
-}
+)
 
 export async function toggleLike(imageId: number) {
   const { userId } = await auth()
@@ -270,48 +252,6 @@ export async function toggleLike(imageId: number) {
 
     return { success: true, liked: true }
   }
-}
-
-// images: schema.AiImageResult
-export async function embedImage(image: schema.AiImageResult) {
-  const { id, title, caption, description } = image
-
-  const text = `${title}\n${caption}\n${description}`
-
-  const embedding = await embedText(text)
-
-  await db.update(AiImages).set({ embedding }).where(eq(AiImages.id, image.id))
-
-  console.log(`Embedded image ${image.id}`)
-}
-// images: schema.AiImageResult
-export async function embedAiImages() {
-  const imageIds = await db
-    .select({
-      id: AiImages.id,
-      title: AiImages.title,
-      caption: AiImages.caption,
-      description: AiImages.description,
-    })
-    .from(AiImages)
-    .where(not(exists(AiImages.embedding)))
-  console.log(imageIds)
-
-  for (const image of imageIds) {
-    const { id, title, caption, description } = image
-
-    const text = `${title}\n${caption}\n${description}`
-
-    const embedding = await embedText(text)
-
-    await db.update(AiImages).set({ embedding }).where(eq(AiImages.id, image.id))
-
-    console.log(`Embedded image ${image.id}`)
-  }
-
-  console.log(`EMBEDDINGS updated ${imageIds.length} images`)
-
-  return imageIds
 }
 
 export const getAiImageCount = cache(async (): Promise<number> => {

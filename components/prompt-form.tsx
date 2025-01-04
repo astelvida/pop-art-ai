@@ -1,27 +1,13 @@
 'use client'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { ArrowUp, Paintbrush, SettingsIcon, Shuffle, Wand2 } from 'lucide-react'
-import { useEffect, useRef, useState, useCallback, useLayoutEffect } from 'react'
-import useWindowSize from '@/hooks/use-window-size'
-import { ArrowTopRightIcon } from '@radix-ui/react-icons'
-import { randomPrompt, randomPrompts, shuffle } from '@/lib/utils'
+import { Paintbrush, Wand2 } from 'lucide-react'
+import { useEffect, useRef, useState, useLayoutEffect } from 'react'
+import { randomPrompt } from '@/lib/utils'
 import { SamplePromptTag } from '@/lib/types'
-import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { REGROUPED_PROMPTS as prompts } from '@/lib/data/prompts'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import SettingsForm from '@/components/settings-form'
-import { settingsData } from '@/lib/data/settings'
-import { type SettingsSchema } from '@/lib/schemas/inputSchema'
 import { toast } from 'sonner'
+import { type SettingsSchema } from '@/lib/schemas/inputSchema'
 
 const suggestions = Object.keys(prompts).map((category) => {
   const [name, description] = category.split(': ')
@@ -42,22 +28,14 @@ interface PromptInputProps {
   isGenerating: boolean
   prompt: string
   setPrompt: (prompt: string) => void
-  settings: SettingsSchema
-  handleSettingChange: (settingKey: keyof SettingsSchema, value: any) => void
-  children?: React.ReactNode
 }
 export default function PromptForm({
   handleGenerateImage,
   isGenerating,
   prompt,
   setPrompt,
-  settings,
-  handleSettingChange,
-  children,
 }: PromptInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const [promptCategory, setPromptCategory] = useState<keyof typeof prompts>()
-  // const [suggestions, setSuggestions] = useState<string[]>([])
   const [isSticky, setIsSticky] = useState(false)
   const stickyRef = useRef<HTMLDivElement>(null)
   // Use useCallback to memoize the function
@@ -75,10 +53,6 @@ export default function PromptForm({
     }
   }
 
-  const truncateSuggestion = (suggestion: string, maxLength: number) => {
-    return suggestion.length > maxLength ? suggestion.slice(0, maxLength - 3) + '...' : suggestion
-  }
-
   const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setPrompt(e.target.value)
     adjustHeight()
@@ -94,13 +68,21 @@ export default function PromptForm({
       }
     }
   }
-
   // Use useEffect to generate suggestions on mount and when promptCategory changes
   useLayoutEffect(() => {
     adjustHeight()
   }, [prompt])
 
-  // Add useEffect to handle textarea resizing on input change
+  useEffect(() => {
+    const handleScroll = () => {
+      if (stickyRef.current) {
+        const { top } = stickyRef.current.getBoundingClientRect()
+        setIsSticky(top <= 0)
+      }
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   return (
     <div

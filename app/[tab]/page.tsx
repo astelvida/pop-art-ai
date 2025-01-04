@@ -1,66 +1,40 @@
 import Gallery, { GallerySkeleton } from '@/components/gallery'
 import { Suspense } from 'react'
-import {
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarProvider,
-  SidebarInset,
-  SidebarTrigger,
-} from '@/components/ui/sidebar'
+
 import { Separator } from '@/components/ui/separator'
 import { Header } from '@/components/header'
-import { SearchBox } from '@/components/search-box'
 import { ImageGenerator } from '@/components/image-generator'
 import { ImageCounter } from '@/components/image-counter'
-import ArtsyImageGenerator from '@/components/ArtsyImageGenerator/artsy-image-generator'
 import { TabButtons } from '@/components/tab-buttons'
-
-export const experimental_ppr = true
+// export const experimental_ppr = true
 
 type PageProps = {
-  params: Promise<{ tab: '' | 'library' }>
+  params: Promise<{ tab: 'explore' | 'favorites' | 'library' }>
 }
 
-export default async function HomePage({ params }: PageProps) {
-  const { tab = 'explore' } = await params
-
+export default async function HomePage(props: PageProps) {
   // return <ArtsyImageGenerator />
+  const { tab } = await props.params
+  console.log(tab)
   return (
-    <SidebarProvider defaultOpen={false}>
-      {/* SETTINGS SIDEBAR */}
-      <Sidebar className="border-r-0">
-        <SidebarHeader>
-          <h2 className="mb-4 mt-4 text-center text-lg font-bold">Image Generation Settings</h2>
-        </SidebarHeader>
-        <SidebarContent>
-          <p>SIDEBAR</p>
-        </SidebarContent>
-      </Sidebar>
-      {/* MAIN CONTENT */}
-      <SidebarInset className="min-h-screen">
-        <main className="container mx-auto flex min-h-screen flex-col space-y-4 p-4">
-          <Header />
+    <main className="min-h-screen pb-20 bg-gray-100">
+      <Header />
 
-          <div className="space-y-4 ">
-            <h1 className="font-marker text-6xl font-bold text-center">Existential Pop Art</h1>
-            <ImageCounter />
+      <div className="container mx-auto px-4 mb-12">
+        <h2 className="text-5xl font-black mb-2 text-center">Pop Art</h2>
+        <p className="text-xl text-center mb-8">Transform your ideas into stunning visuals</p>
+        <ImageCounter />
+      </div>
 
-            <ImageGenerator />
+      <ImageGenerator />
 
-            {/* <SearchBox /> */}
+      <div className="container mx-auto px-4 py-8">
+        <TabButtons activeTab={tab} />
 
-            <Separator />
-
-            <TabButtons activeTab={tab} />
-
-            <Suspense fallback={<GallerySkeleton />}>
-              <Gallery tab={tab} />
-            </Suspense>
-          </div>
-          <SidebarTrigger />
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+        <Suspense fallback={<GallerySkeleton />}>
+          <Gallery tab={tab} key={tab} />
+        </Suspense>
+      </div>
+    </main>
   )
 }

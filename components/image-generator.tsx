@@ -2,21 +2,19 @@
 
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import PromptForm from '@/components/prompt-form'
-import { saveAiImage } from '@/actions/queries'
+import { saveAiImage } from '@/actions/queries' // TODO: remove updateAiImageDetails
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Download, Copy, Shuffle, Share2, Loader2 } from 'lucide-react'
 import { cn, downloadPhoto, extractLastIterationNumber, sleep } from '@/lib/utils'
 import { type Prediction } from 'replicate'
-import { PROMPTS as prompts } from '@/lib/data/prompts'
 import Image from 'next/image'
 import { type SettingsSchema } from '@/lib/schemas/inputSchema'
 import { Progress } from '@/components/ui/progress'
 import { type AiImage } from '@/db/schema'
 import confetti from 'canvas-confetti'
 import LikeButton from '@/components/buttons/like-button'
-import SettingsForm from '@/components/settings-form'
 import { settingsData } from '@/lib/data/settings'
 import { toast } from 'sonner'
 import { CreditDisplay } from './credit-display'
@@ -32,14 +30,13 @@ const initialSettingsState = settingsData.reduce<SettingsSchema>((acc, setting) 
 
 export function ImageGenerator({ children }: { children?: React.ReactNode }) {
   const [prediction, setPrediction] = useState<Prediction | null>(null)
-  const [prompt, setPrompt] = useState(prompts['fresh_meat'][0])
+  const [prompt, setPrompt] = useState('')
   const [settings, setSettings] = useState<SettingsSchema>(initialSettingsState)
   const [isGenerating, setIsGenerating] = useState(false)
   const [currentImage, setCurrentImage] = useState<AiImage | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [progress, setProgress] = useState(0)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
-  const [isOpen, setIsOpen] = useState(false)
   const [showCreditDisplay, setShowCreditDisplay] = useState(false)
   const [userCredits, setUserCredits] = useState(0)
 
@@ -212,11 +209,7 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
         isGenerating={isGenerating}
         prompt={prompt}
         setPrompt={setPrompt}
-        settings={settings}
-        handleSettingChange={handleSettingChange}
-      >
-        <SettingsForm handleSettingChange={handleSettingChange} settings={settings} />
-      </PromptForm>
+      />
       <Dialog open={showModal} onOpenChange={(open) => !isGenerating && setShowModal(open)}>
         <DialogContent className="sm:max-w-[580px]">
           {showCreditDisplay ? (
@@ -315,12 +308,8 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
                       {Math.round(Number(prediction?.metrics?.predict_time) * 100) / 100} seconds
                     </p>
 
-                    <Button
-                      variant="outline"
-                      className="w-full p-6 font-bangers text-xl"
-                      onClick={() => setIsOpen(!isOpen)}
-                    >
-                      {isOpen ? 'Hide Details' : 'Show Details'}
+                    <Button variant="outline" className="w-full p-6 font-bangers text-xl">
+                      Read more
                     </Button>
                   </div>
                 )}

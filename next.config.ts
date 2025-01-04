@@ -1,4 +1,4 @@
-import type { NextConfig } from 'next';
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   images: {
@@ -13,16 +13,25 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   eslint: {
-    ignoreDuringBuilds: true, 
+    ignoreDuringBuilds: true,
   },
-  experimental: {
-    inlineCss: true,
-    // ppr: 'incremental',
-    reactCompiler: true,
-    // staleTimes: {
-    //   dynamic: 30,
-    // },
+  // experimental: {
+  //   inlineCss: true,
+  //   // ppr: 'incremental',
+  //   reactCompiler: true,
+  //   // staleTimes: {
+  //   //   dynamic: 30,
+  //   // },
+  // },
+  redirects: async () => {
+    return [
+      {
+        destination: '/explore',
+        permanent: true,
+        source: '/',
+      },
+    ]
   },
 }
 
-export default nextConfig;
+export default nextConfig

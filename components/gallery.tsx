@@ -5,14 +5,18 @@ import { Skeleton } from '@/components/ui/skeleton'
 import DeleteButton from './buttons/delete-button'
 import LikeButton from './buttons/like-button'
 import { getImages } from '@/actions/queries'
+import { auth } from '@clerk/nextjs/server'
 
 type PageProps = {
   tab?: 'explore' | 'favorites' | 'library'
-  q?: string
 }
 
-export default async function Gallery({ tab = 'explore', q = '' }: PageProps) {
-  const images = await getImages({ tab, q })
+export default async function Gallery({ tab = 'explore', params }: PageProps) {
+  // const { tab: myTab } = await params
+
+  const { userId } = await auth()
+
+  const images = await getImages({ tab, userId })
 
   return (
     <div className="columns-1 gap-4 pt-8 sm:columns-2 xl:columns-3 2xl:columns-4">
