@@ -19,10 +19,8 @@ export async function getFileFromUrl(prediction: Prediction) {
 
     const { data, error } = await utapi.uploadFiles(file)
 
-    console.log('data', data)
-
     if (error) throw error
-    return data.appUrl
+    return data.url
   } catch (error) {
     console.error('Error getting file from url', error)
     throw error

@@ -2,7 +2,6 @@ import { config } from 'dotenv'
 import { neon } from '@neondatabase/serverless'
 import { drizzle } from 'drizzle-orm/neon-http'
 import * as schema from './schema'
-import { and, sql } from 'drizzle-orm'
 
 config({ path: ['.env.local', '.env'] })
 
