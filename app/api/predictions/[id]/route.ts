@@ -1,13 +1,6 @@
 import { NextResponse } from 'next/server'
 import Replicate, { Prediction } from 'replicate'
 
-const replciateUrl =
-  'https://replicate.delivery/yhqm/8PbXPik8rNIUMNE8GWAkoteREu4SO9Ta1qU1dIyROVppe6tTA/out-0.webp'
-const predictionId = 'yhqm'
-const outputFormat = 'webp'
-
-// getFileFromUrl(replciateUrl)
-
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 })

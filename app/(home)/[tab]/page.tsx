@@ -8,7 +8,6 @@ type PageProps = {
 }
 
 export default async function HomePage(props: PageProps) {
-  // return <ArtsyImageGenerator />
   const { tab } = await props.params
   console.log(tab)
   return (

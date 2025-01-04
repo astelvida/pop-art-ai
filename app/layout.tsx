@@ -6,9 +6,6 @@ import { Bangers, Permanent_Marker } from 'next/font/google'
 import { Toaster } from '@/components/ui/toaster'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster as SonnerToaster } from 'sonner'
-import { ImageGenerator } from '@/components/image-generator'
-import { ImageCounter } from '@/components/image-counter'
-import { Header } from '@/components/header'
 
 // If loading a variable font, you don't need to specify the font weight
 const bangers = Bangers({
@@ -54,28 +51,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${bangers.variable} ${marker.variable} antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <ClerkProvider>
-            <main className="min-h-screen pb-20 bg-gray-100">
-              <Header />
-
-              <div className="container mx-auto px-4 mb-12">
-                <h2 className="text-5xl font-black mb-2 text-center">Pop Art</h2>
-                <p className="text-xl text-center mb-8">
-                  Transform your ideas into stunning visuals
-                </p>
-                <ImageCounter />
-              </div>
-
-              <ImageGenerator />
-
-              {children}
-            </main>
+            {children}
             {modal}
             <div id="modal-root" />
             <Toaster />
