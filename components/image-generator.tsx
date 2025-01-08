@@ -198,10 +198,7 @@ export function ImageGenerator() {
         settingsTrigger={<SettingsSidebar settings={settings} onSettingChange={updateSetting} />}
       />
       <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="sm:max-w-[580px]">
-          <div className="text-center text-lg text-muted-foreground">
-            ASPECT RATIO: {settings.aspect_ratio}
-          </div>
+        <DialogContent className="sm:max-w-[580px] ">
           {showCreditDisplay ? (
             <CreditDisplay credits={userCredits} />
           ) : (
@@ -242,9 +239,12 @@ export function ImageGenerator() {
                 ) : null}
               </div>
 
-              <CardContent className="p-0">
+              <CardContent className="p-0 ">
                 {isGenerating ? (
-                  <AspectRatio ratio={w / h} className=" bg-green-800">
+                  <AspectRatio
+                    ratio={w / h}
+                    className=" bg-muted flex flex-col items-center justify-center"
+                  >
                     <div
                       className={`w-full max-w-[400px] flex flex-col items-center justify-center rounded-md bg-muted`}
                     >
