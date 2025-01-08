@@ -3,14 +3,6 @@
 import * as React from 'react'
 import { Settings2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetTrigger,
-} from '@/components/ui/sheet'
 import { Slider } from '@/components/ui/slider'
 import {
   Select,
@@ -20,14 +12,25 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { settingsData, type Setting, type SettingsSchema } from '@/lib/schemas/settings'
+import { AspectRatioSelector } from './aspect-ratio-selector'
 
 interface SettingsSidebarProps {
   settings: Partial<SettingsSchema>
   onSettingChange: (name: keyof SettingsSchema, value: SettingsSchema[keyof SettingsSchema]) => void
+  isOpen?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export function SettingsSidebar({ settings, onSettingChange }: SettingsSidebarProps) {
-  const [isOpen, setIsOpen] = React.useState(false)
+export function SettingsSidebar({
+  settings,
+  onSettingChange,
+  isOpen: externalIsOpen,
+  onOpenChange,
+}: SettingsSidebarProps) {
+  const [internalIsOpen, setInternalIsOpen] = React.useState(false)
+
+  const isOpen = externalIsOpen ?? internalIsOpen
+  const setIsOpen = onOpenChange ?? setInternalIsOpen
 
   const renderSetting = (setting: Setting) => {
     switch (setting.type) {
@@ -92,26 +95,6 @@ export function SettingsSidebar({ settings, onSettingChange }: SettingsSidebarPr
 
   return (
     <>
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            className="fixed bottom-4 right-4 z-50 rounded-none border-2 border-black bg-white hover:bg-purple-100 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:-translate-y-1 hover:shadow-none transition-all"
-          >
-            <Settings2 className="h-5 w-5" />
-            <span className="sr-only">Open settings</span>
-          </Button>
-        </SheetTrigger>
-        <SheetContent className="w-[300px] border-l-4 border-black sm:max-w-none">
-          <SheetHeader>
-            <SheetTitle>Prompt Settings</SheetTitle>
-            <SheetDescription>Customize your prompt generation settings</SheetDescription>
-          </SheetHeader>
-          <div className="mt-6">{settingsContent}</div>
-        </SheetContent>
-      </Sheet>
-
       <div className="fixed top-0 right-0 bottom-0 w-12 bg-black flex items-center justify-center z-50">
         <Button
           variant="ghost"

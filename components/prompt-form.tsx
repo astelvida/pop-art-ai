@@ -2,49 +2,37 @@
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Paintbrush, Wand2 } from 'lucide-react'
-import { useEffect, useRef, useState, useLayoutEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { randomPrompt } from '@/lib/utils'
 import { SamplePromptTag } from '@/lib/types'
 import { REGROUPED_PROMPTS as prompts } from '@/lib/data/prompts'
 import { toast } from 'sonner'
-import { type SettingsSchema } from '@/lib/schemas/inputSchema'
 
 const suggestions = Object.keys(prompts).map((category) => {
-  const [name, description] = category.split(': ')
+  const [name] = category.split(': ')
   return {
     id: category,
     name,
-    description,
   }
 })
-
-interface PromptSuggestionsProps {
-  setPrompt: (suggestion: string) => void
-  category: string
-}
 
 interface PromptInputProps {
   handleGenerateImage: () => void
   isGenerating: boolean
   prompt: string
   setPrompt: (prompt: string) => void
+  settingsTrigger: React.ReactNode
 }
+
 export default function PromptForm({
   handleGenerateImage,
   isGenerating,
   prompt,
   setPrompt,
+  settingsTrigger,
 }: PromptInputProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isSticky, setIsSticky] = useState(false)
   const stickyRef = useRef<HTMLDivElement>(null)
-  // Use useCallback to memoize the function
-  const adjustHeight = () => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto'
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight + 2}px`
-    }
-  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,7 +43,6 @@ export default function PromptForm({
 
   const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setPrompt(e.target.value)
-    adjustHeight()
   }
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -68,10 +55,6 @@ export default function PromptForm({
       }
     }
   }
-  // Use useEffect to generate suggestions on mount and when promptCategory changes
-  useLayoutEffect(() => {
-    adjustHeight()
-  }, [prompt])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -97,14 +80,14 @@ export default function PromptForm({
           </div>
           <div className="relative">
             <Textarea
-              ref={textareaRef}
               placeholder="Start with one of the suggested themes below or write your own"
               value={prompt}
               onChange={handlePromptChange}
-              className="pl-10 pr-20 py-4 rounded-none border-4 border-black focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300 ease-in-out resize-none overflow-hidden min-h-[6rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
-              rows={3}
+              className="pl-10 pr-20 py-4 h-24 rounded-none border-4 border-black focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300 ease-in-out resize-none shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-md"
               onKeyDown={handleKeyDown}
             />
+
+            {settingsTrigger}
 
             <Button
               onClick={handleGenerateImage}
@@ -137,15 +120,14 @@ export default function PromptForm({
                 </div>
               ) : (
                 <>
-                  <Wand2 className="h-5 w-5 mr-2" />
-                  Generate
+                  <Wand2 className="h-5 w-5" />
                 </>
               )}
             </Button>
           </div>
         </div>
         <div className="flex flex-wrap gap-2 mb-4">
-          {suggestions.slice(0).map((suggestedCategory, index) => (
+          {suggestions.map((suggestedCategory) => (
             <button
               key={suggestedCategory.id}
               onClick={() => setPrompt(randomPrompt(suggestedCategory.id as SamplePromptTag))}
@@ -159,68 +141,3 @@ export default function PromptForm({
     </div>
   )
 }
-
-// {/* SETTINGS POPOVER TRIGGER BUTTON */}
-// {/* <Popover>
-//       <PopoverTrigger asChild>
-//         <Button className="absolute bottom-3 left-3 rounded-full [&_svg]:size-6">
-//           <SettingsIcon className="h-6 w-6" />
-//           Settings
-//           <span className="sr-only">Open settings</span>
-//         </Button>
-//       </PopoverTrigger>
-//       <PopoverContent className="w-80">
-//         <div className="grid gap-4">
-//           <div className="space-y-2">
-//             <h4 className="font-medium leading-none">Prompt Settings</h4>
-//             <p className="text-sm text-muted-foreground">
-//               Customize your prompt generation settings
-//             </p>
-//           </div>
-//           <SettingsForm handleSettingChange={handleSettingChange} settings={settings} />
-//           <div className="grid gap-2">
-//             <div className="grid grid-cols-3 items-center gap-4">
-//               <Label htmlFor="category">Category</Label>
-//               <Select
-//                 value={promptCategory}
-//                 onValueChange={(value) => setPromptCategory(value as keyof typeof prompts)}
-//                 className="col-span-2"
-//               >
-//                 <SelectTrigger>
-//                   <SelectValue placeholder="Select category" />
-//                 </SelectTrigger>
-//                 <SelectContent>
-//                   {Object.keys(prompts).map((category) => (
-//                     <SelectItem key={category} value={category}>
-//                       {category}
-//                     </SelectItem>
-//                   ))}
-//                 </SelectContent>
-//               </Select>
-//             </div>
-//           </div>
-//         </div>
-//       </PopoverContent>
-//     </Popover> */}
-// {/* RANDOMIZE BUTTON */}
-// {/* <Button
-//       type="button"
-//       variant="ghost"
-//       size="icon"
-//       className="absolute right-2 top-2"
-//       onClick={() => setPrompt(randomPrompt(promptCategory as SamplePromptTag))}
-//       disabled={isGenerating}
-//     >
-//       <Shuffle className="h-4 w-4" />
-//       <span className="sr-only">Randomize prompt</span>
-//     </Button> */}
-// {/* GENERATE BUTTON */}
-// {/* <Button
-//       type="submit"
-//       disabled={isGenerating || !prompt.trim()}
-//       size="icon"
-//       className="absolute bottom-4 right-4 rounded-full"
-//     >
-//       <ArrowUp className="h-4 w-4" />
-//       <span className="sr-only">Generate Image</span>
-//     </Button> */}
