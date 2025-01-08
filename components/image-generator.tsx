@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import PromptForm from '@/components/prompt-form'
 import { saveAiImage } from '@/actions/queries'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Download, Copy, Shuffle, Share2, Loader2 } from 'lucide-react'
-import { cn, downloadPhoto, extractLastIterationNumber, sleep } from '@/lib/utils'
+import { downloadPhoto, extractLastIterationNumber, sleep } from '@/lib/utils'
 import { type Prediction } from 'replicate'
 import Image from 'next/image'
 import { Progress } from '@/components/ui/progress'
@@ -164,16 +164,12 @@ export function ImageGenerator() {
     }
   }, [isGenerating, currentImage])
 
-  // const aspectRatios = ['16:9', '9:16', '1:1', '3:4', '4:3', '21:9']
-
   const formatAspectRatio = (aspectRatio: string) => {
     const [w, h] = aspectRatio.split(':').map(Number)
     return [w, h]
   }
 
   const [w, h] = formatAspectRatio(settings.aspect_ratio)
-
-  const imageHeight = 400 * (h / w)
 
   useEffect(() => {
     // Fetch user's current credits
@@ -193,18 +189,15 @@ export function ImageGenerator() {
   }, [])
 
   return (
-    <>
-      <SettingsSidebar settings={settings} onSettingChange={updateSetting} />
+    <div className="relative">
       <PromptForm
         handleGenerateImage={handleGenerateImage}
         isGenerating={isGenerating}
         prompt={prompt}
         setPrompt={setPrompt}
+        settingsTrigger={<SettingsSidebar settings={settings} onSettingChange={updateSetting} />}
       />
       <Dialog open={showModal} onOpenChange={setShowModal}>
-        {/* <DialogTrigger asChild>
-          <Button>Open</Button>
-        </DialogTrigger> */}
         <DialogContent className="sm:max-w-[580px]">
           <div className="text-center text-lg text-muted-foreground">
             ASPECT RATIO: {settings.aspect_ratio}
@@ -264,8 +257,6 @@ export function ImageGenerator() {
                     <Image
                       src={imageUrl}
                       fill
-                      // width={400}
-                      // height={imageHeight}
                       onLoad={() => {
                         confetti({
                           particleCount: 100,
@@ -315,6 +306,6 @@ export function ImageGenerator() {
           )}
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   )
 }
