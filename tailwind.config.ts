@@ -11,7 +11,12 @@ const config: Config = {
     extend: {
       aspectRatio: {
         '9/16': '9 / 16',
-        portrait: '9 / 16',
+        '16/9': '16 / 9',
+        '1/1': '1 / 1',
+        '3/4': '3 / 4',
+        '4/3': '4 / 3',
+        '21/9': '21 / 9',
+        // portrait: '9 / 16',
       },
       colors: {
         background: 'hsl(var(--background))',

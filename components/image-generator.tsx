@@ -5,7 +5,7 @@ import PromptForm from '@/components/prompt-form'
 import { saveAiImage } from '@/actions/queries'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Download, Copy, Shuffle, Share2, Loader2 } from 'lucide-react'
 import { cn, downloadPhoto, extractLastIterationNumber, sleep } from '@/lib/utils'
 import { type Prediction } from 'replicate'
@@ -19,6 +19,7 @@ import { CreditDisplay } from './credit-display'
 import { getFileFromUrl } from '@/lib/upload-file'
 import { SettingsSidebar } from './settings-sidebar'
 import { useSettings } from '@/hooks/use-settings'
+import { AspectRatio } from '@radix-ui/react-aspect-ratio'
 
 export function ImageGenerator() {
   const [prediction, setPrediction] = useState<Prediction | null>(null)
@@ -163,12 +164,16 @@ export function ImageGenerator() {
     }
   }, [isGenerating, currentImage])
 
-  const { aspect_ratio } = settings
-  const imageHeight = useMemo(
-    () => 400 * (aspect_ratio === '16:9' ? 9 / 16 : aspect_ratio === '9:16' ? 16 / 9 : 1),
-    [aspect_ratio]
-  )
-  const classNames = `aspect-${aspect_ratio === '16:9' ? 'video' : aspect_ratio === '9:16' ? '[9/16]' : 'square'}`
+  // const aspectRatios = ['16:9', '9:16', '1:1', '3:4', '4:3', '21:9']
+
+  const formatAspectRatio = (aspectRatio: string) => {
+    const [w, h] = aspectRatio.split(':').map(Number)
+    return [w, h]
+  }
+
+  const [w, h] = formatAspectRatio(settings.aspect_ratio)
+
+  const imageHeight = 400 * (h / w)
 
   useEffect(() => {
     // Fetch user's current credits
@@ -196,8 +201,14 @@ export function ImageGenerator() {
         prompt={prompt}
         setPrompt={setPrompt}
       />
-      <Dialog open={showModal} onOpenChange={(open) => !isGenerating && setShowModal(open)}>
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        {/* <DialogTrigger asChild>
+          <Button>Open</Button>
+        </DialogTrigger> */}
         <DialogContent className="sm:max-w-[580px]">
+          <div className="text-center text-lg text-muted-foreground">
+            ASPECT RATIO: {settings.aspect_ratio}
+          </div>
           {showCreditDisplay ? (
             <CreditDisplay credits={userCredits} />
           ) : (
@@ -240,21 +251,21 @@ export function ImageGenerator() {
 
               <CardContent className="p-0">
                 {isGenerating ? (
-                  <div
-                    className={cn(
-                      `w-full max-w-[400px] flex flex-col items-center justify-center rounded-md bg-muted`,
-                      classNames
-                    )}
-                  >
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-sm text-muted-foreground">Generating image...</p>
-                  </div>
+                  <AspectRatio ratio={w / h} className=" bg-green-800">
+                    <div
+                      className={`w-full max-w-[400px] flex flex-col items-center justify-center rounded-md bg-muted`}
+                    >
+                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      <p className="text-sm text-muted-foreground">Generating image...</p>
+                    </div>
+                  </AspectRatio>
                 ) : imageUrl ? (
-                  <div className={cn(`relative w-full max-w-[500px] mx-auto`, classNames)}>
+                  <AspectRatio ratio={w / h}>
                     <Image
                       src={imageUrl}
-                      width={400}
-                      height={imageHeight}
+                      fill
+                      // width={400}
+                      // height={imageHeight}
                       onLoad={() => {
                         confetti({
                           particleCount: 100,
@@ -265,7 +276,7 @@ export function ImageGenerator() {
                       alt="Generated image"
                       className="h-full w-full rounded-md object-cover"
                     />
-                  </div>
+                  </AspectRatio>
                 ) : null}
               </CardContent>
               <CardFooter className="flex flex-col items-stretch justify-center space-y-8 pt-6">

@@ -7,6 +7,7 @@ import { randomPrompt } from '@/lib/utils'
 import { SamplePromptTag } from '@/lib/types'
 import { REGROUPED_PROMPTS as prompts } from '@/lib/data/prompts'
 import { toast } from 'sonner'
+import { DialogTrigger } from '@radix-ui/react-dialog'
 
 const suggestions = Object.keys(prompts).map((category) => {
   const [name] = category.split(': ')
@@ -89,6 +90,7 @@ export default function PromptForm({
 
             {settingsTrigger}
 
+            {/* <DialogTrigger asChild> */}
             <Button
               onClick={handleGenerateImage}
               disabled={isGenerating}
@@ -124,6 +126,7 @@ export default function PromptForm({
                 </>
               )}
             </Button>
+            {/* </DialogTrigger> */}
           </div>
         </div>
         <div className="flex flex-wrap gap-2 mb-4">

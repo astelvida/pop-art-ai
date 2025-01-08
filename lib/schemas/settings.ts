@@ -47,7 +47,7 @@ export const settingsData: Setting[] = [
     description:
       'Aspect ratio for the generated image in text-to-image mode. The size will always be 1 megapixel, i.e. 1024x1024 if aspect ratio is 1:1.',
     default: '1:1',
-    options: ['16:9', '9:16', '1:1', '5:2', '4:5', '4:3'],
+    options: ['16:9', '9:16', '1:1', '3:4', '4:3', '21:9'],
   },
   {
     name: 'output_format',
