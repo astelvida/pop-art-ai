@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import PromptForm from '@/components/prompt-form'
-import { saveAiImage } from '@/actions/queries' // TODO: remove updateAiImageDetails
+import { saveAiImage } from '@/actions/queries'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
@@ -10,28 +10,20 @@ import { Download, Copy, Shuffle, Share2, Loader2 } from 'lucide-react'
 import { cn, downloadPhoto, extractLastIterationNumber, sleep } from '@/lib/utils'
 import { type Prediction } from 'replicate'
 import Image from 'next/image'
-import { type SettingsSchema } from '@/lib/schemas/inputSchema'
 import { Progress } from '@/components/ui/progress'
 import { type AiImage } from '@/db/schema'
 import confetti from 'canvas-confetti'
 import LikeButton from '@/components/buttons/like-button'
-import { settingsData } from '@/lib/data/settings'
 import { toast } from 'sonner'
 import { CreditDisplay } from './credit-display'
 import { getFileFromUrl } from '@/lib/upload-file'
+import { SettingsSidebar } from './settings-sidebar'
+import { useSettings } from '@/hooks/use-settings'
 
-const initialSettingsState = settingsData.reduce<SettingsSchema>((acc, setting) => {
-  if (typeof setting.default !== 'undefined') {
-    acc[setting.name as keyof SettingsSchema] =
-      setting.default as SettingsSchema[keyof SettingsSchema]
-  }
-  return acc
-}, {} as SettingsSchema)
-
-export function ImageGenerator({ children }: { children?: React.ReactNode }) {
+export function ImageGenerator() {
   const [prediction, setPrediction] = useState<Prediction | null>(null)
   const [prompt, setPrompt] = useState('')
-  const [settings, setSettings] = useState<SettingsSchema>(initialSettingsState)
+  const { settings, updateSetting } = useSettings()
   const [isGenerating, setIsGenerating] = useState(false)
   const [currentImage, setCurrentImage] = useState<AiImage | null>(null)
   const [showModal, setShowModal] = useState(false)
@@ -39,13 +31,6 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [showCreditDisplay, setShowCreditDisplay] = useState(false)
   const [userCredits, setUserCredits] = useState(0)
-
-  const handleSettingChange = (
-    name: keyof SettingsSchema,
-    value: SettingsSchema[keyof SettingsSchema]
-  ) => {
-    setSettings((prev) => ({ ...prev, [name]: value }))
-  }
 
   const handleGenerateImage = useCallback(async () => {
     setIsGenerating(true)
@@ -204,6 +189,7 @@ export function ImageGenerator({ children }: { children?: React.ReactNode }) {
 
   return (
     <>
+      <SettingsSidebar settings={settings} onSettingChange={updateSetting} />
       <PromptForm
         handleGenerateImage={handleGenerateImage}
         isGenerating={isGenerating}

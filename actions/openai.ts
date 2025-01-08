@@ -61,7 +61,7 @@ Extract the title, caption and description of the image from the perspective of 
     response_format: zodResponseFormat(AiImageDetails, 'ai_image_details'),
   })
 
-  pp(completion.choices[0].message.parsed, 'image details')
+  // pp(completion.choices[0].message.parsed, 'image details')
   return completion.choices[0].message.parsed
 }
 
@@ -202,7 +202,7 @@ export async function testImageCompletion(imageUrl: string, prompt: string) {
   })
 
   const result = response.choices[0].message.content
-  console.log(result)
+  // console.log(result)
   return result
 }
 

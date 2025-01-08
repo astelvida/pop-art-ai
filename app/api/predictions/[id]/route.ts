@@ -12,8 +12,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   if (prediction.status === 'succeeded') {
     console.log('GET prediction SUCCEEDED\n', prediction.output)
+    // console.log('GET prediction .URL()\n', prediction.output[0].url())
+    // console.log('GET prediction .TOSTRING()\n', prediction.output[0].toString())
 
-    // console.log('GET prediction OUTPUT\n', prediction.output[0])
+    // const blob = await prediction.output[0].blob()
+    // console.log('GET prediction .BLOB()\n', blob)
   }
 
   if (prediction?.error) {
