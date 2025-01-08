@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { GitHubLogoIcon } from '@radix-ui/react-icons'
 import { Menu, X } from 'lucide-react'
 import { ThemeToggle } from './theme-toggle'
+import Image from 'next/image'
 
 export function Header({ children }: { children?: React.ReactNode }) {
   const pathname = usePathname()
@@ -21,14 +22,15 @@ export function Header({ children }: { children?: React.ReactNode }) {
     <header className="py-4 mb-8">
       <div className="flex items-center justify-between container mx-auto px-4">
         <Link href="/" className="flex items-center space-x-2">
-          <h1 className="text-3xl font-bold">ARTSY AI</h1>
+          <Image src="/logo.png" alt="ARTSY AI" width={100} height={100} />
         </Link>
+
         <div className="flex items-center space-x-4">
           <SignedIn>
             <UserButton
               appearance={{
                 elements: {
-                  userButtonAvatarBox: 'size-6',
+                  userButtonAvatarBox: 'size-10',
                 },
               }}
             />

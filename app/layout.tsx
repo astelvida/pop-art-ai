@@ -6,7 +6,7 @@ import { Bangers, Permanent_Marker } from 'next/font/google'
 import { Toaster } from '@/components/ui/toaster'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster as SonnerToaster } from 'sonner'
-
+import { dark, neobrutalism, shadesOfPurple } from '@clerk/themes'
 // If loading a variable font, you don't need to specify the font weight
 const bangers = Bangers({
   subsets: ['latin'],
@@ -51,8 +51,18 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${bangers.variable} ${marker.variable} antialiased`}
       >
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <ClerkProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ClerkProvider
+            appearance={{
+              baseTheme: [neobrutalism],
+              // variables: { colorPrimary: 'blue' },
+            }}
+          >
             {children}
             {modal}
             <div id="modal-root" />

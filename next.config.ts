@@ -15,14 +15,15 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // experimental: {
-  //   inlineCss: true,
-  //   // ppr: 'incremental',
-  //   reactCompiler: true,
-  //   // staleTimes: {
-  //   //   dynamic: 30,
-  //   // },
-  // },
+  experimental: {
+    // inlineCss: true,
+    // ppr: 'incremental',
+    // reactCompiler: true,
+    // CACHE tabbed pages
+    staleTimes: {
+      dynamic: 30,
+    },
+  },
   redirects: async () => {
     return [
       {
