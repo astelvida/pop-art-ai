@@ -163,10 +163,10 @@ export function SettingsSidebar({ settings, onSettingChange }: SettingsSidebarPr
         <DrawerTrigger asChild>
           <Button
             variant="outline"
-            className="rounded-none border-2 border-black hover:bg-purple-100"
+            size="icon"
+            className="rounded-none border-2 border-black hover:bg-purple-100 transition-all duration-300 ease-in-out hover:translate-x-1 hover:-translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
           >
-            <Settings2 className="w-4 h-4 mr-2" />
-            Settings
+            <Settings2 className="w-4 h-4" />
           </Button>
         </DrawerTrigger>
         <DrawerContent className="h-[80vh]">
@@ -181,10 +181,10 @@ export function SettingsSidebar({ settings, onSettingChange }: SettingsSidebarPr
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className="rounded-none border-2 border-black hover:bg-purple-100"
+          size="icon"
+          className="rounded-none border-2 border-black hover:bg-purple-100 transition-all duration-300 ease-in-out hover:translate-x-1 hover:-translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
         >
-          <Settings2 className="w-4 h-4 mr-2" />
-          Settings
+          <Settings2 className="w-4 h-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[600px] p-4 rounded-none border-4 border-black" align="end">
