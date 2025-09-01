@@ -1,9 +1,11 @@
-import { headers } from 'next/headers'
-import { NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe'
 import { db } from '@/db/drizzle'
 import { Payments, Users } from '@/db/schema'
+import { stripe } from '@/lib/stripe'
+import { config } from 'dotenv'
 import { eq, sql } from 'drizzle-orm'
+import { headers } from 'next/headers'
+import { NextResponse } from 'next/server'
+config({ path: ['.env.local', '.env'] })
 
 export async function POST(req: Request) {
   const body = await req.text()
